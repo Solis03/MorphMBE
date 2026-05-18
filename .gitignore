@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.DS_Store
+*.log
+
+data/raw/
+data/SEM/
+data/processed/
+data/processed_afm/
+data/pair/
+outputs/
+reports/figures/
+checkpoints/
