@@ -9,6 +9,21 @@ This repository is an initial feasibility demo. Any generated model output or
 analysis from the current pipeline should be treated as exploratory, not as a
 final scientific result.
 
+
+## AFM Overview Figures
+
+The pipeline also renders two 1 x 1 um AFM overview figures. Each sample appears
+at most once in each grid, and each subplot includes its own height colorbar in
+nm.
+
+Processed AFM height maps:
+
+![Processed AFM 1 x 1 um overview](reports/figures/afm_scan_size_grids/processed_afm_scan_size_1um_grid.png)
+
+Plane-corrected AFM height maps:
+
+![Plane-corrected AFM 1 x 1 um overview](reports/figures/afm_scan_size_grids/plane_corrected_afm_scan_size_1um_grid.png)
+
 ## Repository Structure
 
 ```text
