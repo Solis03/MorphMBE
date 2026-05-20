@@ -9,9 +9,11 @@ This script is intentionally small and idempotent. Each run rebuilds generated
 outputs from the current raw data:
 
 1. Validate raw input folders: data/raw/raw_AFM/ and data/raw/raw_RHEED/
-2. Remove generated folders: data/pair/ and data/processed_afm/
+2. Remove generated folders: data/pair/, data/processed_afm/, and
+   data/plane_corrected_afm/
 3. Recreate data/pair/ from raw AFM/RHEED sample ids
 4. Extract AFM height maps into data/processed_afm/
+5. Subtract fitted planes into data/plane_corrected_afm/
 
 It never deletes data/raw/.
 """
@@ -32,6 +34,7 @@ RAW_AFM_DIR = RAW_ROOT / "raw_AFM"
 RAW_RHEED_DIR = RAW_ROOT / "raw_RHEED"
 PAIR_ROOT = Path("data") / "pair"
 PROCESSED_AFM_ROOT = Path("data") / "processed_afm"
+PLANE_CORRECTED_AFM_ROOT = Path("data") / "plane_corrected_afm"
 
 
 def require_raw_inputs() -> None:
@@ -68,6 +71,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Validate paths and print planned steps without deleting or creating outputs.",
     )
+    parser.add_argument(
+        "--skip-plane-correction",
+        action="store_true",
+        help="Stop after AFM extraction and do not write data/plane_corrected_afm.",
+    )
     return parser
 
 
@@ -82,12 +90,16 @@ def main() -> int:
         print(f"Raw RHEED: {RAW_RHEED_DIR}")
         print(f"Pair output: {PAIR_ROOT}")
         print(f"Processed AFM output: {PROCESSED_AFM_ROOT}")
+        if not args.skip_plane_correction:
+            print(f"Plane-corrected AFM output: {PLANE_CORRECTED_AFM_ROOT}")
         print("No files were changed.")
         return 0
 
     # Clean only generated outputs so repeated runs match the current raw data.
     remove_generated_dir(PAIR_ROOT)
     remove_generated_dir(PROCESSED_AFM_ROOT)
+    if not args.skip_plane_correction:
+        remove_generated_dir(PLANE_CORRECTED_AFM_ROOT)
 
     run_step(
         "Build paired AFM/RHEED folders",
@@ -113,11 +125,25 @@ def main() -> int:
             str(PROCESSED_AFM_ROOT),
         ],
     )
+    if not args.skip_plane_correction:
+        run_step(
+            "Subtract fitted planes from AFM height maps",
+            [
+                sys.executable,
+                "scripts/afm_plane_correct.py",
+                "--input-root",
+                str(PROCESSED_AFM_ROOT),
+                "--output-root",
+                str(PLANE_CORRECTED_AFM_ROOT),
+            ],
+        )
 
     print()
     print("Pipeline complete.")
     print(f"AFM summary: {PROCESSED_AFM_ROOT / 'afm_summary.csv'}")
     print(f"Sample summary: {PROCESSED_AFM_ROOT / 'sample_summary.csv'}")
+    if not args.skip_plane_correction:
+        print(f"Plane-corrected AFM output: {PLANE_CORRECTED_AFM_ROOT}")
     return 0
 
 

@@ -11,3 +11,4 @@ class PipelineConfigTest(unittest.TestCase):
         self.assertEqual(str(run.RAW_RHEED_DIR), "data/raw/raw_RHEED")
         self.assertEqual(str(run.PAIR_ROOT), "data/pair")
         self.assertEqual(str(run.PROCESSED_AFM_ROOT), "data/processed_afm")
+        self.assertEqual(str(run.PLANE_CORRECTED_AFM_ROOT), "data/plane_corrected_afm")

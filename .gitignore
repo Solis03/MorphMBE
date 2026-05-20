@@ -10,6 +10,7 @@ data/SEM/
 data/processed/
 data/processed_afm/
 data/pair/
+data/plane_corrected_afm/
 outputs/
 reports/figures/
 checkpoints/
