@@ -18,11 +18,19 @@ nm.
 
 Processed AFM height maps:
 
-![Processed AFM 1 x 1 um overview](reports/figures/afm_scan_size_grids/processed_afm_scan_size_1um_grid.png)
+<img
+  src="reports/figures/afm_scan_size_grids/processed_afm_scan_size_1um_grid.png"
+  alt="Processed AFM 1 x 1 um overview"
+  width="50%"
+>
 
 Plane-corrected AFM height maps:
 
-![Plane-corrected AFM 1 x 1 um overview](reports/figures/afm_scan_size_grids/plane_corrected_afm_scan_size_1um_grid.png)
+<img
+  src="reports/figures/afm_scan_size_grids/plane_corrected_afm_scan_size_1um_grid.png"
+  alt="Plane-corrected AFM 1 x 1 um overview"
+  width="50%"
+>
 
 ## Repository Structure
 
