@@ -14,6 +14,7 @@ outputs from the current raw data:
 3. Recreate data/pair/ from raw AFM/RHEED sample ids
 4. Extract AFM height maps into data/processed_afm/
 5. Subtract fitted planes into data/plane_corrected_afm/
+6. Render 1 x 1 um AFM overview grids into reports/figures/
 
 It never deletes data/raw/.
 """
@@ -35,6 +36,7 @@ RAW_RHEED_DIR = RAW_ROOT / "raw_RHEED"
 PAIR_ROOT = Path("data") / "pair"
 PROCESSED_AFM_ROOT = Path("data") / "processed_afm"
 PLANE_CORRECTED_AFM_ROOT = Path("data") / "plane_corrected_afm"
+REPORT_FIGURES_ROOT = Path("reports") / "figures" / "afm_scan_size_grids"
 
 
 def require_raw_inputs() -> None:
@@ -76,6 +78,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Stop after AFM extraction and do not write data/plane_corrected_afm.",
     )
+    parser.add_argument(
+        "--skip-visualization",
+        action="store_true",
+        help="Do not render AFM scan-size overview grid figures.",
+    )
     return parser
 
 
@@ -92,6 +99,8 @@ def main() -> int:
         print(f"Processed AFM output: {PROCESSED_AFM_ROOT}")
         if not args.skip_plane_correction:
             print(f"Plane-corrected AFM output: {PLANE_CORRECTED_AFM_ROOT}")
+        if not args.skip_plane_correction and not args.skip_visualization:
+            print(f"AFM overview figures: {REPORT_FIGURES_ROOT}")
         print("No files were changed.")
         return 0
 
@@ -137,6 +146,20 @@ def main() -> int:
                 str(PLANE_CORRECTED_AFM_ROOT),
             ],
         )
+    if not args.skip_plane_correction and not args.skip_visualization:
+        run_step(
+            "Render 1 x 1 um AFM overview grids",
+            [
+                sys.executable,
+                "scripts/afm_scan_size_grid.py",
+                "--processed-root",
+                str(PROCESSED_AFM_ROOT),
+                "--plane-corrected-root",
+                str(PLANE_CORRECTED_AFM_ROOT),
+                "--output-dir",
+                str(REPORT_FIGURES_ROOT),
+            ],
+        )
 
     print()
     print("Pipeline complete.")
@@ -144,6 +167,8 @@ def main() -> int:
     print(f"Sample summary: {PROCESSED_AFM_ROOT / 'sample_summary.csv'}")
     if not args.skip_plane_correction:
         print(f"Plane-corrected AFM output: {PLANE_CORRECTED_AFM_ROOT}")
+    if not args.skip_plane_correction and not args.skip_visualization:
+        print(f"AFM overview figures: {REPORT_FIGURES_ROOT}")
     return 0
 
 

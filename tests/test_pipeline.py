@@ -12,3 +12,4 @@ class PipelineConfigTest(unittest.TestCase):
         self.assertEqual(str(run.PAIR_ROOT), "data/pair")
         self.assertEqual(str(run.PROCESSED_AFM_ROOT), "data/processed_afm")
         self.assertEqual(str(run.PLANE_CORRECTED_AFM_ROOT), "data/plane_corrected_afm")
+        self.assertEqual(str(run.REPORT_FIGURES_ROOT), "reports/figures/afm_scan_size_grids")
