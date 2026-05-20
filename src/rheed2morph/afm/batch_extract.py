@@ -126,6 +126,25 @@ def number_or_none(value: Any) -> float | None:
         return None
 
 
+def sample_has_scan_size(
+    rows: list[dict[str, Any]],
+    target_x_um: float,
+    target_y_um: float,
+    tolerance: float = 1e-6,
+) -> bool:
+    """Return True if the sample has at least one successful scan matching target size."""
+    for row in rows:
+        if row.get("status") != "success":
+            continue
+        x_value = number_or_none(row.get("scan_size_x_um"))
+        y_value = number_or_none(row.get("scan_size_y_um"))
+        if x_value is None or y_value is None:
+            continue
+        if abs(x_value - target_x_um) <= tolerance and abs(y_value - target_y_um) <= tolerance:
+            return True
+    return False
+
+
 def choose_representative(rows: list[dict[str, Any]]) -> str:
     successes = [row for row in rows if row["status"] == "success"]
     zsensor_rows = sorted(
@@ -264,6 +283,13 @@ def main() -> int:
     failed_rows = [row for row in all_afm_rows if row["status"] == "failed"]
     scan_size_dist = distribution(all_afm_rows, "scan_size_x_um", "scan_size_y_um")
     resolution_dist = distribution(all_afm_rows, "resolution_h", "resolution_w")
+    sample_ids = sorted(rows_by_sample)
+    samples_missing_1um = [
+        sample_id
+        for sample_id in sample_ids
+        if not sample_has_scan_size(rows_by_sample[sample_id], target_x_um=1.0, target_y_um=1.0)
+    ]
+    samples_with_1um = len(sample_ids) - len(samples_missing_1um)
 
     print()
     print("AFM batch extraction summary")
@@ -276,6 +302,11 @@ def main() -> int:
     print(f"Using Height fallback: {sum(row['primary_channel'] == 'Height' for row in success_rows)}")
     print(f"Scan size distribution: {dict(scan_size_dist)}")
     print(f"Resolution distribution: {dict(resolution_dist)}")
+    print(f"Samples with >=1 1.0x1.0 scan: {samples_with_1um}/{len(sample_ids)}")
+    if samples_missing_1um:
+        print(f"Samples missing 1.0x1.0 scan: {', '.join(samples_missing_1um)}")
+    else:
+        print("Samples missing 1.0x1.0 scan: none")
     print(f"AFM summary CSV: {afm_summary_path}")
     print(f"Sample summary CSV: {sample_summary_path}")
 
