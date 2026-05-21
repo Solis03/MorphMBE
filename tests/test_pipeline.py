@@ -13,3 +13,14 @@ class PipelineConfigTest(unittest.TestCase):
         self.assertEqual(str(run.PROCESSED_AFM_ROOT), "data/processed_afm")
         self.assertEqual(str(run.PLANE_CORRECTED_AFM_ROOT), "data/plane_corrected_afm")
         self.assertEqual(str(run.REPORT_FIGURES_ROOT), "reports/figures/afm_scan_size_grids")
+        self.assertEqual(str(run.AFM_RECON_ROOT), "data/afm_descriptor_reconstruction")
+        self.assertEqual(
+            str(run.AFM_RECON_LARGE_ROOT),
+            "data/afm_descriptor_reconstruction_large",
+        )
+
+    def test_reconstruction_steps_are_configured(self) -> None:
+        labels = [label for label, _ in run.reconstruction_steps()]
+        self.assertIn("Build 1um AFM reconstruction manifest", labels)
+        self.assertIn("Train 1um descriptor PCA decoder", labels)
+        self.assertIn("Train large AFM descriptor MLP decoder", labels)

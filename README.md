@@ -92,10 +92,16 @@ uv run python scripts/batch_extract_afm_by_sample.py \
   --output_root data/processed_afm
 ```
 
-Run the full data preparation pipeline:
+Run the full pipeline, including AFM descriptor-to-image reconstruction:
 
 ```bash
 uv run python run_pipeline.py
+```
+
+Run only the reconstruction experiments from existing `data/plane_corrected_afm/`:
+
+```bash
+uv run python run_pipeline.py recon
 ```
 
 Preview the pipeline without modifying files:

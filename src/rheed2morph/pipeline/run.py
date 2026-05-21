@@ -15,6 +15,7 @@ outputs from the current raw data:
 4. Extract AFM height maps into data/processed_afm/
 5. Subtract fitted planes into data/plane_corrected_afm/
 6. Render 1 x 1 um AFM overview grids into reports/figures/
+7. Run descriptor-to-image reconstruction experiments
 
 It never deletes data/raw/.
 """
@@ -37,6 +38,10 @@ PAIR_ROOT = Path("data") / "pair"
 PROCESSED_AFM_ROOT = Path("data") / "processed_afm"
 PLANE_CORRECTED_AFM_ROOT = Path("data") / "plane_corrected_afm"
 REPORT_FIGURES_ROOT = Path("reports") / "figures" / "afm_scan_size_grids"
+AFM_RECON_ROOT = Path("data") / "afm_descriptor_reconstruction"
+AFM_RECON_LARGE_ROOT = Path("data") / "afm_descriptor_reconstruction_large"
+AFM_RECON_REPORT_ROOT = Path("reports") / "afm_descriptor_reconstruction"
+AFM_RECON_LARGE_REPORT_ROOT = Path("reports") / "afm_descriptor_reconstruction_large"
 
 
 def require_raw_inputs() -> None:
@@ -64,9 +69,153 @@ def run_step(label: str, command: list[str]) -> None:
     subprocess.run(command, cwd=PROJECT_ROOT, check=True)
 
 
+def reconstruction_steps() -> list[tuple[str, list[str]]]:
+    """Return descriptor-to-image reconstruction commands in dependency order."""
+    return [
+        (
+            "Build 1um AFM reconstruction manifest",
+            [
+                sys.executable,
+                "scripts/afm_descriptor_reconstruction/build_afm_manifest.py",
+                "--input_dir",
+                str(PLANE_CORRECTED_AFM_ROOT),
+                "--output_csv",
+                str(AFM_RECON_ROOT / "afm_1um_manifest.csv"),
+            ],
+        ),
+        (
+            "Extract 1um AFM descriptors",
+            [
+                sys.executable,
+                "scripts/afm_descriptor_reconstruction/extract_afm_descriptors.py",
+                "--manifest",
+                str(AFM_RECON_ROOT / "afm_1um_manifest.csv"),
+                "--output_csv",
+                str(AFM_RECON_ROOT / "afm_descriptors.csv"),
+                "--output_dir",
+                str(AFM_RECON_ROOT / "descriptors"),
+            ],
+        ),
+        (
+            "Select 1um AFM descriptors",
+            [
+                sys.executable,
+                "scripts/afm_descriptor_reconstruction/select_descriptors.py",
+                "--descriptor_csv",
+                str(AFM_RECON_ROOT / "afm_descriptors.csv"),
+                "--output_dir",
+                str(AFM_RECON_ROOT / "selected_descriptors"),
+            ],
+        ),
+        (
+            "Train 1um descriptor PCA decoder",
+            [
+                sys.executable,
+                "scripts/afm_descriptor_reconstruction/train_descriptor_pca_decoder.py",
+                "--manifest",
+                str(AFM_RECON_ROOT / "afm_1um_manifest.csv"),
+                "--selected_descriptor_csv",
+                str(AFM_RECON_ROOT / "selected_descriptors" / "selected_descriptor_table.csv"),
+                "--network_input_dir",
+                str(AFM_RECON_ROOT / "network_inputs"),
+                "--output_dir",
+                str(AFM_RECON_ROOT / "pca_decoder"),
+                "--report_dir",
+                str(AFM_RECON_REPORT_ROOT / "pca_decoder"),
+            ],
+        ),
+        (
+            "Train 1um descriptor MLP decoder",
+            [
+                sys.executable,
+                "scripts/afm_descriptor_reconstruction/train_descriptor_mlp_decoder.py",
+                "--manifest",
+                str(AFM_RECON_ROOT / "afm_1um_manifest.csv"),
+                "--selected_descriptor_csv",
+                str(AFM_RECON_ROOT / "selected_descriptors" / "selected_descriptor_table.csv"),
+                "--network_input_dir",
+                str(AFM_RECON_ROOT / "network_inputs"),
+                "--output_dir",
+                str(AFM_RECON_ROOT / "mlp_decoder"),
+                "--report_dir",
+                str(AFM_RECON_REPORT_ROOT / "mlp_decoder"),
+            ],
+        ),
+        (
+            "Build large AFM reconstruction manifest",
+            [
+                sys.executable,
+                "scripts/afm_descriptor_reconstruction_large_dataset/build_large_afm_manifest.py",
+                "--input_dir",
+                str(PLANE_CORRECTED_AFM_ROOT),
+            ],
+        ),
+        (
+            "Extract large AFM descriptors",
+            [
+                sys.executable,
+                "scripts/afm_descriptor_reconstruction_large_dataset/extract_large_afm_descriptors.py",
+                "--manifest",
+                str(AFM_RECON_LARGE_ROOT / "large_afm_manifest.csv"),
+            ],
+        ),
+        (
+            "Select large AFM descriptors",
+            [
+                sys.executable,
+                "scripts/afm_descriptor_reconstruction_large_dataset/select_large_descriptors.py",
+                "--descriptor_csv",
+                str(AFM_RECON_LARGE_ROOT / "large_afm_descriptors.csv"),
+            ],
+        ),
+        (
+            "Train large AFM descriptor MLP decoder",
+            [
+                sys.executable,
+                "scripts/afm_descriptor_reconstruction_large_dataset/train_large_mlp_decoder.py",
+                "--manifest",
+                str(AFM_RECON_LARGE_ROOT / "large_afm_manifest.csv"),
+                "--selected_descriptor_csv",
+                str(AFM_RECON_LARGE_ROOT / "selected_descriptors" / "selected_descriptors.csv"),
+                "--network_input_dir",
+                str(AFM_RECON_LARGE_ROOT / "network_inputs"),
+                "--output_dir",
+                str(AFM_RECON_LARGE_ROOT / "mlp_decoder"),
+                "--report_dir",
+                str(AFM_RECON_LARGE_REPORT_ROOT / "mlp_decoder"),
+            ],
+        ),
+    ]
+
+
+def require_reconstruction_inputs() -> None:
+    if not PLANE_CORRECTED_AFM_ROOT.is_dir():
+        raise SystemExit(
+            "Missing plane-corrected AFM folder for reconstruction: "
+            f"{PLANE_CORRECTED_AFM_ROOT}\n"
+            "Run the full pipeline first, or restore data/plane_corrected_afm/."
+        )
+
+
+def run_reconstruction_steps() -> None:
+    require_reconstruction_inputs()
+    for label, command in reconstruction_steps():
+        run_step(label, command)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run the RHEED-to-AFM data preparation pipeline."
+    )
+    parser.add_argument(
+        "stage",
+        nargs="?",
+        choices=("all", "recon"),
+        default="all",
+        help=(
+            "Pipeline stage to run. Default 'all' runs data preparation, visualization, "
+            "and reconstruction. Use 'recon' to run only reconstruction steps."
+        ),
     )
     parser.add_argument(
         "--dry-run",
@@ -83,26 +232,55 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Do not render AFM scan-size overview grid figures.",
     )
+    parser.add_argument(
+        "--skip-reconstruction",
+        action="store_true",
+        help="Do not run descriptor-to-image reconstruction experiments in the full pipeline.",
+    )
     return parser
 
 
 def main() -> int:
     args = build_parser().parse_args()
     os.chdir(PROJECT_ROOT)
-    require_raw_inputs()
+
+    if args.stage == "recon" and args.skip_reconstruction:
+        raise SystemExit("'recon' stage cannot be combined with --skip-reconstruction.")
+    if args.stage == "recon" and (args.skip_plane_correction or args.skip_visualization):
+        print("warning: --skip-plane-correction/--skip-visualization are ignored for stage 'recon'.")
 
     if args.dry_run:
         print("Pipeline dry run.")
-        print(f"Raw AFM: {RAW_AFM_DIR}")
-        print(f"Raw RHEED: {RAW_RHEED_DIR}")
-        print(f"Pair output: {PAIR_ROOT}")
-        print(f"Processed AFM output: {PROCESSED_AFM_ROOT}")
-        if not args.skip_plane_correction:
-            print(f"Plane-corrected AFM output: {PLANE_CORRECTED_AFM_ROOT}")
-        if not args.skip_plane_correction and not args.skip_visualization:
-            print(f"AFM overview figures: {REPORT_FIGURES_ROOT}")
+        print(f"Stage: {args.stage}")
+        if args.stage == "all":
+            print(f"Raw AFM: {RAW_AFM_DIR}")
+            print(f"Raw RHEED: {RAW_RHEED_DIR}")
+            print(f"Pair output: {PAIR_ROOT}")
+            print(f"Processed AFM output: {PROCESSED_AFM_ROOT}")
+            if not args.skip_plane_correction:
+                print(f"Plane-corrected AFM output: {PLANE_CORRECTED_AFM_ROOT}")
+            if not args.skip_plane_correction and not args.skip_visualization:
+                print(f"AFM overview figures: {REPORT_FIGURES_ROOT}")
+        if args.stage == "recon" or (
+            args.stage == "all" and not args.skip_plane_correction and not args.skip_reconstruction
+        ):
+            print(f"Reconstruction input: {PLANE_CORRECTED_AFM_ROOT}")
+            for label, command in reconstruction_steps():
+                print(f"Reconstruction step: {label}")
+                print(f"  {' '.join(command)}")
         print("No files were changed.")
         return 0
+
+    if args.stage == "recon":
+        run_reconstruction_steps()
+        print()
+        print("Reconstruction pipeline complete.")
+        print(f"1um reconstruction output: {AFM_RECON_ROOT}")
+        print(f"Large reconstruction output: {AFM_RECON_LARGE_ROOT}")
+        print(f"Large reconstruction report: {AFM_RECON_LARGE_REPORT_ROOT / 'summary.md'}")
+        return 0
+
+    require_raw_inputs()
 
     # Clean only generated outputs so repeated runs match the current raw data.
     remove_generated_dir(PAIR_ROOT)
@@ -160,6 +338,8 @@ def main() -> int:
                 str(REPORT_FIGURES_ROOT),
             ],
         )
+    if not args.skip_plane_correction and not args.skip_reconstruction:
+        run_reconstruction_steps()
 
     print()
     print("Pipeline complete.")
@@ -169,6 +349,10 @@ def main() -> int:
         print(f"Plane-corrected AFM output: {PLANE_CORRECTED_AFM_ROOT}")
     if not args.skip_plane_correction and not args.skip_visualization:
         print(f"AFM overview figures: {REPORT_FIGURES_ROOT}")
+    if not args.skip_plane_correction and not args.skip_reconstruction:
+        print(f"1um reconstruction output: {AFM_RECON_ROOT}")
+        print(f"Large reconstruction output: {AFM_RECON_LARGE_ROOT}")
+        print(f"Large reconstruction report: {AFM_RECON_LARGE_REPORT_ROOT / 'summary.md'}")
     return 0
 
 
