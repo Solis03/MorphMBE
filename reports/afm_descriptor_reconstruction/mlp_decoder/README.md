@@ -6,9 +6,9 @@ The model maps selected AFM descriptors directly to normalized plane-corrected Z
 
 ## Metrics
 
-- insample: MSE=0.000737733, MAE=0.0183829, SSIM=0.986335, Pearson=0.998707
-- 5-fold_cv: MSE=0.287529, MAE=0.403562, SSIM=0.0713939, Pearson=0.182972
+- insample: MSE=0.00109243, MAE=0.0242829, SSIM=0.978123, Pearson=0.997228
+- 5-fold_cv: MSE=0.286366, MAE=0.401123, SSIM=0.0712269, Pearson=0.18812
 
 ## PCA Reference
 
-- best PCA LOOCV row: k=8, MSE=0.2159521145, MAE=0.3309649212, SSIM=0.08523758601, Pearson=0.2178610543
+- best PCA LOOCV row: k=8, MSE=0.1674179605, MAE=0.3193132348, SSIM=0.08371481485, Pearson=0.2160688719
