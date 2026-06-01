@@ -25,14 +25,14 @@ The MLP architecture was intentionally kept unchanged: descriptor input -> 128 -
 
 | Experiment | MSE | MAE | SSIM | Pearson |
 |---|---:|---:|---:|---:|
-| previous 1um-only MLP 5-fold | 0.2863661285 | 0.4011227477 | 0.07122692654 | 0.1881195379 |
-| insample_mlp | 0.000570646 | 0.0179733 | 0.97921 | 0.998454 |
-| random5fold_mlp | 0.335528 | 0.427907 | 0.040606 | 0.135064 |
-| group5fold_mlp | 0.433545 | 0.465485 | 0.0205669 | 0.107226 |
+| previous 1um-only MLP 5-fold | 0.2790059694 | 0.400030304 | 0.07148644905 | 0.1826233909 |
+| insample_mlp | 0.000732181 | 0.0206351 | 0.974128 | 0.997871 |
+| random5fold_mlp | 0.308074 | 0.419091 | 0.0414029 | 0.13671 |
+| group5fold_mlp | 0.323381 | 0.432894 | 0.0230751 | 0.109155 |
 | mean_baseline_group5fold | 0.205092 | 0.366979 | 0.00807403 | 0.184142 |
 | nearest_neighbor_group5fold | 0.322827 | 0.444937 | 0.026648 | 0.105042 |
-| train_1um_test_non1um | 1.53945 | 0.817752 | 0.00591726 | 0.0358344 |
-| train_non1um_test_1um | 0.217984 | 0.371096 | 0.0181495 | 0.1031 |
+| train_1um_test_non1um | 0.67204 | 0.591677 | 0.00772835 | 0.0331267 |
+| train_non1um_test_1um | 0.222123 | 0.374218 | 0.0190978 | 0.0944197 |
 
 ## Interpretation
 

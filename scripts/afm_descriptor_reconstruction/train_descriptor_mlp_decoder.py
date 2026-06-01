@@ -1,16 +1,24 @@
 #!/usr/bin/env python3
-"""Train a small descriptor-to-AFM-image MLP baseline with NumPy."""
+"""Train a descriptor-to-AFM-image MLP baseline with PyTorch."""
 
 from __future__ import annotations
 
 import argparse
 import csv
 import json
+import random
+from contextlib import nullcontext
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
+try:
+    import torch
+    from torch import nn
+except ImportError:  # pragma: no cover - depends on local environment.
+    torch = None
+    nn = None
 
 try:
     from skimage.metrics import structural_similarity as ssim
@@ -30,6 +38,35 @@ DEFAULT_SELECTED_DESCRIPTOR_CSV = (
 DEFAULT_NETWORK_INPUT_DIR = REPO_ROOT / "data" / "afm_descriptor_reconstruction" / "network_inputs"
 DEFAULT_OUTPUT_DIR = REPO_ROOT / "data" / "afm_descriptor_reconstruction" / "mlp_decoder"
 DEFAULT_REPORT_DIR = REPO_ROOT / "reports" / "afm_descriptor_reconstruction" / "mlp_decoder"
+
+
+if nn is not None:
+    class MLPDecoder(nn.Module):
+        def __init__(self, input_dim: int, output_dim: int) -> None:
+            super().__init__()
+            self.network = nn.Sequential(
+                nn.Linear(input_dim, 128),
+                nn.ReLU(),
+                nn.Linear(128, 256),
+                nn.ReLU(),
+                nn.Linear(256, 512),
+                nn.ReLU(),
+                nn.Linear(512, output_dim),
+            )
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            return self.network(x)
+else:  # pragma: no cover - only used when torch is unavailable.
+    class MLPDecoder:  # type: ignore[no-redef]
+        pass
+
+
+def require_torch() -> None:
+    if torch is None or nn is None:
+        raise SystemExit(
+            "PyTorch is required for the MLP decoder. Install it with a CUDA-enabled wheel, "
+            "for example: python -m pip install torch --index-url https://download.pytorch.org/whl/cu128"
+        )
 
 
 def display_path(path: Path | None) -> str:
@@ -127,79 +164,75 @@ def load_dataset(
     )
 
 
-def init_model(input_dim: int, output_dim: int, rng: np.random.Generator) -> dict[str, np.ndarray]:
-    dims = [input_dim, 128, 256, 512, output_dim]
-    params: dict[str, np.ndarray] = {}
-    for index, (in_dim, out_dim) in enumerate(zip(dims[:-1], dims[1:]), start=1):
-        scale = np.sqrt(2.0 / in_dim) if index < len(dims) - 1 else np.sqrt(1.0 / in_dim)
-        params[f"W{index}"] = (rng.normal(0.0, scale, size=(in_dim, out_dim))).astype(np.float32)
-        params[f"b{index}"] = np.zeros(out_dim, dtype=np.float32)
-    return params
+def set_random_seed(seed: int) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    require_torch()
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
 
-def forward(params: dict[str, np.ndarray], x: np.ndarray) -> tuple[np.ndarray, list[np.ndarray]]:
-    activations = [x]
-    hidden = x
-    for index in range(1, 4):
-        hidden = hidden @ params[f"W{index}"] + params[f"b{index}"]
-        hidden = np.maximum(hidden, 0.0)
-        activations.append(hidden)
-    output = hidden @ params["W4"] + params["b4"]
-    activations.append(output)
-    return output, activations
+def resolve_device(device_name: str) -> tuple[str, torch.device]:
+    require_torch()
+    normalized = device_name.strip().lower()
+    if normalized == "auto":
+        normalized = "cuda" if torch.cuda.is_available() else "cpu"
+    if normalized.startswith("cuda") and not torch.cuda.is_available():
+        raise SystemExit(
+            "CUDA was requested for MLP training, but PyTorch cannot see a GPU. "
+            "Check the CUDA-enabled torch install and run outside restrictive sandboxes."
+        )
+    return normalized, torch.device(normalized)
 
 
-def gradient_loss_and_grad(pred: np.ndarray, target: np.ndarray, image_size: int) -> tuple[float, np.ndarray]:
-    pred_img = pred.reshape((-1, image_size, image_size))
-    target_img = target.reshape((-1, image_size, image_size))
-    grad = np.zeros_like(pred_img, dtype=np.float32)
+def autocast_context(device: torch.device, enabled: bool):
+    if not enabled or device.type != "cuda":
+        return nullcontext()
+    dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+    return torch.amp.autocast(device_type="cuda", dtype=dtype)
 
+
+def gradient_loss_torch(pred: torch.Tensor, target: torch.Tensor, image_size: int) -> torch.Tensor:
+    pred_img = pred.view(-1, image_size, image_size)
+    target_img = target.view(-1, image_size, image_size)
     dx_error = (pred_img[:, :, 1:] - pred_img[:, :, :-1]) - (
         target_img[:, :, 1:] - target_img[:, :, :-1]
     )
     dy_error = (pred_img[:, 1:, :] - pred_img[:, :-1, :]) - (
         target_img[:, 1:, :] - target_img[:, :-1, :]
     )
-    dx_scale = 2.0 / dx_error.size
-    dy_scale = 2.0 / dy_error.size
-    grad[:, :, 1:] += dx_scale * dx_error
-    grad[:, :, :-1] -= dx_scale * dx_error
-    grad[:, 1:, :] += dy_scale * dy_error
-    grad[:, :-1, :] -= dy_scale * dy_error
-    loss = float(np.mean(dx_error**2) + np.mean(dy_error**2))
-    return loss, grad.reshape(pred.shape)
+    return torch.mean(dx_error.square()) + torch.mean(dy_error.square())
 
 
-def loss_and_output(
-    params: dict[str, np.ndarray],
-    x: np.ndarray,
-    y: np.ndarray,
-    image_size: int,
-) -> tuple[float, float, float, np.ndarray, list[np.ndarray]]:
-    pred, activations = forward(params, x)
-    error = pred - y
-    mse = float(np.mean(error**2))
-    grad_loss, grad_grad = gradient_loss_and_grad(pred, y, image_size)
+def loss_terms(pred: torch.Tensor, target: torch.Tensor, image_size: int) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    mse = torch.mean((pred - target).square())
+    grad_loss = gradient_loss_torch(pred, target, image_size)
     total = mse + 0.1 * grad_loss
-    grad_output = (2.0 / error.size) * error + 0.1 * grad_grad
-    return total, mse, grad_loss, grad_output.astype(np.float32), activations
+    return total, mse, grad_loss
 
 
-def backward(
-    params: dict[str, np.ndarray],
-    activations: list[np.ndarray],
-    grad_output: np.ndarray,
-) -> dict[str, np.ndarray]:
-    grads: dict[str, np.ndarray] = {}
-    grad = grad_output
-    for index in range(4, 0, -1):
-        prev_activation = activations[index - 1]
-        grads[f"W{index}"] = prev_activation.T @ grad
-        grads[f"b{index}"] = np.sum(grad, axis=0)
-        if index > 1:
-            grad = grad @ params[f"W{index}"].T
-            grad = grad * (activations[index - 1] > 0)
-    return grads
+def evaluate_model(
+    model: nn.Module,
+    x_tensor: torch.Tensor,
+    y_tensor: torch.Tensor,
+    image_size: int,
+    batch_size: int,
+) -> tuple[float, float, float]:
+    totals: list[float] = []
+    mses: list[float] = []
+    grad_losses: list[float] = []
+    model.eval()
+    with torch.no_grad():
+        for start in range(0, x_tensor.shape[0], batch_size):
+            batch_x = x_tensor[start : start + batch_size]
+            batch_y = y_tensor[start : start + batch_size]
+            pred = model(batch_x)
+            total, mse, grad_loss = loss_terms(pred.float(), batch_y, image_size)
+            totals.append(float(total.item()))
+            mses.append(float(mse.item()))
+            grad_losses.append(float(grad_loss.item()))
+    return float(np.mean(totals)), float(np.mean(mses)), float(np.mean(grad_losses))
 
 
 def train_model(
@@ -211,52 +244,70 @@ def train_model(
     batch_size: int,
     learning_rate: float,
     seed: int,
-) -> tuple[dict[str, np.ndarray], list[dict[str, float]]]:
-    rng = np.random.default_rng(seed)
-    params = init_model(x.shape[1], y.shape[1], rng)
-    moments = {key: np.zeros_like(value) for key, value in params.items()}
-    velocities = {key: np.zeros_like(value) for key, value in params.items()}
-    best_params = {key: value.copy() for key, value in params.items()}
-    best_loss = np.inf
+    device_name: str = "auto",
+    use_amp: bool = True,
+    compile_model: bool = False,
+) -> tuple[nn.Module, list[dict[str, float]]]:
+    require_torch()
+    resolved_device_name, device = resolve_device(device_name)
+    set_random_seed(seed)
+
+    x_tensor = torch.from_numpy(x).to(device=device, dtype=torch.float32)
+    y_tensor = torch.from_numpy(y).to(device=device, dtype=torch.float32)
+    model = MLPDecoder(x.shape[1], y.shape[1]).to(device)
+    if compile_model and hasattr(torch, "compile"):
+        model = torch.compile(model)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+    scaler = torch.amp.GradScaler("cuda", enabled=use_amp and device.type == "cuda")
+
+    best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
+    best_loss = float("inf")
     bad_epochs = 0
     history: list[dict[str, float]] = []
-    step = 0
 
     for epoch in range(1, epochs + 1):
-        order = rng.permutation(x.shape[0])
-        for start in range(0, x.shape[0], batch_size):
+        model.train()
+        order = torch.randperm(x_tensor.shape[0], device=device)
+        for start in range(0, x_tensor.shape[0], batch_size):
             indices = order[start : start + batch_size]
-            total, _, _, grad_output, activations = loss_and_output(
-                params, x[indices], y[indices], image_size
-            )
-            del total
-            grads = backward(params, activations, grad_output)
-            step += 1
-            for key in params:
-                moments[key] = 0.9 * moments[key] + 0.1 * grads[key]
-                velocities[key] = 0.999 * velocities[key] + 0.001 * (grads[key] ** 2)
-                m_hat = moments[key] / (1.0 - 0.9**step)
-                v_hat = velocities[key] / (1.0 - 0.999**step)
-                params[key] -= learning_rate * m_hat / (np.sqrt(v_hat) + 1e-8)
+            batch_x = x_tensor.index_select(0, indices)
+            batch_y = y_tensor.index_select(0, indices)
+            optimizer.zero_grad(set_to_none=True)
+            with autocast_context(device, use_amp):
+                pred = model(batch_x)
+                total, _, _ = loss_terms(pred.float(), batch_y, image_size)
+            scaler.scale(total).backward()
+            scaler.step(optimizer)
+            scaler.update()
 
-        total, mse, grad_loss, _, _ = loss_and_output(params, x, y, image_size)
+        total, mse, grad_loss = evaluate_model(model, x_tensor, y_tensor, image_size, batch_size)
         history.append({"epoch": float(epoch), "loss": total, "mse": mse, "gradient_loss": grad_loss})
         if total < best_loss - 1e-7:
             best_loss = total
-            best_params = {key: value.copy() for key, value in params.items()}
+            best_state = {key: value.detach().cpu().clone() for key, value in model.state_dict().items()}
             bad_epochs = 0
         else:
             bad_epochs += 1
         if bad_epochs >= patience:
             break
-    return best_params, history
+
+    model.load_state_dict(best_state)
+    model.eval()
+    setattr(model, "training_device", resolved_device_name)
+    setattr(model, "amp_enabled", bool(use_amp and device.type == "cuda"))
+    return model, history
 
 
-def predict(params: dict[str, np.ndarray], x: np.ndarray, batch_size: int) -> np.ndarray:
+def predict(model: nn.Module, x: np.ndarray, batch_size: int) -> np.ndarray:
+    require_torch()
+    model.eval()
+    device = next(model.parameters()).device
+    x_tensor = torch.from_numpy(x).to(device=device, dtype=torch.float32)
     outputs = []
-    for start in range(0, x.shape[0], batch_size):
-        pred, _ = forward(params, x[start : start + batch_size])
-        outputs.append(pred)
+    with torch.no_grad():
+        for start in range(0, x_tensor.shape[0], batch_size):
+            pred = model(x_tensor[start : start + batch_size]).float().cpu().numpy()
+            outputs.append(pred)
     return np.vstack(outputs).astype(np.float32)
 
 
@@ -309,6 +360,9 @@ def kfold_predictions(
     batch_size: int,
     learning_rate: float,
     seed: int,
+    device_name: str = "auto",
+    use_amp: bool = True,
+    compile_model: bool = False,
 ) -> tuple[np.ndarray, list[dict[str, float]]]:
     rng = np.random.default_rng(seed)
     indices = rng.permutation(x.shape[0])
@@ -317,7 +371,7 @@ def kfold_predictions(
     fold_histories: list[dict[str, float]] = []
     for fold_index, test_indices in enumerate(fold_indices, start=1):
         train_indices = np.setdiff1d(indices, test_indices, assume_unique=False)
-        params, history = train_model(
+        model, history = train_model(
             x[train_indices],
             y[train_indices],
             image_size,
@@ -326,8 +380,11 @@ def kfold_predictions(
             batch_size,
             learning_rate,
             seed + fold_index,
+            device_name=device_name,
+            use_amp=use_amp,
+            compile_model=compile_model,
         )
-        predictions[test_indices] = predict(params, x[test_indices], batch_size)
+        predictions[test_indices] = predict(model, x[test_indices], batch_size)
         fold_histories.append(
             {
                 "fold": float(fold_index),
@@ -431,9 +488,10 @@ def save_reconstructions(output_dir: Path, rows: list[dict[str, str]], predictio
         np.save(target_dir / f"{sample_id}_{base}_mlp_reconstructed.npy", image.astype(np.float32))
 
 
-def save_checkpoint(path: Path, params: dict[str, np.ndarray], metadata: dict[str, Any]) -> None:
+def save_checkpoint(path: Path, model: nn.Module, metadata: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(path, metadata=json.dumps(metadata), **params)
+    arrays = {key: value.detach().cpu().numpy() for key, value in model.state_dict().items()}
+    np.savez_compressed(path, metadata=json.dumps(metadata), **arrays)
 
 
 def write_report(path: Path, metrics_rows: list[dict[str, Any]], pca_metrics: dict[str, str] | None) -> None:
@@ -441,7 +499,7 @@ def write_report(path: Path, metrics_rows: list[dict[str, Any]], pca_metrics: di
     lines = [
         "# MLP Descriptor Decoder Baseline",
         "",
-        "This MLP decoder is an exploratory small-data baseline. The PCA decoder is the more stable reference.",
+        "This PyTorch MLP decoder is an exploratory baseline. The PCA decoder is the more stable reference.",
         "",
         "The model maps selected AFM descriptors directly to normalized plane-corrected ZSensor AFM height maps. It should not be interpreted as exact reconstruction.",
         "",
@@ -492,6 +550,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--learning_rate", type=float, default=1e-3)
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--cv_folds", type=int, default=5)
+    parser.add_argument("--device", default="auto", help="Training device: auto, cpu, cuda, or cuda:0.")
+    parser.add_argument(
+        "--amp",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Enable mixed precision on CUDA. Use --no-amp to disable it.",
+    )
+    parser.add_argument(
+        "--compile",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Compile the PyTorch model when supported.",
+    )
     return parser
 
 
@@ -519,7 +590,8 @@ def main() -> int:
     )
     warnings.extend(load_warnings)
 
-    params, history = train_model(
+    resolved_device_name, _ = resolve_device(args.device)
+    model, history = train_model(
         x,
         y,
         args.image_size,
@@ -528,10 +600,13 @@ def main() -> int:
         args.batch_size,
         args.learning_rate,
         args.seed,
+        device_name=args.device,
+        use_amp=args.amp,
+        compile_model=args.compile,
     )
-    insample_pred = predict(params, x, args.batch_size)
+    insample_pred = predict(model, x, args.batch_size)
     metrics_rows: list[dict[str, Any]] = [
-        {"mode": "insample", "model": "numpy_mlp", "n_images": x.shape[0], **average_metrics(y, insample_pred, args.image_size)}
+        {"mode": "insample", "model": "torch_mlp", "n_images": x.shape[0], **average_metrics(y, insample_pred, args.image_size)}
     ]
 
     cv_pred = None
@@ -547,11 +622,14 @@ def main() -> int:
             args.batch_size,
             args.learning_rate,
             args.seed + 1000,
+            device_name=args.device,
+            use_amp=args.amp,
+            compile_model=args.compile,
         )
         metrics_rows.append(
             {
                 "mode": f"{args.cv_folds}-fold_cv",
-                "model": "numpy_mlp",
+                "model": "torch_mlp",
                 "n_images": x.shape[0],
                 **average_metrics(y, cv_pred, args.image_size),
             }
@@ -568,12 +646,15 @@ def main() -> int:
 
     save_checkpoint(
         checkpoint_path,
-        params,
+        model,
         {
             "architecture": [x.shape[1], 128, 256, 512, y.shape[1]],
             "image_size": args.image_size,
             "descriptor_columns": descriptor_columns,
-            "framing": "exploratory small-data MLP baseline; PCA decoder is the more stable reference",
+            "framing": "exploratory PyTorch MLP baseline; PCA decoder is the more stable reference",
+            "device": resolved_device_name,
+            "amp_enabled": bool(args.amp and resolved_device_name.startswith("cuda")),
+            "torch_version": torch.__version__ if torch is not None else "",
         },
     )
     write_metrics_csv(metrics_path, metrics_rows)
@@ -590,6 +671,9 @@ def main() -> int:
                 "descriptor_count": len(descriptor_columns),
                 "descriptor_columns": descriptor_columns,
                 "epochs_ran": len(history),
+                "device": resolved_device_name,
+                "amp_enabled": bool(args.amp and resolved_device_name.startswith("cuda")),
+                "torch_version": torch.__version__ if torch is not None else "",
                 "cv_fold_summaries": fold_histories,
                 "warnings": warnings,
                 "outputs": {
@@ -611,6 +695,8 @@ def main() -> int:
     print(f"  images: {x.shape[0]}")
     print(f"  resized image shape: {args.image_size}x{args.image_size}")
     print(f"  descriptor count: {len(descriptor_columns)}")
+    print(f"  training device: {resolved_device_name}")
+    print(f"  mixed precision: {bool(args.amp and resolved_device_name.startswith('cuda'))}")
     print(f"  epochs run: {len(history)}")
     if warnings:
         print(f"  warnings: {len(warnings)}")

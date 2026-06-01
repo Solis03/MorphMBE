@@ -79,13 +79,16 @@ def run_cv(
     batch_size: int,
     learning_rate: float,
     seed: int,
+    device_name: str = "auto",
+    use_amp: bool = True,
+    compile_model: bool = False,
 ) -> tuple[np.ndarray, list[dict[str, float]]]:
     predictions = np.zeros_like(y, dtype=np.float32)
     summaries = []
     all_indices = np.arange(x.shape[0])
     for fold_number, test_idx in enumerate(folds, start=1):
         train_idx = np.setdiff1d(all_indices, test_idx, assume_unique=False)
-        params, history = train_model(
+        model, history = train_model(
             x[train_idx],
             y[train_idx],
             image_size,
@@ -94,8 +97,11 @@ def run_cv(
             batch_size,
             learning_rate,
             seed + fold_number,
+            device_name=device_name,
+            use_amp=use_amp,
+            compile_model=compile_model,
         )
-        predictions[test_idx] = predict(params, x[test_idx], batch_size)
+        predictions[test_idx] = predict(model, x[test_idx], batch_size)
         summaries.append(
             {
                 "fold": float(fold_number),
@@ -143,8 +149,11 @@ def train_test_prediction(
     batch_size: int,
     learning_rate: float,
     seed: int,
+    device_name: str = "auto",
+    use_amp: bool = True,
+    compile_model: bool = False,
 ) -> np.ndarray:
-    params, _ = train_model(
+    model, _ = train_model(
         x[train_idx],
         y[train_idx],
         image_size,
@@ -153,8 +162,11 @@ def train_test_prediction(
         batch_size,
         learning_rate,
         seed,
+        device_name=device_name,
+        use_amp=use_amp,
+        compile_model=compile_model,
     )
-    return predict(params, x[test_idx], batch_size)
+    return predict(model, x[test_idx], batch_size)
 
 
 def per_sample_metric_rows(
@@ -408,6 +420,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--learning_rate", type=float, default=1e-3)
     parser.add_argument("--seed", type=int, default=11)
+    parser.add_argument("--device", default="auto", help="Training device: auto, cpu, cuda, or cuda:0.")
+    parser.add_argument(
+        "--amp",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Enable mixed precision on CUDA. Use --no-amp to disable it.",
+    )
+    parser.add_argument(
+        "--compile",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Compile the PyTorch model when supported.",
+    )
     return parser
 
 
@@ -424,26 +449,58 @@ def main() -> int:
 
     rows = read_csv(selected_csv)
     x, y, kept_rows, descriptor_columns, warnings = load_dataset(rows, network_input_dir, args.image_size)
-    params, history = train_model(
-        x, y, args.image_size, args.epochs, args.patience, args.batch_size, args.learning_rate, args.seed
+    model, history = train_model(
+        x,
+        y,
+        args.image_size,
+        args.epochs,
+        args.patience,
+        args.batch_size,
+        args.learning_rate,
+        args.seed,
+        device_name=args.device,
+        use_amp=args.amp,
+        compile_model=args.compile,
     )
-    insample_pred = predict(params, x, args.batch_size)
+    insample_pred = predict(model, x, args.batch_size)
 
     random_folds = split_random_folds(x.shape[0], 5, args.seed)
     group_folds = split_group_folds(kept_rows, 5)
     random_pred, random_summary = run_cv(
-        x, y, args.image_size, random_folds, args.cv_epochs, args.patience, args.batch_size, args.learning_rate, args.seed + 100
+        x,
+        y,
+        args.image_size,
+        random_folds,
+        args.cv_epochs,
+        args.patience,
+        args.batch_size,
+        args.learning_rate,
+        args.seed + 100,
+        device_name=args.device,
+        use_amp=args.amp,
+        compile_model=args.compile,
     )
     group_pred, group_summary = run_cv(
-        x, y, args.image_size, group_folds, args.cv_epochs, args.patience, args.batch_size, args.learning_rate, args.seed + 200
+        x,
+        y,
+        args.image_size,
+        group_folds,
+        args.cv_epochs,
+        args.patience,
+        args.batch_size,
+        args.learning_rate,
+        args.seed + 200,
+        device_name=args.device,
+        use_amp=args.amp,
+        compile_model=args.compile,
     )
     mean_pred = mean_baseline_cv(y, group_folds)
     nn_pred, nn_dist = nearest_neighbor_cv(x, y, group_folds)
 
     metrics_rows: list[dict[str, Any]] = [
-        {"mode": "insample_mlp", "model": "numpy_mlp", "n_images": x.shape[0], **average_metrics(y, insample_pred, args.image_size)},
-        {"mode": "random5fold_mlp", "model": "numpy_mlp", "n_images": x.shape[0], **average_metrics(y, random_pred, args.image_size)},
-        {"mode": "group5fold_mlp", "model": "numpy_mlp", "n_images": x.shape[0], **average_metrics(y, group_pred, args.image_size)},
+        {"mode": "insample_mlp", "model": "torch_mlp", "n_images": x.shape[0], **average_metrics(y, insample_pred, args.image_size)},
+        {"mode": "random5fold_mlp", "model": "torch_mlp", "n_images": x.shape[0], **average_metrics(y, random_pred, args.image_size)},
+        {"mode": "group5fold_mlp", "model": "torch_mlp", "n_images": x.shape[0], **average_metrics(y, group_pred, args.image_size)},
         {"mode": "mean_baseline_group5fold", "model": "mean_image", "n_images": x.shape[0], **average_metrics(y, mean_pred, args.image_size)},
         {"mode": "nearest_neighbor_group5fold", "model": "nearest_neighbor", "n_images": x.shape[0], **average_metrics(y, nn_pred, args.image_size)},
     ]
@@ -453,15 +510,39 @@ def main() -> int:
         train_1um = np.flatnonzero(one_um)
         test_non = np.flatnonzero(~one_um)
         pred_non = train_test_prediction(
-            x, y, args.image_size, train_1um, test_non, args.cv_epochs, args.patience, args.batch_size, args.learning_rate, args.seed + 300
+            x,
+            y,
+            args.image_size,
+            train_1um,
+            test_non,
+            args.cv_epochs,
+            args.patience,
+            args.batch_size,
+            args.learning_rate,
+            args.seed + 300,
+            device_name=args.device,
+            use_amp=args.amp,
+            compile_model=args.compile,
         )
-        metrics_rows.append({"mode": "train_1um_test_non1um", "model": "numpy_mlp", "n_images": int(test_non.size), **average_metrics(y[test_non], pred_non, args.image_size)})
+        metrics_rows.append({"mode": "train_1um_test_non1um", "model": "torch_mlp", "n_images": int(test_non.size), **average_metrics(y[test_non], pred_non, args.image_size)})
         train_non = np.flatnonzero(~one_um)
         test_1um = np.flatnonzero(one_um)
         pred_1um = train_test_prediction(
-            x, y, args.image_size, train_non, test_1um, args.cv_epochs, args.patience, args.batch_size, args.learning_rate, args.seed + 400
+            x,
+            y,
+            args.image_size,
+            train_non,
+            test_1um,
+            args.cv_epochs,
+            args.patience,
+            args.batch_size,
+            args.learning_rate,
+            args.seed + 400,
+            device_name=args.device,
+            use_amp=args.amp,
+            compile_model=args.compile,
         )
-        metrics_rows.append({"mode": "train_non1um_test_1um", "model": "numpy_mlp", "n_images": int(test_1um.size), **average_metrics(y[test_1um], pred_1um, args.image_size)})
+        metrics_rows.append({"mode": "train_non1um_test_1um", "model": "torch_mlp", "n_images": int(test_1um.size), **average_metrics(y[test_1um], pred_1um, args.image_size)})
 
     output_dir.mkdir(parents=True, exist_ok=True)
     report_dir.mkdir(parents=True, exist_ok=True)
@@ -478,8 +559,13 @@ def main() -> int:
 
     save_checkpoint(
         output_dir / "large_mlp_decoder_checkpoint.npz",
-        params,
-        {"architecture": [x.shape[1], 128, 256, 512, y.shape[1]], "descriptor_columns": descriptor_columns},
+        model,
+        {
+            "architecture": [x.shape[1], 128, 256, 512, y.shape[1]],
+            "descriptor_columns": descriptor_columns,
+            "device": args.device,
+            "amp_enabled": bool(args.amp),
+        },
     )
     save_reconstructions(output_dir / "reconstructions_group5fold", kept_rows, group_pred, args.image_size)
     write_loss_plot(report_dir / "training_loss.png", history)
@@ -535,6 +621,8 @@ def main() -> int:
                 "n_images": int(x.shape[0]),
                 "descriptor_count": len(descriptor_columns),
                 "epochs_ran": len(history),
+                "device": getattr(model, "training_device", args.device),
+                "amp_enabled": bool(getattr(model, "amp_enabled", False)),
                 "random_fold_summaries": random_summary,
                 "group_fold_summaries": group_summary,
                 "warnings": warnings,
@@ -551,6 +639,8 @@ def main() -> int:
     print("Large AFM MLP decoder summary")
     print(f"  images: {x.shape[0]}")
     print(f"  descriptor count: {len(descriptor_columns)}")
+    print(f"  training device: {getattr(model, 'training_device', args.device)}")
+    print(f"  mixed precision: {bool(getattr(model, 'amp_enabled', False))}")
     print(f"  1um scans: {manifest_summary['one_um_scan_count']}")
     print(f"  non-1um scans: {manifest_summary['non_one_um_scan_count']}")
     print("  metrics:")

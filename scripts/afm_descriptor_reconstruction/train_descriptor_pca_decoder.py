@@ -11,9 +11,11 @@ from typing import Any
 
 import joblib
 import numpy as np
-from sklearn.decomposition import PCA
-from sklearn.linear_model import Ridge
 
+try:
+    import torch
+except ImportError:  # pragma: no cover - depends on local environment.
+    torch = None
 
 try:
     from skimage.metrics import structural_similarity as ssim
@@ -35,6 +37,26 @@ DEFAULT_OUTPUT_DIR = REPO_ROOT / "data" / "afm_descriptor_reconstruction" / "pca
 DEFAULT_REPORT_DIR = REPO_ROOT / "reports" / "afm_descriptor_reconstruction" / "pca_decoder"
 DEFAULT_COMPONENTS = (8, 16, 24, 32)
 DEFAULT_IMAGE_SIZE = 128
+
+
+def require_torch() -> None:
+    if torch is None:
+        raise SystemExit(
+            "PyTorch is required for GPU-enabled PCA training. "
+            "Install it with: python -m pip install torch --index-url https://download.pytorch.org/whl/cu128"
+        )
+
+
+def resolve_device(device_name: str) -> tuple[str, torch.device]:
+    require_torch()
+    normalized = device_name.strip().lower()
+    if normalized == "auto":
+        normalized = "cuda" if torch.cuda.is_available() else "cpu"
+    if normalized.startswith("cuda") and not torch.cuda.is_available():
+        raise SystemExit(
+            "CUDA was requested for PCA training, but PyTorch cannot see a GPU."
+        )
+    return normalized, torch.device(normalized)
 
 
 def display_path(path: Path | None) -> str:
@@ -132,7 +154,7 @@ def load_dataset(
     if not images:
         raise SystemExit("No valid image/descriptor pairs were loaded.")
     return (
-        np.asarray(descriptors, dtype=float),
+        np.asarray(descriptors, dtype=np.float32),
         np.asarray(images, dtype=np.float32),
         kept_rows,
         descriptor_columns,
@@ -184,51 +206,103 @@ def average_metrics(true_images: np.ndarray, pred_images: np.ndarray) -> dict[st
     }
 
 
+def ridge_fit_predict_torch(
+    train_x: torch.Tensor,
+    train_y: torch.Tensor,
+    test_x: torch.Tensor,
+    alpha: float = 1.0,
+) -> tuple[torch.Tensor, dict[str, np.ndarray]]:
+    x_mean = train_x.mean(dim=0, keepdim=True)
+    y_mean = train_y.mean(dim=0, keepdim=True)
+    x_centered = train_x - x_mean
+    y_centered = train_y - y_mean
+    xtx = x_centered.T @ x_centered
+    eye = torch.eye(xtx.shape[0], device=train_x.device, dtype=train_x.dtype)
+    weights = torch.linalg.solve(xtx + alpha * eye, x_centered.T @ y_centered)
+    intercept = y_mean - x_mean @ weights
+    pred = test_x @ weights + intercept
+    return pred, {
+        "coef": weights.detach().cpu().numpy(),
+        "intercept": intercept.detach().cpu().numpy().ravel(),
+        "alpha": np.asarray(alpha, dtype=np.float32),
+    }
+
+
+def fit_pca_torch(
+    flat_images: torch.Tensor,
+    n_components: int,
+) -> tuple[torch.Tensor, dict[str, np.ndarray], float]:
+    mean = flat_images.mean(dim=0, keepdim=True)
+    centered = flat_images - mean
+    q = min(n_components, centered.shape[0], centered.shape[1])
+    u, s, v = torch.pca_lowrank(centered, q=q, center=False)
+    components = v[:, :n_components].T.contiguous()
+    coeffs = centered @ components.T
+    denom = max(centered.shape[0] - 1, 1)
+    total_var = centered.var(dim=0, unbiased=True).sum()
+    explained = (s[:n_components].square() / denom).sum()
+    explained_ratio = float((explained / total_var).item()) if float(total_var.item()) > 0 else np.nan
+    model = {
+        "mean": mean.detach().cpu().numpy().ravel().astype(np.float32),
+        "components": components.detach().cpu().numpy().astype(np.float32),
+    }
+    return coeffs, model, explained_ratio
+
+
+def inverse_pca_torch(coeffs: torch.Tensor, pca_model: dict[str, np.ndarray], device: torch.device) -> torch.Tensor:
+    components = torch.from_numpy(pca_model["components"]).to(device=device, dtype=torch.float32)
+    mean = torch.from_numpy(pca_model["mean"]).to(device=device, dtype=torch.float32)
+    return coeffs @ components + mean
+
+
 def fit_predict_insample(
     descriptors: np.ndarray,
     flat_images: np.ndarray,
     n_components: int,
-) -> tuple[np.ndarray, PCA, Ridge, dict[str, float]]:
-    pca = PCA(n_components=n_components, svd_solver="randomized", random_state=0)
-    coeffs = pca.fit_transform(flat_images)
-    regression = Ridge(alpha=1.0)
-    regression.fit(descriptors, coeffs)
-    pred_coeffs = regression.predict(descriptors)
-    pred_flat = pca.inverse_transform(pred_coeffs)
+    device: torch.device,
+) -> tuple[np.ndarray, dict[str, np.ndarray], dict[str, np.ndarray], dict[str, float]]:
+    require_torch()
+    x = torch.from_numpy(descriptors).to(device=device, dtype=torch.float32)
+    y = torch.from_numpy(flat_images).to(device=device, dtype=torch.float32)
+    coeffs, pca_model, explained_ratio = fit_pca_torch(y, n_components)
+    pred_coeffs, ridge_model = ridge_fit_predict_torch(x, coeffs, x)
+    pred_flat = inverse_pca_torch(pred_coeffs, pca_model, device).detach().cpu().numpy().astype(np.float32)
     metrics = average_metrics(flat_images, pred_flat)
-    metrics["pca_explained_variance_ratio_sum"] = float(np.sum(pca.explained_variance_ratio_))
-    return pred_flat, pca, regression, metrics
+    metrics["pca_explained_variance_ratio_sum"] = explained_ratio
+    return pred_flat, pca_model, ridge_model, metrics
 
 
 def loocv_predictions(
     descriptors: np.ndarray,
     flat_images: np.ndarray,
     component_counts: list[int],
+    device: torch.device,
 ) -> dict[int, np.ndarray]:
+    require_torch()
     n_samples = descriptors.shape[0]
-    max_components = max(component_counts)
     predictions = {
         n_components: np.zeros_like(flat_images, dtype=np.float32)
         for n_components in component_counts
     }
+    x_all = torch.from_numpy(descriptors).to(device=device, dtype=torch.float32)
+    y_all = torch.from_numpy(flat_images).to(device=device, dtype=torch.float32)
 
     for test_index in range(n_samples):
-        train_mask = np.ones(n_samples, dtype=bool)
+        train_mask = torch.ones(n_samples, device=device, dtype=torch.bool)
         train_mask[test_index] = False
-        x_train = descriptors[train_mask]
-        y_train = flat_images[train_mask]
-        pca = PCA(n_components=max_components, svd_solver="randomized", random_state=0)
-        train_coeffs = pca.fit_transform(y_train)
-        test_x = descriptors[test_index : test_index + 1]
+        x_train = x_all[train_mask]
+        y_train = y_all[train_mask]
+        test_x = x_all[test_index : test_index + 1]
+        max_components = min(max(component_counts), y_train.shape[0], y_train.shape[1])
+        coeffs, pca_model, _ = fit_pca_torch(y_train, max_components)
         for n_components in component_counts:
-            regression = Ridge(alpha=1.0)
-            regression.fit(x_train, train_coeffs[:, :n_components])
-            pred_coeffs = regression.predict(test_x)
-            pred_flat = (
-                pred_coeffs @ pca.components_[:n_components, :]
-                + pca.mean_
-            )
-            predictions[n_components][test_index] = pred_flat.astype(np.float32)
+            limited_pca_model = {
+                "mean": pca_model["mean"],
+                "components": pca_model["components"][:n_components],
+            }
+            pred_coeffs, _ = ridge_fit_predict_torch(x_train, coeffs[:, :n_components], test_x)
+            pred_flat = inverse_pca_torch(pred_coeffs, limited_pca_model, device)
+            predictions[n_components][test_index] = pred_flat.detach().cpu().numpy().astype(np.float32)
     return predictions
 
 
@@ -328,6 +402,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--output_dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--report_dir", type=Path, default=DEFAULT_REPORT_DIR)
     parser.add_argument("--image_size", type=int, default=DEFAULT_IMAGE_SIZE)
+    parser.add_argument("--device", default="auto", help="Training device: auto, cpu, cuda, or cuda:0.")
     return parser
 
 
@@ -348,6 +423,7 @@ def main() -> int:
     if args.image_size <= 0:
         raise SystemExit("--image_size must be positive.")
 
+    resolved_device_name, device = resolve_device(args.device)
     warnings = [fallback_warning] if fallback_warning else []
     selected_rows = read_csv(selected_csv)
     descriptors, images, kept_rows, descriptor_columns, load_warnings = load_dataset(
@@ -362,30 +438,30 @@ def main() -> int:
 
     metrics_rows: list[dict[str, Any]] = []
     insample_predictions: dict[int, np.ndarray] = {}
-    insample_models: dict[int, tuple[PCA, Ridge]] = {}
+    insample_models: dict[int, tuple[dict[str, np.ndarray], dict[str, np.ndarray]]] = {}
     for n_components in component_counts:
-        pred_flat, pca, regression, metrics = fit_predict_insample(
-            descriptors, flat_images, n_components
+        pred_flat, pca_model, regression_model, metrics = fit_predict_insample(
+            descriptors, flat_images, n_components, device
         )
         insample_predictions[n_components] = pred_flat.reshape(images.shape)
-        insample_models[n_components] = (pca, regression)
+        insample_models[n_components] = (pca_model, regression_model)
         metrics_rows.append(
             {
                 "mode": "insample",
-                "model": "Ridge",
+                "model": "torch_ridge",
                 "n_components": n_components,
                 "n_images": images.shape[0],
                 **metrics,
             }
         )
 
-    loocv_by_components = loocv_predictions(descriptors, flat_images, component_counts)
+    loocv_by_components = loocv_predictions(descriptors, flat_images, component_counts, device)
     for n_components, pred_flat in loocv_by_components.items():
         metrics = average_metrics(flat_images, pred_flat)
         metrics_rows.append(
             {
                 "mode": "loocv",
-                "model": "Ridge",
+                "model": "torch_ridge",
                 "n_components": n_components,
                 "n_images": images.shape[0],
                 **metrics,
@@ -441,6 +517,7 @@ def main() -> int:
             "descriptor_count": len(descriptor_columns),
             "descriptor_columns": descriptor_columns,
             "component_counts": component_counts,
+            "device": resolved_device_name,
             "best_selection_metric": "lowest LOOCV MSE",
             "best_model": best_row,
             "outputs": {
@@ -458,6 +535,7 @@ def main() -> int:
     print(f"  images: {images.shape[0]}")
     print(f"  resized image shape: {args.image_size}x{args.image_size}")
     print(f"  descriptor count: {len(descriptor_columns)}")
+    print(f"  training device: {resolved_device_name}")
     if warnings:
         print(f"  warnings: {len(warnings)}")
         for warning in warnings:
@@ -472,7 +550,7 @@ def main() -> int:
         )
     print(
         "  best setting: "
-        f"Ridge with {best_components} PCA components by LOOCV MSE={best_row['mse']:.6g}"
+        f"torch ridge with {best_components} PCA components by LOOCV MSE={best_row['mse']:.6g}"
     )
     print(f"  metrics: {display_path(metrics_path)}")
     print(f"  summary: {display_path(summary_path)}")
