@@ -20,6 +20,8 @@ from pathlib import Path
 
 
 SAMPLE_RE = re.compile(r"^N(\d{4})")
+VIDEO_SUFFIXES = {".mov", ".mp4", ".avi", ".mkv", ".m4v", ".mts", ".m2ts"}
+HEIC_SUFFIXES = {".heic", ".heif"}
 
 
 def load_removed_samples(remove_list_path: Path) -> set[str]:
@@ -84,6 +86,34 @@ def copy_folder_contents(source: Path, destination: Path, dry_run: bool) -> None
             shutil.copy2(item, target)
 
 
+def visible_files(root: Path) -> list[Path]:
+    return [item for item in sorted(root.iterdir()) if item.is_file() and not item.name.startswith(".")]
+
+
+def is_single_heic_only_sample(rheed_sample_dir: Path) -> bool:
+    files = visible_files(rheed_sample_dir)
+    return len(files) == 1 and files[0].suffix.lower() in HEIC_SUFFIXES
+
+
+def collect_main_video_files(rheed_sample_dir: Path) -> list[Path]:
+    return [
+        item
+        for item in visible_files(rheed_sample_dir)
+        if item.stem.lower() == "main" and item.suffix.lower() in VIDEO_SUFFIXES
+    ]
+
+
+def copy_selected_files(files: list[Path], destination: Path, dry_run: bool) -> None:
+    if dry_run:
+        for source in files:
+            print(f"  would copy {source} -> {destination / source.name}")
+        return
+
+    destination.mkdir(parents=True, exist_ok=True)
+    for source in files:
+        shutil.copy2(source, destination / source.name)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Create pair folders for sample numbers shared by AFM and RHEED."
@@ -139,7 +169,27 @@ def main() -> None:
     removed_samples = load_removed_samples(remove_list_path)
 
     common_numbers_all = sorted(set(afm_samples) & set(rheed_samples))
-    common_numbers = [number for number in common_numbers_all if number not in removed_samples]
+    common_numbers_after_remove = [
+        number for number in common_numbers_all if number not in removed_samples
+    ]
+
+    selected_rheed_main_files: dict[str, list[Path]] = {}
+    skipped_single_heic: list[str] = []
+    skipped_no_main_video: list[str] = []
+    for number in common_numbers_after_remove:
+        rheed_sample_dir = rheed_samples[number]
+        if is_single_heic_only_sample(rheed_sample_dir):
+            skipped_single_heic.append(number)
+            continue
+
+        main_video_files = collect_main_video_files(rheed_sample_dir)
+        if not main_video_files:
+            skipped_no_main_video.append(number)
+            continue
+
+        selected_rheed_main_files[number] = main_video_files
+
+    common_numbers = sorted(selected_rheed_main_files)
 
     print(f"Found {len(afm_samples)} AFM sample folders.")
     print(f"Found {len(rheed_samples)} RHEED sample folders.")
@@ -154,6 +204,16 @@ def main() -> None:
                 "Remove-list ids not found in both AFM/RHEED roots: "
                 f"{', '.join(removed_not_found)}"
             )
+    if skipped_single_heic:
+        print(
+            "Skipped samples with only one HEIC file in RHEED folder: "
+            f"{', '.join(skipped_single_heic)}"
+        )
+    if skipped_no_main_video:
+        print(
+            "Skipped samples without RHEED main video file: "
+            f"{', '.join(skipped_no_main_video)}"
+        )
     print(f"Creating {len(common_numbers)} paired folders in {pair_root}.")
 
     for number in common_numbers:
@@ -163,7 +223,7 @@ def main() -> None:
 
         print(f"N{number}")
         copy_folder_contents(afm_samples[number], afm_destination, args.dry_run)
-        copy_folder_contents(rheed_samples[number], rheed_destination, args.dry_run)
+        copy_selected_files(selected_rheed_main_files[number], rheed_destination, args.dry_run)
 
     print("Done.")
 

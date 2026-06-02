@@ -33,6 +33,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 RAW_ROOT = Path("data") / "raw"
 RAW_AFM_DIR = RAW_ROOT / "raw_AFM"
+RAW_RHEED_SELECTED_DIR = RAW_ROOT / "raw_RHEED_selected"
 RAW_RHEED_DIR = RAW_ROOT / "raw_RHEED"
 PAIR_ROOT = Path("data") / "pair"
 PROCESSED_AFM_ROOT = Path("data") / "processed_afm"
@@ -44,8 +45,15 @@ AFM_RECON_REPORT_ROOT = Path("reports") / "afm_descriptor_reconstruction"
 AFM_RECON_LARGE_REPORT_ROOT = Path("reports") / "afm_descriptor_reconstruction_large"
 
 
-def require_raw_inputs() -> None:
-    missing = [path for path in (RAW_AFM_DIR, RAW_RHEED_DIR) if not path.is_dir()]
+def resolve_rheed_input_dir() -> Path:
+    """Prefer manually curated RHEED selection if present."""
+    if RAW_RHEED_SELECTED_DIR.is_dir():
+        return RAW_RHEED_SELECTED_DIR
+    return RAW_RHEED_DIR
+
+
+def require_raw_inputs(rheed_input_dir: Path) -> None:
+    missing = [path for path in (RAW_AFM_DIR, rheed_input_dir) if not path.is_dir()]
     if missing:
         missing_text = "\n".join(f"- {path}" for path in missing)
         raise SystemExit(
@@ -243,6 +251,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     args = build_parser().parse_args()
     os.chdir(PROJECT_ROOT)
+    rheed_input_dir = resolve_rheed_input_dir()
 
     if args.stage == "recon" and args.skip_reconstruction:
         raise SystemExit("'recon' stage cannot be combined with --skip-reconstruction.")
@@ -254,7 +263,7 @@ def main() -> int:
         print(f"Stage: {args.stage}")
         if args.stage == "all":
             print(f"Raw AFM: {RAW_AFM_DIR}")
-            print(f"Raw RHEED: {RAW_RHEED_DIR}")
+            print(f"Raw RHEED: {rheed_input_dir}")
             print(f"Pair output: {PAIR_ROOT}")
             print(f"Processed AFM output: {PROCESSED_AFM_ROOT}")
             if not args.skip_plane_correction:
@@ -280,7 +289,7 @@ def main() -> int:
         print(f"Large reconstruction report: {AFM_RECON_LARGE_REPORT_ROOT / 'summary.md'}")
         return 0
 
-    require_raw_inputs()
+    require_raw_inputs(rheed_input_dir)
 
     # Clean only generated outputs so repeated runs match the current raw data.
     remove_generated_dir(PAIR_ROOT)
@@ -296,7 +305,7 @@ def main() -> int:
             "--afm_root",
             str(RAW_AFM_DIR),
             "--rheed_root",
-            str(RAW_RHEED_DIR),
+            str(rheed_input_dir),
             "--pair_root",
             str(PAIR_ROOT),
         ],
