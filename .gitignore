@@ -4,6 +4,11 @@ __pycache__/
 *.egg-info/
 .DS_Store
 *.log
+*.npy
+*.pt
+*.pth
+*.ckpt
+*.joblib
 
 data/
 data/raw/
@@ -15,3 +20,19 @@ data/plane_corrected_afm/
 outputs/
 checkpoints/
 
+# Generated experiment artifacts under reports/
+reports/**/descriptor_data/
+reports/**/descriptor_report/
+reports/**/afm_autoencoder*/*.csv
+reports/**/afm_autoencoder*/*.json
+reports/**/afm_autoencoder*/*.npy
+reports/**/afm_autoencoder*/*.png
+reports/**/afm_autoencoder*/*.pt
+reports/**/rheed_to_afm_latent*/*.csv
+reports/**/rheed_to_afm_latent*/*.json
+reports/**/rheed_to_afm_latent*/*.npy
+reports/**/rheed_to_afm_latent*/*.png
+reports/**/rheed_to_afm_latent*/*.pt
+reports/**/embedding_pca.png
+reports/**/nearest_neighbor_qualitative_grid.png
+reports/**/predicted_vs_true_scatter.png

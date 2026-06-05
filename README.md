@@ -104,6 +104,27 @@ Run only the reconstruction experiments from existing `data/plane_corrected_afm/
 uv run python run_pipeline.py recon
 ```
 
+Run the frozen-encoder RHEED-to-AFM descriptor MVP baseline:
+
+```bash
+uv run python scripts/rheed_to_afm_descriptor_mvp.py
+```
+
+Build clean one-to-one manifests by AFM scan size:
+
+```bash
+uv run python scripts/build_one_to_one_manifests.py \
+  --out-dir data/manifests \
+  --target-sizes 1.0 0.5 5.0 \
+  --size-tolerance 0.05
+```
+
+Run descriptor MVP on each one-to-one manifest and write a comparison summary:
+
+```bash
+uv run python scripts/run_one_to_one_experiments.py --device cuda
+```
+
 Preview the pipeline without modifying files:
 
 ```bash

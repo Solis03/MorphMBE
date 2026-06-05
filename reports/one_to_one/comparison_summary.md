@@ -1,0 +1,8 @@
+# One-to-One Latent Comparison Summary
+
+| Subset | Pairs | Groups | Scan size | Descriptor baseline | AE val loss | AE morphology judgment | Learned latent vs dummy | Recommendation |
+| --- | ---: | ---: | --- | --- | ---: | --- | --- | --- |
+| all_size_representative | 40 | 40 | mixed representative | MAE 0.782, R2 -1.113 (likely duplicated from 1um) | 0.8918 | Partially morphology-preserving: coarse blob/island texture is retained, but reconstructions are oversmoothed and often inherit a low-frequency gradient bias. | does not beat mean-latent baseline; better than random | Do not overinterpret cross-modal results yet; improve AFM autoencoder and keep this subset as a diversity stress test. |
+| 1um | 37 | 37 | 1um | MAE 0.782, R2 -1.113 | 0.8731 | Best reconstruction among the formal subsets: grain-scale morphology is partially preserved, though still blurred and biased toward average texture. | does not beat mean-latent baseline; better than random | Use 1um as the main benchmark for the next round; first improve AFM autoencoder and then retest RHEED-to-latent. |
+| 0p5um | 15 | 15 | 0.5um | MAE 1.092, R2 nan (not reliable) | 1.0091 | Weak reconstruction with obvious collapse/aliasing patterns; morphology is not reliably preserved. Warning triggered. | does not beat mean-latent baseline; better than random | Exploratory only; do not use for core claims. |
+| 5um | 6 | 6 | 5um | not available for meaningful comparison | 1.0161 | Smoke-level only: reconstructions collapse toward noisy average texture. Warning triggered. | beats mean-latent baseline; better than random | Keep as a qualitative smoke test only. |
