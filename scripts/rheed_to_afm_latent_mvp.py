@@ -37,7 +37,13 @@ from rheed2morph.afm.mvp import (
     resolve_existing_path,
     write_csv,
 )
-from rheed2morph.rheed.mvp import decode_video_frames, infer_target_columns, sample_uniform_frames
+from rheed2morph.rheed.mvp import (
+    decode_video_frames,
+    infer_target_columns,
+    load_processed_model_input,
+    sample_uniform_frames,
+    sample_uniform_sequence,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -50,6 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--afm-latent-index", type=Path, required=True)
     parser.add_argument("--autoencoder-checkpoint", type=Path, default=None)
     parser.add_argument("--descriptor-csv", type=Path, default=None)
+    parser.add_argument("--embedding-source-label", default="")
     parser.add_argument("--top-k", type=int, default=3)
     parser.add_argument("--out-dir", type=Path, required=True)
     return parser
@@ -65,7 +72,7 @@ def load_matrix(path: Path) -> np.ndarray:
 def load_rheed_embedding_table(
     rheed_embeddings_path: Path,
     rheed_embedding_index_path: Path | None,
-) -> tuple[np.ndarray, dict[str, int]]:
+) -> tuple[np.ndarray, dict[str, int], dict[str, dict[str, str]]]:
     if rheed_embeddings_path.suffix.lower() == ".csv":
         rows = read_csv(rheed_embeddings_path)
         if not rows:
@@ -76,12 +83,15 @@ def load_rheed_embedding_table(
             dtype=np.float32,
         )
         index = {row["sample_id"]: idx for idx, row in enumerate(rows)}
-        return matrix, index
+        metadata = {row["sample_id"]: row for row in rows}
+        return matrix, index, metadata
     if rheed_embedding_index_path is None:
         raise ValueError("A RHEED embedding index is required when embeddings are provided as .npy.")
     matrix = load_matrix(rheed_embeddings_path)
-    index = {row["sample_id"]: idx for idx, row in enumerate(read_csv(rheed_embedding_index_path))}
-    return matrix, index
+    index_rows = read_csv(rheed_embedding_index_path)
+    index = {row["sample_id"]: idx for idx, row in enumerate(index_rows)}
+    metadata = {row["sample_id"]: row for row in index_rows}
+    return matrix, index, metadata
 
 
 def load_joined_dataset(
@@ -92,7 +102,10 @@ def load_joined_dataset(
     afm_latent_index: Path,
 ) -> tuple[list[dict[str, Any]], np.ndarray, np.ndarray]:
     manifest_rows = read_csv(manifest_path)
-    rheed_matrix, rheed_index = load_rheed_embedding_table(rheed_embeddings_path, rheed_embedding_index_path)
+    rheed_matrix, rheed_index, rheed_metadata = load_rheed_embedding_table(
+        rheed_embeddings_path,
+        rheed_embedding_index_path,
+    )
     afm_matrix = load_matrix(afm_latents)
     afm_index = {resolve_existing_path(Path(row["afm_path"])).as_posix(): idx for idx, row in enumerate(read_csv(afm_latent_index))}
 
@@ -104,7 +117,11 @@ def load_joined_dataset(
         afm_key = resolve_existing_path(Path(row["afm_path"])).as_posix()
         if sample_id not in rheed_index or afm_key not in afm_index:
             continue
-        joined_rows.append(row)
+        joined_row = dict(row)
+        embedding_meta = rheed_metadata.get(sample_id, {})
+        joined_row["rheed_input_path"] = embedding_meta.get("video_path", row.get("rheed_path", ""))
+        joined_row["rheed_selection_reason"] = embedding_meta.get("selection_reason", "")
+        joined_rows.append(joined_row)
         x_rows.append(rheed_matrix[rheed_index[sample_id]])
         y_rows.append(afm_matrix[afm_index[afm_key]])
     if not joined_rows:
@@ -209,9 +226,19 @@ def topk_hit_rate(y_train: np.ndarray, y_true: np.ndarray, y_pred: np.ndarray, k
 
 
 def rheed_thumbnail(path: Path) -> np.ndarray:
+    if path.suffix.lower() == ".npz":
+        frames, _, _ = load_processed_model_input(path)
+        sampled = sample_uniform_sequence(frames, 1)
+        return sampled[0]
     frames = decode_video_frames(path)
     sampled = sample_uniform_frames(frames, 1)
     return sampled[0]
+
+
+def rheed_panel_title(row: dict[str, Any]) -> str:
+    source_path = Path(row.get("rheed_input_path", row.get("rheed_path", "")))
+    label = "Processed RHEED" if source_path.suffix.lower() == ".npz" else "RHEED"
+    return f"{label}\n{row['sample_id']}"
 
 
 def decode_latents(model_ae: Any, latents: np.ndarray) -> np.ndarray:
@@ -262,11 +289,12 @@ def write_nearest_latent_grid(
     for grid_row, offset in zip(axes, selected):
         test_row = rows[int(test_idx[offset])]
         train_row = train_rows[int(nearest_idx[offset])]
-        rheed = rheed_thumbnail(resolve_existing_path(Path(test_row["rheed_path"])))
+        rheed_source = test_row.get("rheed_input_path", test_row["rheed_path"])
+        rheed = rheed_thumbnail(resolve_existing_path(Path(rheed_source)))
         true_afm = preprocess_afm_array(load_afm_array(resolve_existing_path(Path(test_row["afm_path"]))), image_size)[0]
         nn_afm = preprocess_afm_array(load_afm_array(resolve_existing_path(Path(train_row["afm_path"]))), image_size)[0]
         panels: list[tuple[np.ndarray, str]] = [
-            (rheed, f"RHEED\n{test_row['sample_id']}"),
+            (rheed, rheed_panel_title(test_row)),
             (true_afm, f"True AFM\n{test_row['group_id']}"),
             (
                 nn_afm,
@@ -359,6 +387,7 @@ def write_summary(
     selected_model_name: str,
     interpretability_warning: str,
     sample_regime_note: str,
+    embedding_source_label: str,
 ) -> None:
     best_row = next(row for row in metrics_by_method if row["method"] == selected_model_name)
     mean_row = next(row for row in metrics_by_method if row["method"] == "train_mean_latent")
@@ -367,6 +396,7 @@ def write_summary(
         "# RHEED-to-AFM Latent MVP",
         "",
         f"- Selected model: `{selected_model_name}`",
+        *([f"- Embedding source: `{embedding_source_label}`"] if embedding_source_label else []),
         f"- Learned latent MSE / cosine: `{best_row['latent_mse']:.6f}` / `{best_row['latent_cosine_similarity']:.6f}`",
         f"- Mean-latent baseline MSE / cosine: `{mean_row['latent_mse']:.6f}` / `{mean_row['latent_cosine_similarity']:.6f}`",
         f"- Random-train baseline MSE / cosine: `{random_row['latent_mse']:.6f}` / `{random_row['latent_cosine_similarity']:.6f}`",
@@ -522,6 +552,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     metrics_payload = {
         "manifest": str(manifest_path),
+        "embedding_source_label": args.embedding_source_label,
         "selected_model_name": model_name,
         "train_row_count": int(train_idx.size),
         "test_row_count": int(test_idx.size),
@@ -565,7 +596,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
     if selection_rows:
         write_csv(out_dir / "model_selection.csv", selection_rows, ["model_name", "fold", "latent_mse", "status"])
-    write_summary(out_dir / "summary.md", metrics_rows, model_name, interpretability_warning, sample_regime_note)
+    write_summary(
+        out_dir / "summary.md",
+        metrics_rows,
+        model_name,
+        interpretability_warning,
+        sample_regime_note,
+        args.embedding_source_label,
+    )
     print(f"Wrote latent MVP outputs to {display_path(out_dir)}")
     return 0
 

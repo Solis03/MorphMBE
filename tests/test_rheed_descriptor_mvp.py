@@ -11,8 +11,12 @@ from rheed2morph.rheed.mvp import (
     SampleEmbeddingRecord,
     VideoCandidate,
     aggregate_frame_embeddings,
+    aggregate_temporal_frame_embeddings,
     build_joined_dataset,
     choose_canonical_video,
+    load_processed_model_input,
+    processed_dir_matches_sample_id,
+    resolve_processed_model_input_path,
     run_modeling_experiment,
     split_group_holdout,
 )
@@ -80,6 +84,63 @@ class RheedDescriptorMvpTest(unittest.TestCase):
         aggregated = aggregate_frame_embeddings(frame_embeddings)
         expected = np.asarray([3.0, 5.0, 2.0, 2.0], dtype=np.float32)
         np.testing.assert_allclose(aggregated, expected)
+
+    def test_aggregate_temporal_frame_embeddings_appends_delta_stats(self) -> None:
+        frame_embeddings = np.asarray([[1.0, 3.0], [5.0, 7.0], [9.0, 11.0]], dtype=np.float32)
+        aggregated = aggregate_temporal_frame_embeddings(frame_embeddings)
+        expected = np.asarray([5.0, 7.0, 3.2659864, 3.2659864, 4.0, 4.0, 0.0, 0.0], dtype=np.float32)
+        self.assertEqual(aggregated.shape, (8,))
+        np.testing.assert_allclose(aggregated, expected, rtol=1e-6, atol=1e-6)
+
+    def test_processed_dir_matches_sample_id_uses_numeric_boundaries(self) -> None:
+        self.assertTrue(processed_dir_matches_sample_id("N6022 - Copy", "6022"))
+        self.assertTrue(processed_dir_matches_sample_id("N6063", "6063"))
+        self.assertFalse(processed_dir_matches_sample_id("N16022", "6022"))
+
+    def test_resolve_processed_model_input_path_uses_unique_sample_match(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            target = root / "N6022 - Copy" / "tensors"
+            target.mkdir(parents=True)
+            np.savez(target / "model_input.npz", clean_frames=np.zeros((2, 3, 4), dtype=np.float32), valid_mask=np.ones((3, 4), dtype=bool))
+            resolved = resolve_processed_model_input_path("6022", root, "manifest_sample_id_to_dataset_dir")
+            self.assertEqual(resolved, target / "model_input.npz")
+
+    def test_load_processed_model_input_applies_mask_and_validates_shapes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / "model_input.npz"
+            clean_frames = np.asarray(
+                [
+                    [[0.1, 0.2], [0.3, 0.4]],
+                    [[0.5, 0.6], [0.7, 0.8]],
+                ],
+                dtype=np.float32,
+            )
+            valid_mask = np.asarray([[True, False], [False, True]])
+            timestamps_sec = np.asarray([0.0, 1.0], dtype=np.float32)
+            np.savez(path, clean_frames=clean_frames, valid_mask=valid_mask, timestamps_sec=timestamps_sec)
+            frames, mask, metadata = load_processed_model_input(path)
+            expected = np.asarray(
+                [
+                    [[0.1, 0.0], [0.0, 0.4]],
+                    [[0.5, 0.0], [0.0, 0.8]],
+                ],
+                dtype=np.float32,
+            )
+            np.testing.assert_allclose(frames, expected)
+            np.testing.assert_array_equal(mask, valid_mask)
+            np.testing.assert_allclose(metadata["timestamps_sec"], timestamps_sec)
+
+    def test_load_processed_model_input_rejects_bad_shapes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            path = Path(tmp_dir) / "bad_model_input.npz"
+            np.savez(
+                path,
+                clean_frames=np.zeros((2, 3, 4), dtype=np.float32),
+                valid_mask=np.ones((5, 4), dtype=bool),
+            )
+            with self.assertRaises(ValueError):
+                load_processed_model_input(path)
 
     def test_run_modeling_experiment_writes_outputs(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:

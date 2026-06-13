@@ -7,6 +7,7 @@ import argparse
 import csv
 import json
 import math
+import re
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
@@ -44,6 +45,7 @@ DEFAULT_DESCRIPTOR_AUX_CSV = (
 )
 DEFAULT_DATA_DIR = REPO_ROOT / "data" / "rheed_descriptor_mvp"
 DEFAULT_REPORT_DIR = REPO_ROOT / "reports" / "rheed_descriptor_mvp"
+DEFAULT_PROCESSED_RHEED_ROOT = REPO_ROOT / "data" / "raw_RHEED_selected_test_512"
 VIDEO_SUFFIXES = {".mov", ".mp4", ".avi", ".mkv", ".m4v", ".mts", ".m2ts"}
 ID_COLUMNS = {"row_id", "sample_id", "afm_path"}
 IMAGENET_MEAN = torch.tensor([0.485, 0.456, 0.406], dtype=torch.float32).view(3, 1, 1)
@@ -234,10 +236,43 @@ def sample_uniform_frames(frames: np.ndarray, frame_count: int) -> np.ndarray:
         raise ValueError(f"Expected video frames with shape [T, H, W, C], got {frames.shape}")
     if frame_count <= 0:
         raise ValueError("frame_count must be positive.")
-    if frames.shape[0] <= frame_count:
-        return frames
-    indices = np.linspace(0, frames.shape[0] - 1, frame_count, dtype=int)
+    indices = sample_uniform_indices(frames.shape[0], frame_count)
     return frames[indices]
+
+
+def sample_uniform_indices(length: int, target_count: int) -> np.ndarray:
+    if length <= 0:
+        raise ValueError("length must be positive.")
+    if target_count <= 0:
+        raise ValueError("target_count must be positive.")
+    if length <= target_count:
+        return np.arange(length, dtype=int)
+    return np.linspace(0, length - 1, target_count, dtype=int)
+
+
+def sample_uniform_sequence(sequence: np.ndarray, target_count: int) -> np.ndarray:
+    array = np.asarray(sequence)
+    if array.ndim < 1:
+        raise ValueError(f"Expected an array with at least one dimension, got {array.shape}")
+    return array[sample_uniform_indices(array.shape[0], target_count)]
+
+
+def normalize_frame_for_rgb(frame: np.ndarray) -> np.ndarray:
+    array = np.asarray(frame)
+    if np.issubdtype(array.dtype, np.floating):
+        array = np.nan_to_num(array.astype(np.float32), nan=0.0, posinf=1.0, neginf=0.0)
+        min_value = float(np.min(array))
+        max_value = float(np.max(array))
+        if min_value >= 0.0 and max_value <= 1.0 + 1e-6:
+            array = np.clip(array, 0.0, 1.0) * 255.0
+        elif max_value > min_value:
+            array = (array - min_value) / (max_value - min_value)
+            array = np.clip(array, 0.0, 1.0) * 255.0
+        else:
+            array = np.zeros_like(array, dtype=np.float32)
+    else:
+        array = np.clip(array, 0, 255)
+    return array.astype(np.uint8)
 
 
 def frame_to_chw_tensor(frame: np.ndarray, image_size: int) -> torch.Tensor:
@@ -251,7 +286,7 @@ def frame_to_chw_tensor(frame: np.ndarray, image_size: int) -> torch.Tensor:
     else:
         raise ValueError(f"Unsupported frame shape: {array.shape}")
 
-    image = Image.fromarray(array.astype(np.uint8), mode="RGB")
+    image = Image.fromarray(normalize_frame_for_rgb(array), mode="RGB")
     image = image.resize((image_size, image_size), Image.Resampling.BILINEAR)
     chw = torch.from_numpy(np.asarray(image, dtype=np.float32)).permute(2, 0, 1) / 255.0
     return (chw - IMAGENET_MEAN) / IMAGENET_STD
@@ -269,6 +304,22 @@ def aggregate_frame_embeddings(frame_embeddings: np.ndarray) -> np.ndarray:
     mean = np.mean(array, axis=0)
     std = np.std(array, axis=0)
     return np.concatenate([mean, std], axis=0).astype(np.float32)
+
+
+def aggregate_temporal_frame_embeddings(frame_embeddings: np.ndarray) -> np.ndarray:
+    array = np.asarray(frame_embeddings, dtype=np.float32)
+    if array.ndim != 2 or array.shape[0] == 0:
+        raise ValueError(f"Expected [num_frames, feature_dim] frame embeddings, got {array.shape}")
+    mean = np.mean(array, axis=0)
+    std = np.std(array, axis=0)
+    if array.shape[0] >= 2:
+        deltas = np.diff(array, axis=0)
+        delta_mean = np.mean(deltas, axis=0)
+        delta_std = np.std(deltas, axis=0)
+    else:
+        delta_mean = np.zeros_like(mean)
+        delta_std = np.zeros_like(std)
+    return np.concatenate([mean, std, delta_mean, delta_std], axis=0).astype(np.float32)
 
 
 def load_pretrained_encoder(
@@ -335,7 +386,27 @@ def extract_sample_embedding(
 ) -> tuple[np.ndarray, int, int]:
     frames = decode_video_frames(video_path)
     sampled = sample_uniform_frames(frames, frame_count)
-    batch = preprocess_frames(sampled, image_size)
+    return extract_embedding_from_frames(
+        sampled_frames=sampled,
+        full_frame_count=int(frames.shape[0]),
+        encoder=encoder,
+        image_size=image_size,
+        batch_size=batch_size,
+        device_name=device_name,
+        aggregation_mode="mean_std",
+    )
+
+
+def extract_embedding_from_frames(
+    sampled_frames: np.ndarray,
+    full_frame_count: int,
+    encoder: torch.nn.Module,
+    image_size: int,
+    batch_size: int,
+    device_name: str,
+    aggregation_mode: str,
+) -> tuple[np.ndarray, int, int]:
+    batch = preprocess_frames(sampled_frames, image_size)
     device = resolve_torch_device(device_name)
     outputs: list[np.ndarray] = []
     with torch.no_grad():
@@ -344,7 +415,118 @@ def extract_sample_embedding(
             features = encoder(chunk).flatten(1).detach().cpu().numpy()
             outputs.append(features.astype(np.float32))
     frame_embeddings = np.concatenate(outputs, axis=0)
-    return aggregate_frame_embeddings(frame_embeddings), int(frames.shape[0]), int(sampled.shape[0])
+    if aggregation_mode == "mean_std":
+        embedding = aggregate_frame_embeddings(frame_embeddings)
+    elif aggregation_mode == "temporal_stats":
+        embedding = aggregate_temporal_frame_embeddings(frame_embeddings)
+    else:
+        raise ValueError(f"Unsupported aggregation_mode: {aggregation_mode}")
+    return embedding, int(full_frame_count), int(sampled_frames.shape[0])
+
+
+def processed_dir_matches_sample_id(sample_dir_name: str, sample_id: str) -> bool:
+    pattern = rf"(^|[^0-9]){re.escape(sample_id)}([^0-9]|$)"
+    return re.search(pattern, sample_dir_name) is not None
+
+
+def resolve_processed_sample_dir(sample_id: str, processed_rheed_root: Path) -> Path:
+    matches = [
+        path
+        for path in sorted(processed_rheed_root.iterdir())
+        if path.is_dir() and processed_dir_matches_sample_id(path.name, sample_id)
+    ]
+    if not matches:
+        raise FileNotFoundError(f"No processed RHEED directory matched sample_id {sample_id}.")
+    if len(matches) > 1:
+        raise ValueError(
+            f"Multiple processed RHEED directories matched sample_id {sample_id}: "
+            + ", ".join(path.name for path in matches)
+        )
+    return matches[0]
+
+
+def resolve_processed_model_input_path(
+    sample_id: str,
+    processed_rheed_root: Path,
+    sample_map: str,
+) -> Path:
+    if sample_map != "manifest_sample_id_to_dataset_dir":
+        raise ValueError(f"Unsupported processed sample map: {sample_map}")
+    dataset_dir = resolve_processed_sample_dir(sample_id, processed_rheed_root)
+    model_input_path = dataset_dir / "tensors" / "model_input.npz"
+    if not model_input_path.is_file():
+        raise FileNotFoundError(f"Missing processed model input for sample_id {sample_id}: {model_input_path}")
+    return model_input_path
+
+
+def load_processed_model_input(
+    path: Path,
+    frame_key: str = "clean_frames",
+) -> tuple[np.ndarray, np.ndarray, dict[str, np.ndarray]]:
+    resolved = resolve_existing_path(path)
+    with np.load(resolved) as payload:
+        if frame_key not in payload:
+            raise ValueError(f"Missing frame key `{frame_key}` in {resolved}")
+        if "valid_mask" not in payload:
+            raise ValueError(f"Missing `valid_mask` in {resolved}")
+        frames = np.asarray(payload[frame_key], dtype=np.float32)
+        valid_mask = np.asarray(payload["valid_mask"], dtype=bool)
+        metadata = {
+            name: np.asarray(payload[name])
+            for name in payload.files
+            if name not in {frame_key, "valid_mask"}
+        }
+    if frames.ndim != 3:
+        raise ValueError(f"Expected processed frames [T, H, W], got {frames.shape} at {resolved}")
+    if frames.shape[0] == 0:
+        raise ValueError(f"Processed frames are empty at {resolved}")
+    if valid_mask.ndim != 2:
+        raise ValueError(f"Expected valid_mask [H, W], got {valid_mask.shape} at {resolved}")
+    if frames.shape[1:] != valid_mask.shape:
+        raise ValueError(
+            f"Processed frame shape {frames.shape[1:]} does not match valid_mask {valid_mask.shape} at {resolved}"
+        )
+    frames = np.nan_to_num(frames, nan=0.0, posinf=1.0, neginf=0.0)
+    frames = np.clip(frames, 0.0, 1.0)
+    frames = np.where(valid_mask[None, :, :], frames, 0.0).astype(np.float32)
+    return frames, valid_mask.astype(bool), metadata
+
+
+def load_processed_sample_duration_seconds(model_input_path: Path) -> float:
+    metadata_path = model_input_path.parents[1] / "metadata.json"
+    if not metadata_path.is_file():
+        return 0.0
+    try:
+        payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except Exception:
+        return 0.0
+    raw_value = payload.get("duration_sec", 0.0)
+    try:
+        return float(raw_value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def extract_processed_sample_embedding(
+    model_input_path: Path,
+    encoder: torch.nn.Module,
+    image_size: int,
+    frame_key: str,
+    max_frames: int,
+    batch_size: int,
+    device_name: str,
+) -> tuple[np.ndarray, int, int]:
+    frames, _, _ = load_processed_model_input(model_input_path, frame_key=frame_key)
+    sampled = sample_uniform_sequence(frames, max_frames)
+    return extract_embedding_from_frames(
+        sampled_frames=sampled,
+        full_frame_count=int(frames.shape[0]),
+        encoder=encoder,
+        image_size=image_size,
+        batch_size=batch_size,
+        device_name=device_name,
+        aggregation_mode="temporal_stats",
+    )
 
 
 def collect_sample_embeddings(
@@ -353,7 +535,13 @@ def collect_sample_embeddings(
     device_name: str,
     frame_count: int,
     batch_size: int,
+    rheed_input_mode: str = "raw_video",
+    processed_rheed_root: Path | None = None,
+    processed_frame_key: str = "clean_frames",
+    processed_max_frames: int = 64,
+    processed_sample_map: str = "manifest_sample_id_to_dataset_dir",
     selected_rheed_paths_by_sample: dict[str, Path] | None = None,
+    manifest_sample_ids: Sequence[str] | None = None,
 ) -> tuple[dict[str, SampleEmbeddingRecord], list[dict[str, Any]], dict[str, Any]]:
     encoder, resolved_backend, image_size = load_pretrained_encoder(
         backend=encoder_backend,
@@ -366,7 +554,77 @@ def collect_sample_embeddings(
         "encoder_backend_resolved": resolved_backend,
         "image_size": image_size,
         "frame_count_requested": frame_count,
+        "rheed_input_mode": rheed_input_mode,
     }
+
+    if rheed_input_mode == "processed_npz":
+        if processed_rheed_root is None:
+            raise ValueError("processed_rheed_root is required when rheed_input_mode=processed_npz")
+        requested_sample_ids = (
+            sorted({sample_id.strip() for sample_id in manifest_sample_ids})
+            if manifest_sample_ids is not None
+            else [path.name for path in list_sample_directories(pair_root)]
+        )
+        summary["processed_rheed_root"] = display_path(processed_rheed_root)
+        summary["processed_frame_key"] = processed_frame_key
+        summary["processed_max_frames"] = int(processed_max_frames)
+        summary["processed_sample_map"] = processed_sample_map
+        summary["sample_count_requested"] = len(requested_sample_ids)
+        summary["sample_count_mapped"] = 0
+        summary["sample_count_mapping_failed"] = 0
+
+        for sample_id in requested_sample_ids:
+            try:
+                model_input_path = resolve_processed_model_input_path(
+                    sample_id=sample_id,
+                    processed_rheed_root=processed_rheed_root,
+                    sample_map=processed_sample_map,
+                )
+            except Exception as exc:
+                skipped_rows.append(
+                    {
+                        "sample_id": sample_id,
+                        "reason": f"processed mapping failed: {exc}",
+                        "video_path": "",
+                    }
+                )
+                summary["sample_count_mapping_failed"] += 1
+                continue
+
+            summary["sample_count_mapped"] += 1
+            try:
+                embedding, decoded_frame_count, sampled_frame_count = extract_processed_sample_embedding(
+                    model_input_path=model_input_path,
+                    encoder=encoder,
+                    image_size=image_size,
+                    frame_key=processed_frame_key,
+                    max_frames=processed_max_frames,
+                    batch_size=batch_size,
+                    device_name=device_name,
+                )
+            except Exception as exc:
+                skipped_rows.append(
+                    {
+                        "sample_id": sample_id,
+                        "reason": f"embedding failed: {exc}",
+                        "video_path": str(model_input_path),
+                    }
+                )
+                continue
+
+            sample_records[sample_id] = SampleEmbeddingRecord(
+                sample_id=sample_id,
+                video_path=model_input_path,
+                selection_reason=f"processed_npz:{processed_sample_map}",
+                duration_seconds=load_processed_sample_duration_seconds(model_input_path),
+                decoded_frame_count=decoded_frame_count,
+                sampled_frame_count=sampled_frame_count,
+                embedding=embedding,
+            )
+
+        summary["sample_count_embedded"] = len(sample_records)
+        summary["sample_count_skipped"] = len(skipped_rows)
+        return sample_records, skipped_rows, summary
 
     for sample_root in list_sample_directories(pair_root):
         sample_id = sample_root.name
@@ -1186,6 +1444,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR)
     parser.add_argument("--encoder-backend", choices=("auto", "torchvision", "torchhub"), default="auto")
     parser.add_argument("--device", default="auto")
+    parser.add_argument("--rheed-input-mode", choices=("raw_video", "processed_npz"), default="raw_video")
+    parser.add_argument("--processed-rheed-root", type=Path, default=DEFAULT_PROCESSED_RHEED_ROOT)
+    parser.add_argument("--processed-frame-key", default="clean_frames")
+    parser.add_argument("--processed-max-frames", type=int, default=64)
+    parser.add_argument(
+        "--processed-sample-map",
+        choices=("manifest_sample_id_to_dataset_dir",),
+        default="manifest_sample_id_to_dataset_dir",
+    )
     parser.add_argument("--frame-count", type=int, default=8)
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--test-fraction", type=float, default=0.25)
@@ -1201,8 +1468,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     one_to_one_manifest = None if args.one_to_one_manifest is None else resolve_existing_path(args.one_to_one_manifest)
     data_dir = args.data_dir if args.data_dir.is_absolute() else (REPO_ROOT / args.data_dir)
     report_dir = args.report_dir if args.report_dir.is_absolute() else (REPO_ROOT / args.report_dir)
+    processed_rheed_root = (
+        resolve_existing_path(args.processed_rheed_root)
+        if args.processed_rheed_root is not None
+        else None
+    )
 
-    if not pair_root.is_dir():
+    if args.rheed_input_mode == "raw_video" and not pair_root.is_dir():
         raise SystemExit(f"Missing pair root: {pair_root}")
     if not descriptor_csv.is_file():
         raise SystemExit(f"Missing descriptor CSV: {descriptor_csv}")
@@ -1210,6 +1482,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise SystemExit(f"Missing auxiliary descriptor CSV: {descriptor_aux_csv}")
     if one_to_one_manifest is not None and not one_to_one_manifest.is_file():
         raise SystemExit(f"Missing one-to-one manifest: {one_to_one_manifest}")
+    if args.rheed_input_mode == "processed_npz":
+        if processed_rheed_root is None or not processed_rheed_root.is_dir():
+            raise SystemExit(f"Missing processed RHEED root: {processed_rheed_root}")
 
     descriptor_rows = read_csv(descriptor_csv)
     aux_rows = read_csv(descriptor_aux_csv)
@@ -1222,8 +1497,18 @@ def main(argv: Sequence[str] | None = None) -> int:
         device_name=args.device,
         frame_count=args.frame_count,
         batch_size=args.batch_size,
+        rheed_input_mode=args.rheed_input_mode,
+        processed_rheed_root=processed_rheed_root,
+        processed_frame_key=args.processed_frame_key,
+        processed_max_frames=args.processed_max_frames,
+        processed_sample_map=args.processed_sample_map,
         selected_rheed_paths_by_sample=(
             selected_rheed_paths_by_sample(manifest_rows) if manifest_rows is not None else None
+        ),
+        manifest_sample_ids=(
+            [row["sample_id"].strip() for row in manifest_rows]
+            if manifest_rows is not None
+            else None
         ),
     )
     if not sample_embeddings:
