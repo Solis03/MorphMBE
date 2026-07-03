@@ -17,6 +17,7 @@ from rheed2morph.rheed.mvp import (
     load_processed_model_input,
     processed_dir_matches_sample_id,
     resolve_processed_model_input_path,
+    resolve_processed_video_path,
     run_modeling_experiment,
     split_group_holdout,
 )
@@ -105,6 +106,17 @@ class RheedDescriptorMvpTest(unittest.TestCase):
             np.savez(target / "model_input.npz", clean_frames=np.zeros((2, 3, 4), dtype=np.float32), valid_mask=np.ones((3, 4), dtype=bool))
             resolved = resolve_processed_model_input_path("6022", root, "manifest_sample_id_to_dataset_dir")
             self.assertEqual(resolved, target / "model_input.npz")
+
+    def test_resolve_processed_video_path_uses_unique_raw_crop_video(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            target = root / "N6022 - Copy" / "videos"
+            target.mkdir(parents=True)
+            video_path = target / "N6022 - Copy_raw_crop_256x256.mp4"
+            video_path.write_bytes(b"")
+            (target / "N6022 - Copy_raw_crop_256x256.mp4:Zone.Identifier").write_bytes(b"")
+            resolved = resolve_processed_video_path("6022", root, "manifest_sample_id_to_dataset_dir")
+            self.assertEqual(resolved, video_path)
 
     def test_load_processed_model_input_applies_mask_and_validates_shapes(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:

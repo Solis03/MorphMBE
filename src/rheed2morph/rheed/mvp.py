@@ -383,6 +383,7 @@ def extract_sample_embedding(
     frame_count: int,
     batch_size: int,
     device_name: str,
+    aggregation_mode: str = "mean_std",
 ) -> tuple[np.ndarray, int, int]:
     frames = decode_video_frames(video_path)
     sampled = sample_uniform_frames(frames, frame_count)
@@ -393,7 +394,7 @@ def extract_sample_embedding(
         image_size=image_size,
         batch_size=batch_size,
         device_name=device_name,
-        aggregation_mode="mean_std",
+        aggregation_mode=aggregation_mode,
     )
 
 
@@ -457,6 +458,29 @@ def resolve_processed_model_input_path(
     if not model_input_path.is_file():
         raise FileNotFoundError(f"Missing processed model input for sample_id {sample_id}: {model_input_path}")
     return model_input_path
+
+
+def resolve_processed_video_path(
+    sample_id: str,
+    processed_rheed_root: Path,
+    sample_map: str,
+) -> Path:
+    if sample_map != "manifest_sample_id_to_dataset_dir":
+        raise ValueError(f"Unsupported processed sample map: {sample_map}")
+    dataset_dir = resolve_processed_sample_dir(sample_id, processed_rheed_root)
+    video_dir = dataset_dir / "videos"
+    search_dir = video_dir if video_dir.is_dir() else dataset_dir
+    video_files = [path for path in sorted(search_dir.iterdir()) if is_visible_video_file(path)]
+    raw_crop_files = [path for path in video_files if "raw_crop" in path.stem.lower()]
+    selected_files = raw_crop_files if raw_crop_files else video_files
+    if not selected_files:
+        raise FileNotFoundError(f"Missing processed crop video for sample_id {sample_id}: {search_dir}")
+    if len(selected_files) > 1:
+        raise ValueError(
+            f"Multiple processed crop videos matched sample_id {sample_id}: "
+            + ", ".join(path.name for path in selected_files)
+        )
+    return selected_files[0]
 
 
 def load_processed_model_input(
@@ -617,6 +641,84 @@ def collect_sample_embeddings(
                 video_path=model_input_path,
                 selection_reason=f"processed_npz:{processed_sample_map}",
                 duration_seconds=load_processed_sample_duration_seconds(model_input_path),
+                decoded_frame_count=decoded_frame_count,
+                sampled_frame_count=sampled_frame_count,
+                embedding=embedding,
+            )
+
+        summary["sample_count_embedded"] = len(sample_records)
+        summary["sample_count_skipped"] = len(skipped_rows)
+        return sample_records, skipped_rows, summary
+
+    if rheed_input_mode == "processed_video":
+        if processed_rheed_root is None:
+            raise ValueError("processed_rheed_root is required when rheed_input_mode=processed_video")
+        requested_sample_ids = (
+            sorted({sample_id.strip() for sample_id in manifest_sample_ids})
+            if manifest_sample_ids is not None
+            else [path.name for path in list_sample_directories(processed_rheed_root)]
+        )
+        summary["processed_rheed_root"] = display_path(processed_rheed_root)
+        summary["processed_max_frames"] = int(processed_max_frames)
+        summary["processed_sample_map"] = processed_sample_map
+        summary["sample_count_requested"] = len(requested_sample_ids)
+        summary["sample_count_mapped"] = 0
+        summary["sample_count_mapping_failed"] = 0
+
+        for sample_id in requested_sample_ids:
+            try:
+                video_path = resolve_processed_video_path(
+                    sample_id=sample_id,
+                    processed_rheed_root=processed_rheed_root,
+                    sample_map=processed_sample_map,
+                )
+            except Exception as exc:
+                skipped_rows.append(
+                    {
+                        "sample_id": sample_id,
+                        "reason": f"processed video mapping failed: {exc}",
+                        "video_path": "",
+                    }
+                )
+                summary["sample_count_mapping_failed"] += 1
+                continue
+
+            summary["sample_count_mapped"] += 1
+            candidate = probe_video_candidate(sample_id, video_path)
+            if candidate is None:
+                skipped_rows.append(
+                    {
+                        "sample_id": sample_id,
+                        "reason": "processed crop video is not decodable",
+                        "video_path": str(video_path),
+                    }
+                )
+                continue
+            try:
+                embedding, decoded_frame_count, sampled_frame_count = extract_sample_embedding(
+                    candidate.path,
+                    encoder=encoder,
+                    image_size=image_size,
+                    frame_count=processed_max_frames,
+                    batch_size=batch_size,
+                    device_name=device_name,
+                    aggregation_mode="temporal_stats",
+                )
+            except Exception as exc:
+                skipped_rows.append(
+                    {
+                        "sample_id": sample_id,
+                        "reason": f"embedding failed: {exc}",
+                        "video_path": str(candidate.path),
+                    }
+                )
+                continue
+
+            sample_records[sample_id] = SampleEmbeddingRecord(
+                sample_id=sample_id,
+                video_path=candidate.path,
+                selection_reason=f"processed_video:{processed_sample_map}",
+                duration_seconds=candidate.duration_seconds,
                 decoded_frame_count=decoded_frame_count,
                 sampled_frame_count=sampled_frame_count,
                 embedding=embedding,
@@ -1444,7 +1546,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--report-dir", type=Path, default=DEFAULT_REPORT_DIR)
     parser.add_argument("--encoder-backend", choices=("auto", "torchvision", "torchhub"), default="auto")
     parser.add_argument("--device", default="auto")
-    parser.add_argument("--rheed-input-mode", choices=("raw_video", "processed_npz"), default="raw_video")
+    parser.add_argument("--rheed-input-mode", choices=("raw_video", "processed_npz", "processed_video"), default="raw_video")
     parser.add_argument("--processed-rheed-root", type=Path, default=DEFAULT_PROCESSED_RHEED_ROOT)
     parser.add_argument("--processed-frame-key", default="clean_frames")
     parser.add_argument("--processed-max-frames", type=int, default=64)
@@ -1482,7 +1584,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         raise SystemExit(f"Missing auxiliary descriptor CSV: {descriptor_aux_csv}")
     if one_to_one_manifest is not None and not one_to_one_manifest.is_file():
         raise SystemExit(f"Missing one-to-one manifest: {one_to_one_manifest}")
-    if args.rheed_input_mode == "processed_npz":
+    if args.rheed_input_mode in {"processed_npz", "processed_video"}:
         if processed_rheed_root is None or not processed_rheed_root.is_dir():
             raise SystemExit(f"Missing processed RHEED root: {processed_rheed_root}")
 
