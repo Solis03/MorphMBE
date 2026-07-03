@@ -1,0 +1,21 @@
+{
+  "amp": false,
+  "batch_size": 32,
+  "condition_schema": "reports/afm_condition_control_v3/20260703_060549/condition_schema_v3/condition_schema_v3.json",
+  "condition_table": "reports/afm_condition_control_v3/20260703_060549/condition_schema_v3/condition_table_v3.csv",
+  "descriptor_dim": 13,
+  "device": "cuda",
+  "epochs": 2,
+  "hidden": 128,
+  "latent_channels": 16,
+  "latent_shape": [
+    16,
+    16,
+    16
+  ],
+  "latents_dir": "reports/afm_prior_v2/20260703_052537/latents_v2",
+  "lr": 0.001,
+  "prototype_count": 4,
+  "seed": 42,
+  "weight_decay": 0.0001
+}

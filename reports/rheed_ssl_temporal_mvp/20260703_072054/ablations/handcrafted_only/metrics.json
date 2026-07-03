@@ -1,0 +1,175 @@
+{
+  "beats_mean_condition_mse": true,
+  "best_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/ablations/handcrafted_only/checkpoints/best.pt",
+  "descriptor_mae": 0.7722878456115723,
+  "descriptor_mse": 1.0690644979476929,
+  "descriptor_r2": -0.2933281660079956,
+  "descriptor_rmse": 1.033955752412884,
+  "descriptor_spearman": 0.061538461538461556,
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_descriptor_loss": 1.413962812423706,
+      "train_loss": 2.11909951210022,
+      "val_descriptor_loss": 1.0682660341262817,
+      "val_loss": 1.7741584777832031
+    },
+    {
+      "epoch": 2.0,
+      "train_descriptor_loss": 1.4127622723579407,
+      "train_loss": 2.116063051223755,
+      "val_descriptor_loss": 1.0682271718978882,
+      "val_loss": 1.7723636627197266
+    },
+    {
+      "epoch": 3.0,
+      "train_descriptor_loss": 1.41144757270813,
+      "train_loss": 2.1127170658111574,
+      "val_descriptor_loss": 1.0680941343307495,
+      "val_loss": 1.7705161571502686
+    },
+    {
+      "epoch": 4.0,
+      "train_descriptor_loss": 1.4093758845329285,
+      "train_loss": 2.1094735050201416,
+      "val_descriptor_loss": 1.0683913230895996,
+      "val_loss": 1.769139051437378
+    },
+    {
+      "epoch": 5.0,
+      "train_descriptor_loss": 1.4090167057514191,
+      "train_loss": 2.1071417808532713,
+      "val_descriptor_loss": 1.0690232515335083,
+      "val_loss": 1.7683236598968506
+    },
+    {
+      "epoch": 6.0,
+      "train_descriptor_loss": 1.4069796895980835,
+      "train_loss": 2.1031710958480834,
+      "val_descriptor_loss": 1.0694870948791504,
+      "val_loss": 1.767339825630188
+    },
+    {
+      "epoch": 7.0,
+      "train_descriptor_loss": 1.4064514088630675,
+      "train_loss": 2.101373300552368,
+      "val_descriptor_loss": 1.0698890686035156,
+      "val_loss": 1.766270399093628
+    },
+    {
+      "epoch": 8.0,
+      "train_descriptor_loss": 1.4045906066894531,
+      "train_loss": 2.097637481689453,
+      "val_descriptor_loss": 1.070273756980896,
+      "val_loss": 1.76552414894104
+    },
+    {
+      "epoch": 9.0,
+      "train_descriptor_loss": 1.4045314979553223,
+      "train_loss": 2.0963283729553224,
+      "val_descriptor_loss": 1.0706367492675781,
+      "val_loss": 1.7644325494766235
+    },
+    {
+      "epoch": 10.0,
+      "train_descriptor_loss": 1.4026669359207153,
+      "train_loss": 2.0923544359207153,
+      "val_descriptor_loss": 1.0704220533370972,
+      "val_loss": 1.762819528579712
+    },
+    {
+      "epoch": 11.0,
+      "train_descriptor_loss": 1.4010930347442627,
+      "train_loss": 2.089061822891235,
+      "val_descriptor_loss": 1.0704561471939087,
+      "val_loss": 1.7613898515701294
+    },
+    {
+      "epoch": 12.0,
+      "train_descriptor_loss": 1.400233211517334,
+      "train_loss": 2.086502742767334,
+      "val_descriptor_loss": 1.0706557035446167,
+      "val_loss": 1.7601490020751953
+    },
+    {
+      "epoch": 13.0,
+      "train_descriptor_loss": 1.3982676124572755,
+      "train_loss": 2.0830136489868165,
+      "val_descriptor_loss": 1.0708073377609253,
+      "val_loss": 1.7589563131332397
+    },
+    {
+      "epoch": 14.0,
+      "train_descriptor_loss": 1.3968705081939696,
+      "train_loss": 2.0797220516204833,
+      "val_descriptor_loss": 1.0709893703460693,
+      "val_loss": 1.7577723264694214
+    },
+    {
+      "epoch": 15.0,
+      "train_descriptor_loss": 1.3958999478816987,
+      "train_loss": 2.0775210809707643,
+      "val_descriptor_loss": 1.0714678764343262,
+      "val_loss": 1.7568289041519165
+    },
+    {
+      "epoch": 16.0,
+      "train_descriptor_loss": 1.393726749420166,
+      "train_loss": 2.0728673934936523,
+      "val_descriptor_loss": 1.0716618299484253,
+      "val_loss": 1.7552387714385986
+    },
+    {
+      "epoch": 17.0,
+      "train_descriptor_loss": 1.3915267586708069,
+      "train_loss": 2.068694727420807,
+      "val_descriptor_loss": 1.0712952613830566,
+      "val_loss": 1.7527140378952026
+    },
+    {
+      "epoch": 18.0,
+      "train_descriptor_loss": 1.3884753274917603,
+      "train_loss": 2.0619714784622194,
+      "val_descriptor_loss": 1.0701425075531006,
+      "val_loss": 1.748974323272705
+    },
+    {
+      "epoch": 19.0,
+      "train_descriptor_loss": 1.38724569439888,
+      "train_loss": 2.0583980560302733,
+      "val_descriptor_loss": 1.0693659782409668,
+      "val_loss": 1.7459176778793335
+    },
+    {
+      "epoch": 20.0,
+      "train_descriptor_loss": 1.3841330373287202,
+      "train_loss": 2.0526486444473266,
+      "val_descriptor_loss": 1.0690643787384033,
+      "val_loss": 1.7434371709823608
+    }
+  ],
+  "last_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/ablations/handcrafted_only/checkpoints/last.pt",
+  "mae_checkpoint_loaded": false,
+  "mean_condition_baseline": {
+    "descriptor_mae": 0.7838035821914673,
+    "descriptor_mse": 1.1436320543289185,
+    "descriptor_r2": -0.38353824615478516,
+    "descriptor_rmse": 1.0694073378881026,
+    "descriptor_spearman": NaN
+  },
+  "prototype_accuracy": 0.2,
+  "prototype_macro_f1": 0.08333333333333333,
+  "row_count": 5,
+  "split": "val",
+  "test": {
+    "descriptor_mae": 0.7714082598686218,
+    "descriptor_mse": 0.9574804902076721,
+    "descriptor_r2": -0.264947772026062,
+    "descriptor_rmse": 0.9785093204500773,
+    "descriptor_spearman": 0.11933752310085437,
+    "prototype_accuracy": 0.5,
+    "prototype_macro_f1": 0.29166666666666663,
+    "row_count": 6
+  },
+  "variant": "handcrafted_only"
+}

@@ -1,0 +1,2 @@
+variant,split,row_count,descriptor_mse,descriptor_mae,descriptor_rmse,descriptor_r2,descriptor_spearman,prototype_accuracy,prototype_macro_f1,beats_mean_condition_mse
+label_75_temporal_mae_init,val,5,1.0903874635696411,0.7706693410873413,1.0442161957993379,-0.3191242218017578,0.07692307692307693,0.6,0.1875,True

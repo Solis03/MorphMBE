@@ -1,0 +1,20 @@
+{
+  "condition_sweep_summary": "reports/afm_condition_control_v3/20260703_060549/evaluation_v3_smoke/condition_sweep_summary_v3.png",
+  "descriptor_metric_count": 13,
+  "failure_cases_grid": "reports/afm_condition_control_v3/20260703_060549/evaluation_v3_smoke/failure_cases_grid_v3.png",
+  "generated_count": 10,
+  "generated_nonconstant_rate": 1.0,
+  "generated_std_mean": 0.6219615340232849,
+  "generated_std_min": 0.6117714643478394,
+  "guided_descriptor_error": 1.934520371753764,
+  "near_duplicate_rate": 0.0,
+  "nearest_real_diagnostic_grid": "reports/afm_condition_control_v3/20260703_060549/evaluation_v3_smoke/nearest_real_diagnostic_grid_v3.png",
+  "plain_descriptor_error": 1.9232051299255815,
+  "requested_vs_generated_scatter": "reports/afm_condition_control_v3/20260703_060549/evaluation_v3_smoke/requested_vs_generated_scatter_v3.png",
+  "reranked_descriptor_error": 1.9138815819677981,
+  "reranking_all_score_mean": 1.934520371753764,
+  "reranking_top1_score_mean": 1.9138815819677981,
+  "v2_sensitivity_summary": "reports/afm_condition_control_v3/20260703_060549/v2_condition_sensitivity_smoke/v2_condition_sensitivity_summary.json",
+  "v2_vs_v3_descriptor_control": "reports/afm_condition_control_v3/20260703_060549/evaluation_v3_smoke/v2_vs_v3_descriptor_control.png",
+  "v2_vs_v3_visual_comparison_grid": "reports/afm_condition_control_v3/20260703_060549/evaluation_v3_smoke/v2_vs_v3_visual_comparison_grid.png"
+}

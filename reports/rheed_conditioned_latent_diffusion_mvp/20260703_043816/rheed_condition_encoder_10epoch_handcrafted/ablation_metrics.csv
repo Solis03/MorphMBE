@@ -1,0 +1,3 @@
+variant,descriptor_mse,descriptor_mae,descriptor_r2,descriptor_spearman,prototype_accuracy,prototype_macro_f1
+trained_model,1.3889275789260864,0.8290764689445496,-0.4324217740643559,-0.050142135623730946,0.0,0.0
+mean_condition_baseline,1.2270687818527222,0.772202730178833,-0.2654942887096383,nan,,

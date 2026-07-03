@@ -1,0 +1,27 @@
+{
+  "best_loss": 0.49712150519894016,
+  "history": [
+    {
+      "epoch": 1.0,
+      "loss": 0.65234375
+    },
+    {
+      "epoch": 2.0,
+      "loss": 0.5703203697358409
+    },
+    {
+      "epoch": 3.0,
+      "loss": 0.542405653384424
+    },
+    {
+      "epoch": 4.0,
+      "loss": 0.5221872656576095
+    },
+    {
+      "epoch": 5.0,
+      "loss": 0.49712150519894016
+    }
+  ],
+  "mae_encoder_loaded": true,
+  "objective": "time-bin prediction plus temporal sequence pooling"
+}

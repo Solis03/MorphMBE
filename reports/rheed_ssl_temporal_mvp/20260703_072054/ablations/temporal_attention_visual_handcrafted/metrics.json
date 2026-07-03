@@ -1,0 +1,175 @@
+{
+  "beats_mean_condition_mse": true,
+  "best_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/ablations/temporal_attention_visual_handcrafted/checkpoints/best.pt",
+  "descriptor_mae": 0.7744913697242737,
+  "descriptor_mse": 1.115932822227478,
+  "descriptor_r2": -0.350028395652771,
+  "descriptor_rmse": 1.0563772158786264,
+  "descriptor_spearman": -0.007692307692307713,
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_descriptor_loss": 1.408349676132202,
+      "train_loss": 2.104619207382202,
+      "val_descriptor_loss": 1.1120014190673828,
+      "val_loss": 1.8035063743591309
+    },
+    {
+      "epoch": 2.0,
+      "train_descriptor_loss": 1.4048515605926513,
+      "train_loss": 2.095066385269165,
+      "val_descriptor_loss": 1.1081106662750244,
+      "val_loss": 1.7964571714401245
+    },
+    {
+      "epoch": 3.0,
+      "train_descriptor_loss": 1.4045665168762207,
+      "train_loss": 2.0911290359497072,
+      "val_descriptor_loss": 1.10601806640625,
+      "val_loss": 1.7904844284057617
+    },
+    {
+      "epoch": 4.0,
+      "train_descriptor_loss": 1.4031694090366365,
+      "train_loss": 2.0853764963150025,
+      "val_descriptor_loss": 1.1043890714645386,
+      "val_loss": 1.7826862335205078
+    },
+    {
+      "epoch": 5.0,
+      "train_descriptor_loss": 1.4020025205612183,
+      "train_loss": 2.0783306646347044,
+      "val_descriptor_loss": 1.1029094457626343,
+      "val_loss": 1.7743346691131592
+    },
+    {
+      "epoch": 6.0,
+      "train_descriptor_loss": 1.3994023084640503,
+      "train_loss": 2.0690312147140504,
+      "val_descriptor_loss": 1.1023836135864258,
+      "val_loss": 1.7672854661941528
+    },
+    {
+      "epoch": 7.0,
+      "train_descriptor_loss": 1.3978463542461395,
+      "train_loss": 2.0593697929382326,
+      "val_descriptor_loss": 1.103692650794983,
+      "val_loss": 1.7619190216064453
+    },
+    {
+      "epoch": 8.0,
+      "train_descriptor_loss": 1.3951522612571716,
+      "train_loss": 2.048140525817871,
+      "val_descriptor_loss": 1.1036078929901123,
+      "val_loss": 1.7533936500549316
+    },
+    {
+      "epoch": 9.0,
+      "train_descriptor_loss": 1.3922604978084565,
+      "train_loss": 2.0346823358535766,
+      "val_descriptor_loss": 1.106877326965332,
+      "val_loss": 1.7485463619232178
+    },
+    {
+      "epoch": 10.0,
+      "train_descriptor_loss": 1.3913069987297058,
+      "train_loss": 2.0254476261138916,
+      "val_descriptor_loss": 1.1103399991989136,
+      "val_loss": 1.7421292066574097
+    },
+    {
+      "epoch": 11.0,
+      "train_descriptor_loss": 1.386094102859497,
+      "train_loss": 2.006914415359497,
+      "val_descriptor_loss": 1.1159327030181885,
+      "val_loss": 1.739542841911316
+    },
+    {
+      "epoch": 12.0,
+      "train_descriptor_loss": 1.3826037526130677,
+      "train_loss": 1.9934630680084229,
+      "val_descriptor_loss": 1.1272765398025513,
+      "val_loss": 1.7428624629974365
+    },
+    {
+      "epoch": 13.0,
+      "train_descriptor_loss": 1.3786601829528808,
+      "train_loss": 1.9764141273498534,
+      "val_descriptor_loss": 1.1402857303619385,
+      "val_loss": 1.7464884519577026
+    },
+    {
+      "epoch": 14.0,
+      "train_descriptor_loss": 1.375930324792862,
+      "train_loss": 1.962795557975769,
+      "val_descriptor_loss": 1.1541045904159546,
+      "val_loss": 1.7537591457366943
+    },
+    {
+      "epoch": 15.0,
+      "train_descriptor_loss": 1.3739012098312378,
+      "train_loss": 1.9521628713607788,
+      "val_descriptor_loss": 1.1646714210510254,
+      "val_loss": 1.7570126056671143
+    },
+    {
+      "epoch": 16.0,
+      "train_descriptor_loss": 1.3750771713256835,
+      "train_loss": 1.9434072303771972,
+      "val_descriptor_loss": 1.1768207550048828,
+      "val_loss": 1.766242265701294
+    },
+    {
+      "epoch": 17.0,
+      "train_descriptor_loss": 1.3738388109207154,
+      "train_loss": 1.937969651222229,
+      "val_descriptor_loss": 1.1704281568527222,
+      "val_loss": 1.7614983320236206
+    },
+    {
+      "epoch": 18.0,
+      "train_descriptor_loss": 1.3746637439727782,
+      "train_loss": 1.9419879627227783,
+      "val_descriptor_loss": 1.17052161693573,
+      "val_loss": 1.763832926750183
+    },
+    {
+      "epoch": 19.0,
+      "train_descriptor_loss": 1.3739551901817322,
+      "train_loss": 1.9347364401817322,
+      "val_descriptor_loss": 1.1732347011566162,
+      "val_loss": 1.7699339389801025
+    },
+    {
+      "epoch": 20.0,
+      "train_descriptor_loss": 1.3706844496726989,
+      "train_loss": 1.9305574989318848,
+      "val_descriptor_loss": 1.1789897680282593,
+      "val_loss": 1.7789011001586914
+    }
+  ],
+  "last_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/ablations/temporal_attention_visual_handcrafted/checkpoints/last.pt",
+  "mae_checkpoint_loaded": true,
+  "mean_condition_baseline": {
+    "descriptor_mae": 0.7838036417961121,
+    "descriptor_mse": 1.1436320543289185,
+    "descriptor_r2": -0.38353824615478516,
+    "descriptor_rmse": 1.0694073378881026,
+    "descriptor_spearman": NaN
+  },
+  "prototype_accuracy": 0.4,
+  "prototype_macro_f1": 0.225,
+  "row_count": 5,
+  "split": "val",
+  "test": {
+    "descriptor_mae": 0.7871467471122742,
+    "descriptor_mse": 0.9975828528404236,
+    "descriptor_r2": -0.31792783737182617,
+    "descriptor_rmse": 0.9987906952111757,
+    "descriptor_spearman": 0.3045101988652019,
+    "prototype_accuracy": 0.3333333333333333,
+    "prototype_macro_f1": 0.14285714285714285,
+    "row_count": 6
+  },
+  "variant": "temporal_attention_visual_handcrafted"
+}

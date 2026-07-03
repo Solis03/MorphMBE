@@ -1,0 +1,11 @@
+metric,value
+descriptor_mse,1.1900131702423096
+descriptor_mae,0.7751145362854004
+descriptor_r2,-0.2272783552591615
+descriptor_spearman,-0.03171572875253809
+prototype_prototype_accuracy,0.4
+prototype_prototype_macro_f1,0.1111111111111111
+mean_baseline_descriptor_mse,1.2270687818527222
+mean_baseline_descriptor_mae,0.772202730178833
+mean_baseline_descriptor_r2,-0.2654942887096383
+mean_baseline_descriptor_spearman,nan

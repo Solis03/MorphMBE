@@ -1,0 +1,24 @@
+{
+  "best_val_loss": 1.150869607925415,
+  "ema_checkpoint": "reports/afm_condition_control_v3/20260703_060549/latent_diffusion_v3_smoke/checkpoints/ema_last.pt",
+  "generated_nonconstant": true,
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_aux_condition_loss": 1.480562448501587,
+      "train_denoising_loss": 1.1376663446426392,
+      "train_loss": 1.2116944789886475,
+      "val_aux_condition_loss": 0.8509898781776428,
+      "val_denoising_loss": 1.1083201169967651,
+      "val_loss": 1.150869607925415
+    }
+  ],
+  "sample_latent_std": 2154.23828125,
+  "sample_pixel_std": 0.6247848868370056,
+  "train_aux_condition_loss": 1.480562448501587,
+  "train_denoising_loss": 1.1376663446426392,
+  "train_loss": 1.2116944789886475,
+  "val_aux_condition_loss": 0.8509898781776428,
+  "val_denoising_loss": 1.1083201169967651,
+  "val_loss": 1.150869607925415
+}

@@ -1,0 +1,2 @@
+variant,split,row_count,descriptor_mse,descriptor_mae,descriptor_rmse,descriptor_r2,descriptor_spearman,prototype_accuracy,prototype_macro_f1,beats_mean_condition_mse
+temporal_attention_visual_handcrafted_metadata,val,5,1.1133100986480713,0.7664458751678467,1.055135109191269,-0.3468555212020874,0.023076923076923075,0.6,0.1875,True

@@ -1,0 +1,42 @@
+{
+  "beats_mean_condition_mse": false,
+  "best_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/smoke/ablations/label_50_metadata_only/checkpoints/best.pt",
+  "descriptor_mae": 0.6006381511688232,
+  "descriptor_mse": 0.5397989153862,
+  "descriptor_r2": -0.2997415065765381,
+  "descriptor_rmse": 0.7347100893455867,
+  "descriptor_spearman": -0.06134594313329518,
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_descriptor_loss": 0.5045322775840759,
+      "train_loss": 1.1793992519378662,
+      "val_descriptor_loss": 0.5397989352544149,
+      "val_loss": 1.219053069750468
+    }
+  ],
+  "last_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/smoke/ablations/label_50_metadata_only/checkpoints/last.pt",
+  "mae_checkpoint_loaded": false,
+  "mean_condition_baseline": {
+    "descriptor_mae": 0.4823240637779236,
+    "descriptor_mse": 0.5152814984321594,
+    "descriptor_r2": -0.24070775508880615,
+    "descriptor_rmse": 0.717831107177837,
+    "descriptor_spearman": NaN
+  },
+  "prototype_accuracy": 0.5,
+  "prototype_macro_f1": 0.26785714285714285,
+  "row_count": 6,
+  "split": "val",
+  "test": {
+    "descriptor_mae": 0.7299203872680664,
+    "descriptor_mse": 0.822149932384491,
+    "descriptor_r2": -0.18315434455871582,
+    "descriptor_rmse": 0.9067248382968732,
+    "descriptor_spearman": 0.3743096464449568,
+    "prototype_accuracy": 0.0,
+    "prototype_macro_f1": 0.0,
+    "row_count": 3
+  },
+  "variant": "label_50_metadata_only"
+}

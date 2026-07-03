@@ -1,0 +1,43 @@
+{
+  "beats_mean_condition_mse": false,
+  "best_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/smoke/rheed_morphology_encoder_v2/checkpoints/best.pt",
+  "descriptor_mae": 0.5988672375679016,
+  "descriptor_mse": 0.5392377376556396,
+  "descriptor_r2": -0.29839015007019043,
+  "descriptor_rmse": 0.7343280858414988,
+  "descriptor_spearman": 0.19302155659626058,
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_descriptor_loss": 0.5449054638544718,
+      "train_loss": 1.2333380381266277,
+      "val_descriptor_loss": 0.5392376979192098,
+      "val_loss": 1.2234174410502117
+    }
+  ],
+  "last_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/smoke/rheed_morphology_encoder_v2/checkpoints/last.pt",
+  "mae_checkpoint_loaded": true,
+  "mean_condition_baseline": {
+    "descriptor_mae": 0.46771955490112305,
+    "descriptor_mse": 0.4153125584125519,
+    "descriptor_r2": 0.0,
+    "descriptor_rmse": 0.6444474830523833,
+    "descriptor_spearman": NaN
+  },
+  "prototype_accuracy": 0.3333333333333333,
+  "prototype_macro_f1": 0.125,
+  "row_count": 6,
+  "split": "val",
+  "test": {
+    "descriptor_mae": 0.7237882018089294,
+    "descriptor_mse": 0.8264148235321045,
+    "descriptor_r2": -0.18929195404052734,
+    "descriptor_rmse": 0.9090736073234689,
+    "descriptor_spearman": -0.0872288150935047,
+    "prototype_accuracy": 0.0,
+    "prototype_macro_f1": 0.0,
+    "row_count": 3
+  },
+  "uncertainty_error_pearson": -0.9333281812945148,
+  "variant": "trained_model"
+}

@@ -1,0 +1,25 @@
+{
+  "height_scale_table": "reports/afm_prior_v4_height_calibrated/20260703_064826/height_diagnosis/height_scale_table.csv",
+  "mvp3_root": "reports/afm_prior_v2/20260703_052537",
+  "mvp4_root": "reports/afm_condition_control_v3/20260703_060549",
+  "network_max_median": 1.0,
+  "network_min_median": -1.0,
+  "network_rq_median": 0.4087277596675911,
+  "network_std_median": 0.4087277501821518,
+  "per_image_normalized_rate": 1.0,
+  "physical_rq_median": 3.7189316025122046,
+  "ra_physical_network_pearson": 0.538247510817977,
+  "robust_range_physical_network_pearson": 0.1213512455858585,
+  "row_count": 168,
+  "rq_physical_network_pearson": 0.4736476010623557,
+  "scale_bounds": {
+    "scale_high": 37.01710417872107,
+    "scale_low": 2.273653482957607,
+    "scale_max": 49.422011386505346,
+    "scale_mean": 9.76421854057945,
+    "scale_median": 7.755423650503959,
+    "scale_min": 1.6204627854954554,
+    "scale_std": 6.775475217974828
+  },
+  "train_row_count": 115
+}

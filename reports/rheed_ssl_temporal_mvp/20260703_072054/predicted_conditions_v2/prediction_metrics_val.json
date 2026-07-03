@@ -1,0 +1,12 @@
+{
+  "condition_table": "reports/rheed_ssl_temporal_mvp/20260703_072054/predicted_conditions_v2/predicted_condition_table_val.csv",
+  "descriptor_mae": 0.7722878456115723,
+  "descriptor_mse": 1.0690644979476929,
+  "descriptor_r2": -0.2933281660079956,
+  "descriptor_rmse": 1.033955752412884,
+  "descriptor_spearman": 0.061538461538461556,
+  "prototype_accuracy": 0.2,
+  "prototype_macro_f1": 0.08333333333333333,
+  "row_count": 5,
+  "split": "val"
+}

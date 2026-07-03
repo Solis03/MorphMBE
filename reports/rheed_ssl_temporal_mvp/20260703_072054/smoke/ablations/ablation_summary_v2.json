@@ -1,0 +1,10 @@
+{
+  "ablation_metrics": "reports/rheed_ssl_temporal_mvp/20260703_072054/smoke/ablations/ablation_metrics_v2.csv",
+  "best_beats_mean_condition": false,
+  "best_descriptor_mse": 0.4153125584125519,
+  "best_variant": "mean_condition_baseline",
+  "label_efficiency_metrics": "reports/rheed_ssl_temporal_mvp/20260703_072054/smoke/ablations/label_efficiency_metrics.csv",
+  "mean_condition_mse": 0.4153125584125519,
+  "negative_control_attempted": true,
+  "temporal_beats_final_frame": false
+}

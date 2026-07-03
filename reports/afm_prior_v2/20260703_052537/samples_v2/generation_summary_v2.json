@@ -1,0 +1,17 @@
+{
+  "condition_count": 4,
+  "ddim_steps": 100,
+  "generated_count": 72,
+  "generated_nonconstant_rate": 1.0,
+  "generated_samples": "reports/afm_prior_v2/20260703_052537/samples_v2/generated_samples_v2.npz",
+  "generated_std_mean": 0.6318624400388889,
+  "generated_std_min": 0.6155812144,
+  "generation_metrics": "reports/afm_prior_v2/20260703_052537/samples_v2/generation_metrics_v2.csv",
+  "guidance_scale": 1.5,
+  "note": "Generated samples are decoded from diffusion-sampled latents conditioned on AFM descriptor/prototype vectors.",
+  "num_samples_per_condition": 8,
+  "oracle_grid": "reports/afm_prior_v2/20260703_052537/samples_v2/afm_prior_v2_oracle_grid_val.png",
+  "prototype_grid": "reports/afm_prior_v2/20260703_052537/samples_v2/afm_prior_v2_prototype_grid.png",
+  "random_grid": "reports/afm_prior_v2/20260703_052537/samples_v2/afm_prior_v2_random_grid.png",
+  "split": "val"
+}

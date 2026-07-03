@@ -1,0 +1,13 @@
+{
+  "condition_count": 4,
+  "ddim_steps": 10,
+  "generated_nonconstant": true,
+  "generated_std_mean": 0.146137178875,
+  "generated_std_min": 0.1394487768,
+  "generation_metrics": "reports/conditional_latent_diffusion_mvp/20260703_041331/latent_diffusion/samples/generation_metrics.csv",
+  "guidance_scale": 1.5,
+  "note": "Generated images are decoded from diffusion-sampled latents conditioned on AFM descriptor oracle vectors.",
+  "num_samples_per_condition": 4,
+  "sample_grid": "reports/conditional_latent_diffusion_mvp/20260703_041331/latent_diffusion/samples/sample_grid_val.png",
+  "split": "val"
+}

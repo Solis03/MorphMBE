@@ -1,0 +1,19 @@
+{
+  "condition_count": 4,
+  "condition_sweep_metrics": "reports/afm_condition_control_v3/20260703_060549/samples_v3/condition_sweep_metrics_v3.csv",
+  "ddim_steps": 100,
+  "descriptor_guidance_weight": 0.1,
+  "generated_candidates": "reports/afm_condition_control_v3/20260703_060549/samples_v3/generated_candidates_v3.npz",
+  "generated_count": 144,
+  "generated_nonconstant_rate": 1.0,
+  "generated_std_mean": 0.37678488799267346,
+  "generated_std_min": 0.35607853531837463,
+  "generation_metrics": "reports/afm_condition_control_v3/20260703_060549/samples_v3/generation_metrics_v3.csv",
+  "guidance_scale": 2.0,
+  "keep_top_k": 4,
+  "num_samples_per_condition": 16,
+  "oracle_grid": "reports/afm_condition_control_v3/20260703_060549/samples_v3/afm_prior_v3_oracle_grid_val.png",
+  "rerank": true,
+  "reranking_metrics": "reports/afm_condition_control_v3/20260703_060549/samples_v3/reranking_metrics_v3.csv",
+  "split": "val"
+}

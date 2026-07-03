@@ -1,0 +1,2 @@
+variant,split,row_count,descriptor_mse,descriptor_mae,descriptor_rmse,descriptor_r2,descriptor_spearman,prototype_accuracy,prototype_macro_f1,beats_mean_condition_mse
+trained_model,val,6,0.5392377376556396,0.5988672375679016,0.7343280858414988,-0.29839015007019043,0.19302155659626058,0.3333333333333333,0.125,False

@@ -1,0 +1,16 @@
+{
+  "best_val_loss": 1.1224602460861206,
+  "generated_nonconstant": true,
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_loss": 1.1807212829589844,
+      "val_loss": 1.1224602460861206
+    }
+  ],
+  "sample_grid_val": "reports/conditional_latent_diffusion_mvp/20260703_041331/latent_diffusion/sample_grid_val.png",
+  "sample_pixel_mean": 0.40266263484954834,
+  "sample_pixel_std": 0.14417226612567902,
+  "train_loss": 1.1807212829589844,
+  "val_loss": 1.1224602460861206
+}

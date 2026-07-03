@@ -1,0 +1,17 @@
+{
+  "condition_count": 4,
+  "ddim_steps": 50,
+  "generation_metrics": "reports/rheed_conditioned_latent_diffusion_mvp/20260703_043816/rheed_conditioned_samples_10epoch_visual_handcrafted/generation_metrics.csv",
+  "guidance_scale": 1.5,
+  "mean_condition_generated_nonconstant": true,
+  "mean_condition_generated_std_mean": 0.2186089903,
+  "note": "Predicted-mode images use RHEED-predicted standardized descriptor/prototype conditions; oracle-mode images use true AFM conditions.",
+  "num_samples_per_condition": 4,
+  "oracle_generated_nonconstant": true,
+  "oracle_generated_std_mean": 0.209522757675,
+  "predicted_generated_nonconstant": true,
+  "predicted_generated_std_mean": 0.21234271209375,
+  "predicted_generated_std_min": 0.1759265959,
+  "sample_grid": "reports/rheed_conditioned_latent_diffusion_mvp/20260703_043816/rheed_conditioned_samples_10epoch_visual_handcrafted/rheed_conditioned_sample_grid_val.png",
+  "split": "val"
+}

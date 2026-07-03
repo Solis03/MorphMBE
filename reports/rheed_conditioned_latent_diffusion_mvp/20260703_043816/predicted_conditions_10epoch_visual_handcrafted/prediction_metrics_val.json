@@ -1,0 +1,11 @@
+{
+  "condition_table": "reports/rheed_conditioned_latent_diffusion_mvp/20260703_043816/predicted_conditions_10epoch_visual_handcrafted/predicted_condition_table_val.csv",
+  "descriptor_mae": 0.7751145362854004,
+  "descriptor_mse": 1.1900131702423096,
+  "descriptor_r2": -0.2272783552591615,
+  "descriptor_spearman": -0.03171572875253809,
+  "prototype_accuracy": 0.4,
+  "prototype_macro_f1": 0.1111111111111111,
+  "row_count": 5,
+  "split": "val"
+}

@@ -1,0 +1,18 @@
+{
+  "afm_prior_v4_metrics": "reports/afm_prior_v4_height_calibrated/20260703_064826/evaluation_v4/afm_prior_v4_metrics.csv",
+  "descriptor_comparison": "reports/afm_prior_v4_height_calibrated/20260703_064826/evaluation_v4/v2_v3_v4_descriptor_comparison.csv",
+  "nonconstant_rate": 1.0,
+  "normalized_std_mean": 0.503192120231688,
+  "recommended_primary_prior": "calibrated_v2",
+  "roughness_improved": true,
+  "roughness_plot": "reports/afm_prior_v4_height_calibrated/20260703_064826/evaluation_v4/requested_vs_generated_roughness_v4.png",
+  "samples_v4": "reports/afm_prior_v4_height_calibrated/20260703_064826/samples_v4",
+  "scale_clamp_rate": 0.0,
+  "v2_ra_mae_after_top1": 2.5334058525387055,
+  "v2_ra_mae_before": 3.712865425566938,
+  "v2_robust_range_mae_after_top1": 1.811918306092986,
+  "v2_robust_range_mae_before": 24.481660745444962,
+  "v2_rq_mae_after_top1": 2.245275977431893,
+  "v2_rq_mae_before": 4.900190391353607,
+  "v4_root": "reports/afm_prior_v4_height_calibrated/20260703_064826"
+}

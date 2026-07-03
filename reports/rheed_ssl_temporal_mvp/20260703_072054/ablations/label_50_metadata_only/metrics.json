@@ -1,0 +1,70 @@
+{
+  "beats_mean_condition_mse": true,
+  "best_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/ablations/label_50_metadata_only/checkpoints/best.pt",
+  "descriptor_mae": 0.7878137826919556,
+  "descriptor_mse": 1.1018024682998657,
+  "descriptor_r2": -0.33293378353118896,
+  "descriptor_rmse": 1.0496677894933548,
+  "descriptor_spearman": 0.16153846153846152,
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_descriptor_loss": 1.3182364885623639,
+      "train_loss": 2.001379526578463,
+      "val_descriptor_loss": 1.1018024682998657,
+      "val_loss": 1.7835988998413086
+    },
+    {
+      "epoch": 2.0,
+      "train_descriptor_loss": 1.317636320224175,
+      "train_loss": 1.9998403329115648,
+      "val_descriptor_loss": 1.1033371686935425,
+      "val_loss": 1.7849626541137695
+    },
+    {
+      "epoch": 3.0,
+      "train_descriptor_loss": 1.3160348947231586,
+      "train_loss": 1.9954594465402455,
+      "val_descriptor_loss": 1.1049634218215942,
+      "val_loss": 1.7861578464508057
+    },
+    {
+      "epoch": 4.0,
+      "train_descriptor_loss": 1.312831970361563,
+      "train_loss": 1.9916179455243623,
+      "val_descriptor_loss": 1.1064401865005493,
+      "val_loss": 1.7872023582458496
+    },
+    {
+      "epoch": 5.0,
+      "train_descriptor_loss": 1.3121085533728967,
+      "train_loss": 1.9901810609377348,
+      "val_descriptor_loss": 1.1078072786331177,
+      "val_loss": 1.7881866693496704
+    }
+  ],
+  "last_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/ablations/label_50_metadata_only/checkpoints/last.pt",
+  "mae_checkpoint_loaded": false,
+  "mean_condition_baseline": {
+    "descriptor_mae": 0.8550618886947632,
+    "descriptor_mse": 1.2660987377166748,
+    "descriptor_r2": -0.5316954851150513,
+    "descriptor_rmse": 1.1252105303971673,
+    "descriptor_spearman": NaN
+  },
+  "prototype_accuracy": 0.6,
+  "prototype_macro_f1": 0.1875,
+  "row_count": 5,
+  "split": "val",
+  "test": {
+    "descriptor_mae": 0.7795585989952087,
+    "descriptor_mse": 0.9875041246414185,
+    "descriptor_r2": -0.3046126365661621,
+    "descriptor_rmse": 0.9937324210477478,
+    "descriptor_spearman": 0.11707410046109865,
+    "prototype_accuracy": 0.16666666666666666,
+    "prototype_macro_f1": 0.08333333333333333,
+    "row_count": 6
+  },
+  "variant": "label_50_metadata_only"
+}

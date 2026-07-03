@@ -1,0 +1,42 @@
+{
+  "beats_mean_condition_mse": true,
+  "best_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/smoke/ablations/label_25_temporal_random_init/checkpoints/best.pt",
+  "descriptor_mae": 0.599152147769928,
+  "descriptor_mse": 0.542749285697937,
+  "descriptor_r2": -0.3068453073501587,
+  "descriptor_rmse": 0.7367151998553695,
+  "descriptor_spearman": 0.05147995617442146,
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_descriptor_loss": 0.9508529305458069,
+      "train_loss": 1.64813232421875,
+      "val_descriptor_loss": 0.5427493651707967,
+      "val_loss": 1.2235266367594402
+    }
+  ],
+  "last_checkpoint": "reports/rheed_ssl_temporal_mvp/20260703_072054/smoke/ablations/label_25_temporal_random_init/checkpoints/last.pt",
+  "mae_checkpoint_loaded": false,
+  "mean_condition_baseline": {
+    "descriptor_mae": 0.6525185108184814,
+    "descriptor_mse": 0.644891083240509,
+    "descriptor_r2": -0.5527850389480591,
+    "descriptor_rmse": 0.8030511087349976,
+    "descriptor_spearman": NaN
+  },
+  "prototype_accuracy": 0.3333333333333333,
+  "prototype_macro_f1": 0.125,
+  "row_count": 6,
+  "split": "val",
+  "test": {
+    "descriptor_mae": 0.730598509311676,
+    "descriptor_mse": 0.8356812596321106,
+    "descriptor_r2": -0.20262718200683594,
+    "descriptor_rmse": 0.9141560368077818,
+    "descriptor_spearman": -0.1050788772141876,
+    "prototype_accuracy": 0.0,
+    "prototype_macro_f1": 0.0,
+    "row_count": 3
+  },
+  "variant": "label_25_temporal_random_init"
+}

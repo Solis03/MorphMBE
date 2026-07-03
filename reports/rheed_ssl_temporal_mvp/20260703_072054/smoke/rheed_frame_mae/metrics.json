@@ -1,0 +1,12 @@
+{
+  "best_loss": 0.1089068716391921,
+  "embedding_preview": "reports/rheed_ssl_temporal_mvp/20260703_072054/smoke/rheed_frame_mae/embedding_pca.png",
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_loss": 0.1089068716391921
+    }
+  ],
+  "last_loss": 0.1089068716391921,
+  "reconstruction_grid": "reports/rheed_ssl_temporal_mvp/20260703_072054/smoke/rheed_frame_mae/mae_reconstruction_grid.png"
+}

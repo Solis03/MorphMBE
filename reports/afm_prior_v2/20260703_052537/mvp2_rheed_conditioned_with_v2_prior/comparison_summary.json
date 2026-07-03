@@ -1,0 +1,18 @@
+{
+  "adapter_filled_descriptors": [
+    "height_max",
+    "height_min",
+    "island_mean_height",
+    "psd_peak_frequency",
+    "slope_p50",
+    "slope_p95",
+    "slope_p99"
+  ],
+  "comparison_generation_metrics": "reports/afm_prior_v2/20260703_052537/mvp2_rheed_conditioned_with_v2_prior/comparison_generation_metrics.csv",
+  "comparison_grid": "reports/afm_prior_v2/20260703_052537/mvp2_rheed_conditioned_with_v2_prior/mvp1_vs_mvp3_rheed_conditioned_grid.png",
+  "condition_adapter_report": "reports/afm_prior_v2/20260703_052537/mvp2_rheed_conditioned_with_v2_prior/condition_adapter_report.md",
+  "generated_nonconstant_rate": 1.0,
+  "generated_std_mean": 0.5741088236071429,
+  "note": "This comparison reuses MVP-2 predicted conditions and does not retrain the RHEED encoder.",
+  "predicted_table": "reports/rheed_conditioned_latent_diffusion_mvp/20260703_043816/predicted_conditions_10epoch_visual_handcrafted/predicted_condition_table_val.csv"
+}

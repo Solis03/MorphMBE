@@ -1,0 +1,27 @@
+{
+  "comparable_descriptor_count": 10,
+  "comparable_key_descriptor_count": 8,
+  "comparison_metrics": "reports/afm_condition_control_v3/20260703_060549/v2_vs_v3_comparison/v2_vs_v3_condition_control_metrics.csv",
+  "comparison_plot": "reports/afm_condition_control_v3/20260703_060549/v2_vs_v3_comparison/v2_vs_v3_condition_control_summary.png",
+  "descriptor_count": 13,
+  "improved_abs_pearson_descriptors": [
+    "autocorrelation_length_px",
+    "island_count",
+    "psd_high_power",
+    "psd_low_power",
+    "psd_mid_power",
+    "psd_slope"
+  ],
+  "improved_mae_descriptors": [
+    "autocorrelation_length_px",
+    "gradient_anisotropy",
+    "island_count",
+    "psd_slope"
+  ],
+  "v2_sensitivity": "reports/afm_condition_control_v3/20260703_060549/v2_condition_sensitivity",
+  "v3_evaluation": "reports/afm_condition_control_v3/20260703_060549/evaluation_v3",
+  "v3_generated_nonconstant_rate": 1.0,
+  "v3_guided_descriptor_error": 2.1246281029618905,
+  "v3_plain_descriptor_error": 2.127631909466679,
+  "v3_reranked_descriptor_error": 2.083974265564871
+}

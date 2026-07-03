@@ -1,0 +1,93 @@
+{
+  "beats_mean_condition_mse": false,
+  "best_checkpoint": "reports/rheed_conditioned_latent_diffusion_mvp/20260703_043816/rheed_condition_encoder_10epoch_handcrafted/checkpoints/best.pt",
+  "descriptor_mae": 0.8290764689445496,
+  "descriptor_mse": 1.3889275789260864,
+  "descriptor_r2": -0.4324217740643559,
+  "descriptor_spearman": -0.050142135623730946,
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_descriptor_mse": 0.9646990489959717,
+      "train_loss": 1.8568670177459716,
+      "val_descriptor_mse": 1.2443040609359741,
+      "val_loss": 2.1272177696228027
+    },
+    {
+      "epoch": 2.0,
+      "train_descriptor_mse": 0.9569495916366577,
+      "train_loss": 1.8263441801071167,
+      "val_descriptor_mse": 1.240116000175476,
+      "val_loss": 2.106274127960205
+    },
+    {
+      "epoch": 3.0,
+      "train_descriptor_mse": 0.9500131249427796,
+      "train_loss": 1.7973959350585937,
+      "val_descriptor_mse": 1.2428191900253296,
+      "val_loss": 2.092137575149536
+    },
+    {
+      "epoch": 4.0,
+      "train_descriptor_mse": 0.9402535045146942,
+      "train_loss": 1.7585152626037597,
+      "val_descriptor_mse": 1.245877742767334,
+      "val_loss": 2.071031093597412
+    },
+    {
+      "epoch": 5.0,
+      "train_descriptor_mse": 0.9233741188049316,
+      "train_loss": 1.6907471084594727,
+      "val_descriptor_mse": 1.2299124002456665,
+      "val_loss": 2.0190377235412598
+    },
+    {
+      "epoch": 6.0,
+      "train_descriptor_mse": 0.8851657819747925,
+      "train_loss": 1.5889157819747926,
+      "val_descriptor_mse": 1.2190499305725098,
+      "val_loss": 1.9731929302215576
+    },
+    {
+      "epoch": 7.0,
+      "train_descriptor_mse": 0.8446163764595985,
+      "train_loss": 1.488561669588089,
+      "val_descriptor_mse": 1.2761194705963135,
+      "val_loss": 2.0496442317962646
+    },
+    {
+      "epoch": 8.0,
+      "train_descriptor_mse": 0.77508145570755,
+      "train_loss": 1.352972059249878,
+      "val_descriptor_mse": 1.2849301099777222,
+      "val_loss": 2.0479652881622314
+    },
+    {
+      "epoch": 9.0,
+      "train_descriptor_mse": 0.7145193839073181,
+      "train_loss": 1.2398849940299987,
+      "val_descriptor_mse": 1.2702151536941528,
+      "val_loss": 2.007671594619751
+    },
+    {
+      "epoch": 10.0,
+      "train_descriptor_mse": 0.7045973122119904,
+      "train_loss": 1.180625764131546,
+      "val_descriptor_mse": 1.388927698135376,
+      "val_loss": 2.206460952758789
+    }
+  ],
+  "last_checkpoint": "reports/rheed_conditioned_latent_diffusion_mvp/20260703_043816/rheed_condition_encoder_10epoch_handcrafted/checkpoints/last.pt",
+  "mean_condition_baseline": {
+    "descriptor_mae": 0.772202730178833,
+    "descriptor_mse": 1.2270687818527222,
+    "descriptor_r2": -0.2654942887096383,
+    "descriptor_spearman": NaN
+  },
+  "prototype_accuracy": 0.0,
+  "prototype_macro_f1": 0.0,
+  "train_descriptor_mse": 0.7045973122119904,
+  "train_loss": 1.180625764131546,
+  "val_descriptor_mse": 1.388927698135376,
+  "val_loss": 2.206460952758789
+}

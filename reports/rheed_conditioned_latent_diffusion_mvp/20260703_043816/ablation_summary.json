@@ -1,0 +1,9 @@
+{
+  "baseline": "mean_condition_baseline",
+  "best_variant_for_sampling": "visual_handcrafted_10epoch_best",
+  "notes": [
+    "The 10-epoch visual+handcrafted checkpoint selected by best validation loss slightly beat the mean-condition baseline on descriptor MSE.",
+    "The final epoch metrics for both 10-epoch trained variants were worse than the mean-condition baseline, indicating instability/overfit on a small validation split.",
+    "The handcrafted-only final epoch was better than the visual+handcrafted final epoch, but the visual+handcrafted best checkpoint was used for MVP-2 generation artifacts."
+  ]
+}
