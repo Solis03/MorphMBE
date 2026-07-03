@@ -1,0 +1,4 @@
+method,latent_mse,latent_cosine_similarity,nearest_neighbor_latent_distance,nearest_neighbor_cosine_similarity,retrieved_latent_mse,topk_retrieval_hit_rate,descriptor_distance_mean
+ridge,0.39602557,0.70274627,1.74823260,0.67675805,0.41545588,0.37500000,
+train_mean_latent,0.36481357,0.77599001,1.85400319,0.76869839,0.30802366,0.50000000,
+random_train_latent,1.02395487,0.51252532,0.00000000,0.51252532,1.02395487,0.12500000,
