@@ -1,0 +1,135 @@
+row_id,sample_id,reason
+1,6022,AFM path does not match one-to-one manifest selection
+2,6022,AFM path does not match one-to-one manifest selection
+4,6023,missing sample embedding
+5,6023,missing sample embedding
+6,6023,missing sample embedding
+7,6028,AFM path does not match one-to-one manifest selection
+8,6028,AFM path does not match one-to-one manifest selection
+10,6029,AFM path does not match one-to-one manifest selection
+11,6029,AFM path does not match one-to-one manifest selection
+13,6033,AFM path does not match one-to-one manifest selection
+14,6033,AFM path does not match one-to-one manifest selection
+15,6033,AFM path does not match one-to-one manifest selection
+18,6041,AFM path does not match one-to-one manifest selection
+19,6041,AFM path does not match one-to-one manifest selection
+20,6043,AFM path does not match one-to-one manifest selection
+21,6043,AFM path does not match one-to-one manifest selection
+23,6047,AFM path does not match one-to-one manifest selection
+24,6047,AFM path does not match one-to-one manifest selection
+25,6047,AFM path does not match one-to-one manifest selection
+26,6047,AFM path does not match one-to-one manifest selection
+27,6047,AFM path does not match one-to-one manifest selection
+29,6048,AFM path does not match one-to-one manifest selection
+31,6056,AFM path does not match one-to-one manifest selection
+32,6056,AFM path does not match one-to-one manifest selection
+33,6056,AFM path does not match one-to-one manifest selection
+34,6056,AFM path does not match one-to-one manifest selection
+35,6056,AFM path does not match one-to-one manifest selection
+36,6056,AFM path does not match one-to-one manifest selection
+37,6056,AFM path does not match one-to-one manifest selection
+38,6056,AFM path does not match one-to-one manifest selection
+39,6056,AFM path does not match one-to-one manifest selection
+40,6056,AFM path does not match one-to-one manifest selection
+41,6056,AFM path does not match one-to-one manifest selection
+42,6056,AFM path does not match one-to-one manifest selection
+43,6056,AFM path does not match one-to-one manifest selection
+44,6056,AFM path does not match one-to-one manifest selection
+45,6056,AFM path does not match one-to-one manifest selection
+46,6056,AFM path does not match one-to-one manifest selection
+47,6056,AFM path does not match one-to-one manifest selection
+48,6056,AFM path does not match one-to-one manifest selection
+50,6057,AFM path does not match one-to-one manifest selection
+51,6057,AFM path does not match one-to-one manifest selection
+52,6057,AFM path does not match one-to-one manifest selection
+53,6057,AFM path does not match one-to-one manifest selection
+54,6057,AFM path does not match one-to-one manifest selection
+55,6057,AFM path does not match one-to-one manifest selection
+57,6058,AFM path does not match one-to-one manifest selection
+58,6058,AFM path does not match one-to-one manifest selection
+59,6058,AFM path does not match one-to-one manifest selection
+60,6058,AFM path does not match one-to-one manifest selection
+61,6058,AFM path does not match one-to-one manifest selection
+63,6062,AFM path does not match one-to-one manifest selection
+64,6062,AFM path does not match one-to-one manifest selection
+65,6062,AFM path does not match one-to-one manifest selection
+66,6062,AFM path does not match one-to-one manifest selection
+67,6062,AFM path does not match one-to-one manifest selection
+69,6063,AFM path does not match one-to-one manifest selection
+70,6063,AFM path does not match one-to-one manifest selection
+71,6063,AFM path does not match one-to-one manifest selection
+73,6063,AFM path does not match one-to-one manifest selection
+74,6063,AFM path does not match one-to-one manifest selection
+75,6065,AFM path does not match one-to-one manifest selection
+76,6065,AFM path does not match one-to-one manifest selection
+78,6066,missing sample embedding
+79,6066,missing sample embedding
+80,6066,missing sample embedding
+81,6066,missing sample embedding
+82,6066,missing sample embedding
+83,6066,missing sample embedding
+85,6067,AFM path does not match one-to-one manifest selection
+86,6067,AFM path does not match one-to-one manifest selection
+87,6067,AFM path does not match one-to-one manifest selection
+88,6068,missing sample embedding
+89,6068,missing sample embedding
+90,6068,missing sample embedding
+91,6068,missing sample embedding
+92,6070,AFM path does not match one-to-one manifest selection
+94,6070,AFM path does not match one-to-one manifest selection
+95,6070,AFM path does not match one-to-one manifest selection
+96,6070,AFM path does not match one-to-one manifest selection
+97,6072,AFM path does not match one-to-one manifest selection
+98,6072,AFM path does not match one-to-one manifest selection
+99,6072,AFM path does not match one-to-one manifest selection
+100,6072,AFM path does not match one-to-one manifest selection
+101,6072,AFM path does not match one-to-one manifest selection
+102,6072,AFM path does not match one-to-one manifest selection
+105,6073,AFM path does not match one-to-one manifest selection
+107,6078,AFM path does not match one-to-one manifest selection
+108,6078,AFM path does not match one-to-one manifest selection
+109,6078,AFM path does not match one-to-one manifest selection
+110,6080,AFM path does not match one-to-one manifest selection
+112,6081,AFM path does not match one-to-one manifest selection
+113,6081,AFM path does not match one-to-one manifest selection
+115,6082,AFM path does not match one-to-one manifest selection
+116,6082,AFM path does not match one-to-one manifest selection
+118,6084,AFM path does not match one-to-one manifest selection
+119,6084,AFM path does not match one-to-one manifest selection
+120,6084,AFM path does not match one-to-one manifest selection
+122,6085,AFM path does not match one-to-one manifest selection
+123,6085,AFM path does not match one-to-one manifest selection
+124,6085,AFM path does not match one-to-one manifest selection
+126,6087,missing sample embedding
+127,6087,missing sample embedding
+128,6088,AFM path does not match one-to-one manifest selection
+129,6088,AFM path does not match one-to-one manifest selection
+131,6090,AFM path does not match one-to-one manifest selection
+132,6090,AFM path does not match one-to-one manifest selection
+134,6093,AFM path does not match one-to-one manifest selection
+135,6093,AFM path does not match one-to-one manifest selection
+136,6093,AFM path does not match one-to-one manifest selection
+138,6094,AFM path does not match one-to-one manifest selection
+139,6094,AFM path does not match one-to-one manifest selection
+140,6094,AFM path does not match one-to-one manifest selection
+142,6094,AFM path does not match one-to-one manifest selection
+143,6094,AFM path does not match one-to-one manifest selection
+144,6094,AFM path does not match one-to-one manifest selection
+145,6094,AFM path does not match one-to-one manifest selection
+146,6094,AFM path does not match one-to-one manifest selection
+147,6094,AFM path does not match one-to-one manifest selection
+148,6095,AFM path does not match one-to-one manifest selection
+149,6095,AFM path does not match one-to-one manifest selection
+150,6095,AFM path does not match one-to-one manifest selection
+151,6095,AFM path does not match one-to-one manifest selection
+153,6097,AFM path does not match one-to-one manifest selection
+154,6097,AFM path does not match one-to-one manifest selection
+155,6097,AFM path does not match one-to-one manifest selection
+156,6097,AFM path does not match one-to-one manifest selection
+158,6097,AFM path does not match one-to-one manifest selection
+159,6097,AFM path does not match one-to-one manifest selection
+160,6099,AFM path does not match one-to-one manifest selection
+161,6099,AFM path does not match one-to-one manifest selection
+162,6099,AFM path does not match one-to-one manifest selection
+163,6099,AFM path does not match one-to-one manifest selection
+165,6101,AFM path does not match one-to-one manifest selection
