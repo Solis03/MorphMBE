@@ -1,0 +1,23 @@
+{
+  "best_checkpoint": "reports/rheed_shape_bag_model_mvp/20260703_171908/ablations/frame_bag_only/checkpoints/best.pt",
+  "best_fold_id": "original_split",
+  "descriptor_mse": 1.0496190786361694,
+  "device": "cuda",
+  "folds": [
+    {
+      "beats_mean_baseline": true,
+      "best_checkpoint": "reports/rheed_shape_bag_model_mvp/20260703_171908/ablations/frame_bag_only/checkpoints/best.pt",
+      "descriptor_mae": 0.7905731201171875,
+      "descriptor_mse": 1.0496190786361694,
+      "descriptor_r2": -0.3074358949480085,
+      "descriptor_rmse": 1.0245091891418883,
+      "descriptor_spearman": 0.1423124930240733,
+      "epoch": 1,
+      "fold_id": "original_split",
+      "mean_baseline_mse": 1.085692286491394,
+      "prototype_accuracy": 0.45454545454545453,
+      "prototype_macro_f1": 0.15625,
+      "train_loss": 3.711190015077591
+    }
+  ]
+}

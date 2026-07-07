@@ -1,0 +1,2 @@
+fold_id,epoch,train_loss,descriptor_mse,descriptor_mae,descriptor_rmse,descriptor_r2,descriptor_spearman,mean_baseline_mse,beats_mean_baseline,prototype_accuracy,prototype_macro_f1,best_checkpoint
+original_split,1,3.711190015077591,1.0496190786361694,0.7905731201171875,1.0245091891418883,-0.3074358949480085,0.1423124930240733,1.085692286491394,True,0.45454545454545453,0.15625,reports/rheed_shape_bag_model_mvp/20260703_171908/ablations/frame_bag_only/checkpoints/best.pt

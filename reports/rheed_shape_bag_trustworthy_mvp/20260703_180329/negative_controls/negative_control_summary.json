@@ -1,0 +1,237 @@
+{
+  "controls_attempted": [
+    "brightness_only_diagnostic",
+    "exposure_only_diagnostic",
+    "forbidden_id_path_diagnostic",
+    "random_gaussian_features",
+    "raw240_feature_diagnostic",
+    "shuffled_labels_global_diagnostic",
+    "shuffled_labels_within_train_folds",
+    "shuffled_shape_bags_across_groups"
+  ],
+  "descriptor_count": 13,
+  "negative_controls_pass": false,
+  "not_trustworthy_flags": 23,
+  "suspicious_rows": [
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 297.8913758146593,
+      "control": "random_gaussian_features",
+      "descriptor": "autocorrelation_length_px",
+      "improvement_ci_high": -3.147169654359814,
+      "improvement_ci_low": -3.147169654359814,
+      "mean_baseline_mse": 117.5781818181818,
+      "mse": 120.72535147254162
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 0.09128033348743135,
+      "control": "brightness_only_diagnostic",
+      "descriptor": "gradient_anisotropy",
+      "improvement_ci_high": -0.04039602716724515,
+      "improvement_ci_low": -0.04039602716724515,
+      "mean_baseline_mse": 0.007436101647552779,
+      "mse": 0.047832128814797925
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 0.09128033348743135,
+      "control": "exposure_only_diagnostic",
+      "descriptor": "gradient_anisotropy",
+      "improvement_ci_high": -0.04039602716724515,
+      "improvement_ci_low": -0.04039602716724515,
+      "mean_baseline_mse": 0.007436101647552779,
+      "mse": 0.047832128814797925
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 0.09128033348743135,
+      "control": "random_gaussian_features",
+      "descriptor": "gradient_anisotropy",
+      "improvement_ci_high": -0.018420060853981332,
+      "improvement_ci_low": -0.018420060853981332,
+      "mean_baseline_mse": 0.007436101647552779,
+      "mse": 0.02585616250153411
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 0.09128033348743135,
+      "control": "shuffled_labels_within_train_folds",
+      "descriptor": "gradient_anisotropy",
+      "improvement_ci_high": -0.0407895115281671,
+      "improvement_ci_low": -0.0407895115281671,
+      "mean_baseline_mse": 0.007436101647552777,
+      "mse": 0.04822561317571988
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 1.1327774766749086,
+      "control": "brightness_only_diagnostic",
+      "descriptor": "gradient_std",
+      "improvement_ci_high": -0.1587048369915515,
+      "improvement_ci_low": -0.1587048369915515,
+      "mean_baseline_mse": 0.15440380983317306,
+      "mse": 0.31310864682472456
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 1.1327774766749086,
+      "control": "exposure_only_diagnostic",
+      "descriptor": "gradient_std",
+      "improvement_ci_high": -0.1587048369915515,
+      "improvement_ci_low": -0.1587048369915515,
+      "mean_baseline_mse": 0.15440380983317306,
+      "mse": 0.31310864682472456
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 1.1327774766749086,
+      "control": "random_gaussian_features",
+      "descriptor": "gradient_std",
+      "improvement_ci_high": -0.11859845448196052,
+      "improvement_ci_low": -0.11859845448196052,
+      "mean_baseline_mse": 0.15440380983317306,
+      "mse": 0.2730022643151336
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 1.1327774766749086,
+      "control": "shuffled_labels_within_train_folds",
+      "descriptor": "gradient_std",
+      "improvement_ci_high": -0.43281049339648525,
+      "improvement_ci_low": -0.43281049339648525,
+      "mean_baseline_mse": 0.15440380983317306,
+      "mse": 0.5872143032296583
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 406910.2684531154,
+      "control": "brightness_only_diagnostic",
+      "descriptor": "island_count",
+      "improvement_ci_high": -86085.5605591184,
+      "improvement_ci_low": -86085.5605591184,
+      "mean_baseline_mse": 4369.564509090908,
+      "mse": 90455.12506820931
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 406910.2684531154,
+      "control": "exposure_only_diagnostic",
+      "descriptor": "island_count",
+      "improvement_ci_high": -86085.5605591184,
+      "improvement_ci_low": -86085.5605591184,
+      "mean_baseline_mse": 4369.564509090908,
+      "mse": 90455.12506820931
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 406910.2684531154,
+      "control": "random_gaussian_features",
+      "descriptor": "island_count",
+      "improvement_ci_high": -61041.70043284063,
+      "improvement_ci_low": -61041.70043284063,
+      "mean_baseline_mse": 4369.564509090908,
+      "mse": 65411.26494193154
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 406910.2684531154,
+      "control": "shuffled_labels_within_train_folds",
+      "descriptor": "island_count",
+      "improvement_ci_high": -374673.7526394063,
+      "improvement_ci_low": -374673.7526394063,
+      "mean_baseline_mse": 4369.564509090908,
+      "mse": 379043.3171484972
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 1133440.9680879945,
+      "control": "random_gaussian_features",
+      "descriptor": "island_mean_area_px",
+      "improvement_ci_high": -111654.8934450258,
+      "improvement_ci_low": -111654.8934450258,
+      "mean_baseline_mse": 127448.63593754866,
+      "mse": 239103.52938257446
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 2.5715981488393154,
+      "control": "brightness_only_diagnostic",
+      "descriptor": "mean_abs_gradient",
+      "improvement_ci_high": -0.5749395448576234,
+      "improvement_ci_low": -0.5749395448576234,
+      "mean_baseline_mse": 0.39554903027283395,
+      "mse": 0.9704885751304574
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 2.5715981488393154,
+      "control": "exposure_only_diagnostic",
+      "descriptor": "mean_abs_gradient",
+      "improvement_ci_high": -0.5749395448576234,
+      "improvement_ci_low": -0.5749395448576234,
+      "mean_baseline_mse": 0.39554903027283395,
+      "mse": 0.9704885751304574
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 2.5715981488393154,
+      "control": "random_gaussian_features",
+      "descriptor": "mean_abs_gradient",
+      "improvement_ci_high": -0.4275407612963683,
+      "improvement_ci_low": -0.4275407612963683,
+      "mean_baseline_mse": 0.39554903027283395,
+      "mse": 0.8230897915692023
+    },
+    {
+      "beats_mean_fold_rate": 1.0,
+      "beats_real": true,
+      "best_real_mse": 6.642661973772024,
+      "control": "random_gaussian_features",
+      "descriptor": "psd_high_power",
+      "improvement_ci_high": 0.6341374747431237,
+      "improvement_ci_low": 0.6341374747431237,
+      "mean_baseline_mse": 1.0934781958430642,
+      "mse": 0.4593407210999405
+    },
+    {
+      "beats_mean_fold_rate": 1.0,
+      "beats_real": true,
+      "best_real_mse": 4.4929648678480865,
+      "control": "random_gaussian_features",
+      "descriptor": "psd_low_power",
+      "improvement_ci_high": 0.01196637353246377,
+      "improvement_ci_low": 0.01196637353246377,
+      "mean_baseline_mse": 1.8675761712742358,
+      "mse": 1.855609797741772
+    },
+    {
+      "beats_mean_fold_rate": 0.0,
+      "beats_real": true,
+      "best_real_mse": 5.146847243222681,
+      "control": "brightness_only_diagnostic",
+      "descriptor": "psd_mid_power",
+      "improvement_ci_high": -0.08065917430044456,
+      "improvement_ci_low": -0.08065917430044456,
+      "mean_baseline_mse": 2.1917907050795304,
+      "mse": 2.272449879379975
+    }
+  ]
+}

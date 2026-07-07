@@ -1,0 +1,12 @@
+variant,model_family,row_count,descriptor_mse,descriptor_mae,descriptor_rmse,descriptor_r2,descriptor_spearman,negative_control,best_checkpoint
+train_fold_mean_baseline,baseline,11,1.0856924057006836,0.7948118448257446,1.0419656451633534,-0.35237003059628225,nan,,
+stable_features_ridge,tabular,11,20.8001766204834,2.1164820194244385,4.560721063656864,-24.90930358456101,0.043979132593847996,0,
+stable_features_mlp,neural,,1.0005608797073364,,,,,0,reports/rheed_shape_bag_model_mvp/20260703_171908/ablations/stable_features_mlp/checkpoints/best.pt
+consensus_maps_only_cnn,neural,,1.0303328037261963,,,,,0,reports/rheed_shape_bag_model_mvp/20260703_171908/ablations/consensus_maps_only_cnn/checkpoints/best.pt
+stable_features_plus_consensus,neural,,1.034764051437378,,,,,0,reports/rheed_shape_bag_model_mvp/20260703_171908/ablations/stable_features_plus_consensus/checkpoints/best.pt
+frame_bag_only,neural,,1.0496190786361694,,,,,0,reports/rheed_shape_bag_model_mvp/20260703_171908/ablations/frame_bag_only/checkpoints/best.pt
+frame_bag_plus_consensus,neural,,1.0199254751205444,,,,,0,reports/rheed_shape_bag_model_mvp/20260703_171908/ablations/frame_bag_plus_consensus/checkpoints/best.pt
+full_fusion,neural,,1.0414944887161255,,,,,0,reports/rheed_shape_bag_model_mvp/20260703_171908/ablations/full_fusion/checkpoints/best.pt
+raw_240_features_diagnostic,tabular,11,20.8001708984375,2.1164820194244385,4.560720436338704,-24.909295078025533,0.043979132593847996,0,
+shuffled_label_negative_control,tabular,11,5.666114807128906,1.3465657234191895,2.3803602263373724,-6.057876739503434,0.14717239266571752,1,
+brightness_only_forbidden_diagnostic,tabular,11,1.6972459554672241,0.9953241944313049,1.302783925087819,-1.1141388322414176,-0.12566689677711199,1,

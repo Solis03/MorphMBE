@@ -1,0 +1,13 @@
+model,descriptor_mse,descriptor_r2,source
+train_fold_mean_baseline,1.0856924057006836,-0.35237003059628225,mvp9_ablation
+stable_features_ridge,20.8001766204834,-24.90930358456101,mvp9_ablation
+stable_features_mlp,1.0005608797073364,,mvp9_ablation
+consensus_maps_only_cnn,1.0303328037261963,,mvp9_ablation
+stable_features_plus_consensus,1.034764051437378,,mvp9_ablation
+frame_bag_only,1.0496190786361694,,mvp9_ablation
+frame_bag_plus_consensus,1.0199254751205444,,mvp9_ablation
+full_fusion,1.0414944887161255,,mvp9_ablation
+raw_240_features_diagnostic,20.8001708984375,-24.909295078025533,mvp9_ablation
+shuffled_label_negative_control,5.666114807128906,-6.057876739503434,mvp9_ablation
+brightness_only_forbidden_diagnostic,1.6972459554672241,-1.1141388322414176,mvp9_ablation
+checkpoint_prediction,1.052808403968811,-0.3114087128455465,mvp9_prediction

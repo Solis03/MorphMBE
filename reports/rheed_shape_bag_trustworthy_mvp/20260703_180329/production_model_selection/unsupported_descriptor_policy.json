@@ -1,0 +1,135 @@
+{
+  "default_action": "fill_train_mean_for_unsupported_descriptors",
+  "policy": [
+    {
+      "descriptor": "autocorrelation_length_px",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": true,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "gradient_anisotropy",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": true,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "gradient_std",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": true,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "island_count",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": true,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "island_mean_area_px",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": true,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "mean_abs_gradient",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": true,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "psd_high_power",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": false,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "psd_low_power",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": false,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "psd_mid_power",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": false,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "ridge"
+    },
+    {
+      "descriptor": "psd_slope",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": false,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "ra",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": false,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "robust_range",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": false,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    },
+    {
+      "descriptor": "rq",
+      "negative_controls_pass": false,
+      "original_trust_label": "NOT_SUPPORTED",
+      "physical_importance_present": false,
+      "production_action": "fill_train_mean",
+      "reason": "unsupported or control risk; use train mean",
+      "selected_feature_set": "stable36",
+      "selected_model": "stable_features_mlp"
+    }
+  ]
+}

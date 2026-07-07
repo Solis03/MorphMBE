@@ -1,0 +1,2 @@
+manual_manifest,manual_manifest_exists,manual_rows,paired_manual_rows,status
+data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/manual_selected_frame_manifest.csv,True,0,0,pending_manual_selection

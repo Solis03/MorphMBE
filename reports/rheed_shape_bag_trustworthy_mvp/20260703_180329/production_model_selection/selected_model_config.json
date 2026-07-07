@@ -1,0 +1,11 @@
+{
+  "cv_root": "reports/rheed_shape_bag_trustworthy_mvp/20260703_180329/strict_descriptor_cv",
+  "eligible_feature_sets": [
+    "stable36",
+    "stable36_plus_consensus_summary",
+    "stable36_plus_metadata"
+  ],
+  "negative_controls_pass": false,
+  "selected_descriptors": {},
+  "selection_type": "descriptorwise_policy"
+}
