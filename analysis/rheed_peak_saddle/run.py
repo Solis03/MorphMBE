@@ -96,6 +96,7 @@ STAGES = (
     "synthetic_v3_evaluate",
     "synthetic_v3_report",
     "synthetic_v3_metric_audit",
+    "real_diagnostics",
     "diagnostics",
     "annotation_validation",
     "feature_freeze",
@@ -133,6 +134,10 @@ SYNTHETIC_V3_REPORT_COMMAND = (
 SYNTHETIC_V3_METRIC_AUDIT_COMMAND = (
     "PYTHONPATH=src:. .venv/bin/python -m analysis.rheed_peak_saddle.run "
     "--config configs/rheed_peak_saddle.yaml --stage synthetic_v3_metric_audit"
+)
+REAL_DIAGNOSTICS_COMMAND = (
+    "PYTHONPATH=src:. .venv/bin/python -m analysis.rheed_peak_saddle.run "
+    "--config configs/rheed_peak_saddle.yaml --stage real_diagnostics"
 )
 
 
@@ -2954,6 +2959,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Corrected preregistered value: {result['corrected_preregistered_value']}")
         print(f"Status: {result['amended_status']}")
         print(f"Immutable evaluation files changed: {result['immutable_hashes_changed']}")
+    elif args.stage == "real_diagnostics":
+        from analysis.rheed_peak_saddle.real_diagnostics import run_real_diagnostics
+
+        result = run_real_diagnostics(args.config, config)
+        print("Peak-saddle Stage 2A real-image shadow diagnostics complete.")
+        print(f"Outputs: {result['outputs_dir']}")
+        print(f"Reports: {result['reports_dir']}")
+        print(f"Eligible real-image count: {result['eligible_count']}")
+        print(f"Split counts: {result['split_counts']}")
+        print(f"Status: {result['status']}")
     else:
         run_gated_placeholder(args.stage, config)
     return 0

@@ -1,0 +1,26 @@
+warning,anonymous_review_id,sample_id,manual_rheed_filename,approved_stage,comparable_stage_group,split
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AA_ikicmgid,6022,select_After_GaSb.jpg,after_growth,post_GaSb_before_cooldown,blind_validation
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AC_cemjegco,6029,select_after_ramping_down_GaSb.jpg,rampdown_or_cooldown,temperature_transition_to_GaSb_conditions,blind_validation
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AD_jcmajlff,6033,select_15min_of_GaSb.jpg,active_growth,GaSb_growth_15min,blind_validation
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AF_cdlmlill,6047,select_after_rampdown_to_200C.jpg,rampdown_or_cooldown,post_growth_cooldown_200C,blind_validation
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AN_kkpegilo,6078,select_GaSb_6min.jpg,active_growth,GaSb_growth_early_2_6min,blind_validation
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AQ_hobhbdmi,6082,select_after_rampdown_to_200C.jpg,rampdown_or_cooldown,post_growth_cooldown_200C,blind_validation
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AS_gcncpghp,6085,select_ramping_down_to_300C.jpg,rampdown_or_cooldown,post_growth_cooldown_300C,blind_validation
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AT_ahnabkeh,6090,select_rampdown_to_200C.jpg,rampdown_or_cooldown,post_growth_cooldown_200C,blind_validation
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AV_labgkhbe,6095,select_rampdown_to_250C.jpg,rampdown_or_cooldown,post_growth_cooldown_250C,blind_validation
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AX_immkljfi,6099,select_ramping_to_650C.jpg,rampup_or_heating,temperature_ramp_to_650C,blind_validation
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AE_ggajacin,6043,select_after_ramping_to_GaSb.jpg,rampdown_or_cooldown,temperature_transition_to_GaSb_conditions,development_review
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AG_baoiigch,6048,select_after_rampdown.jpg,rampdown_or_cooldown,rampdown_temperature_unspecified,development_review
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AH_nkdpolif,6056,select_after_rampdown_to_200C.jpg,rampdown_or_cooldown,post_growth_cooldown_200C,development_review
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AI_oemcpgpf,6057,select_GaSb_2min.jpg,active_growth,GaSb_growth_early_2_6min,development_review
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AJ_kkcocpbj,6062,select_after_rampdown_to_300C.jpg,rampdown_or_cooldown,post_growth_cooldown_300C,development_review
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AL_cednjlle,6070,select_rampdown_to_300C.jpg,rampdown_or_cooldown,post_growth_cooldown_300C,development_review
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AM_ignmbald,6072,select_rampdown_to_250C.jpg,rampdown_or_cooldown,post_growth_cooldown_250C,development_review
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AR_jajjnhge,6084,select_after_ramping_down_to_200C.jpg,rampdown_or_cooldown,post_growth_cooldown_200C,development_review
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AU_ghfpcpef,6094,select_GaSb_5min.jpg,active_growth,GaSb_growth_early_2_6min,development_review
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AY_kfiiknbk,6101,select_150_min_GaSb.jpg,active_growth,GaSb_growth_150min,development_review
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AB_gaenbmbn,6028,select_GaSb.jpg,active_growth,GaSb_growth_time_unspecified,reserve
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AK_gpoglmif,6063,select_rampdown_to_300C.jpg,rampdown_or_cooldown,post_growth_cooldown_300C,reserve
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AO_jfhdfopo,6080,select_after_rampdown_to_200C.jpg,rampdown_or_cooldown,post_growth_cooldown_200C,reserve
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AP_hkhclmge,6081,select_after_rampdown_for_GaSB.jpg,rampdown_or_cooldown,temperature_transition_to_GaSb_conditions,reserve
+DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.,RPSA_AW_caaiphfb,6097,select_2min_GaSb.jpg,active_growth,GaSb_growth_early_2_6min,reserve

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import csv
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -45,6 +47,13 @@ from analysis.rheed_peak_saddle.metric_audit_v3 import (
     file_sha256 as audit_file_sha256,
     nominal_control_family_metrics,
     read_csv_rows as audit_read_csv_rows,
+)
+from analysis.rheed_peak_saddle.real_diagnostics import (
+    EXPECTED_REMOVELIST_SHA256,
+    EXPECTED_STAGE_REVIEW_SHA256,
+    anonymous_id,
+    file_sha256 as real_file_sha256,
+    validate_stage2a_gates,
 )
 from analysis.rheed_roughness.run import read_config
 from analysis.rheed_single_frame.removelist import RemovelistAudit, RemovelistRecord, load_removelist_audit
@@ -346,7 +355,141 @@ class PeakSaddleStage0Test(unittest.TestCase):
         self.assertIn("lattice_indexing_examples_visual.png", index)
         approval = Path("annotations/rheed_peak_saddle/approvals/checkpoint_1c_visual_review_template.txt")
         self.assertTrue(approval.is_file())
-        self.assertNotEqual(approval.read_text(encoding="utf-8").strip(), "APPROVED")
+        self.assertEqual(approval.read_text(encoding="utf-8").strip(), "APPROVED")
+
+    def test_stage2a_exact_approved_gate_and_hashes(self) -> None:
+        config = read_config(Path("configs/rheed_peak_saddle.yaml"))
+        _, gate = validate_stage2a_gates(config)
+        self.assertEqual(Path(gate["approval_path"]).read_text(encoding="utf-8").strip(), "APPROVED")
+        self.assertEqual(gate["removelist_sha256"], EXPECTED_REMOVELIST_SHA256)
+        self.assertEqual(gate["stage_review_sha256"], EXPECTED_STAGE_REVIEW_SHA256)
+        self.assertEqual(real_file_sha256(Path("removelist.txt")), EXPECTED_REMOVELIST_SHA256)
+        self.assertIn("6088", Path("removelist.txt").read_text(encoding="utf-8"))
+
+    def test_stage2a_no_self_approval_by_code(self) -> None:
+        source = Path("analysis/rheed_peak_saddle/real_diagnostics.py").read_text(encoding="utf-8")
+        approval_path = "checkpoint_1c_visual_review_template.txt"
+        self.assertIn(approval_path, source)
+        self.assertNotIn('write_text("APPROVED"', source)
+        self.assertNotIn("write_text('APPROVED'", source)
+
+    def test_stage2a_real_input_manifest_excludes_6088_before_loading(self) -> None:
+        rows = audit_read_csv_rows(Path("outputs/rheed_peak_saddle/real_diagnostics/real_input_manifest.csv"))
+        self.assertEqual(len([row for row in rows if row["input_status"] == "included"]), 25)
+        self.assertNotIn("6088", {row["sample_id"] for row in rows if row["input_status"] == "included"})
+        self.assertTrue(all(Path(row["manual_rheed_path"]).name.lower().startswith("select") for row in rows))
+
+    def test_stage2a_data_access_audit_has_no_afm_rq_sources(self) -> None:
+        audit = json.loads(Path("outputs/rheed_peak_saddle/real_diagnostics/data_access_audit.json").read_text(encoding="utf-8"))
+        self.assertFalse(audit["afm_rq_source_opened"])
+        self.assertEqual(audit["forbidden_loader_calls"], [])
+        paths = [row["path"].lower() for row in audit["input_files_opened"]]
+        self.assertTrue(all("/afm/" not in path for path in paths))
+        self.assertTrue(all("rq" not in Path(path).name.lower() for path in paths))
+
+    def test_stage2a_frozen_semantic_spec_and_receipt_unchanged(self) -> None:
+        self.assertEqual(real_file_sha256(Path("outputs/rheed_peak_saddle/synthetic_v3/evaluation_receipt.json")), "a3619bad7a8517d083c4fd73852a6666c235bf21a2f46c5a8ce02f0869541e9f")
+        self.assertEqual(real_file_sha256(Path("outputs/rheed_peak_saddle/synthetic_v3/frozen_semantic_spec.json")), "98aebd38a1e59f1f120cc143fd6b068f6113bfd092b7a1aae3106b8887272a26")
+        self.assertEqual(Path("outputs/rheed_peak_saddle/synthetic_v3/frozen_semantic_spec.sha256").read_text(encoding="utf-8").strip(), "ffa417f8c5a67f8a3ede3e532464b3a82a783c47a3362dc4abb85cc4f8ed0689")
+
+    def test_stage2a_deterministic_anonymous_ids_and_split_receipt(self) -> None:
+        rows = audit_read_csv_rows(Path("outputs/rheed_peak_saddle/real_diagnostics/real_input_manifest.csv"))
+        for index, row in enumerate(sorted(rows, key=lambda item: item["sample_id"]), start=1):
+            self.assertEqual(row["anonymous_review_id"], anonymous_id(row["sample_id"], index))
+        receipt = json.loads(Path("outputs/rheed_peak_saddle/real_diagnostics/real_review_split_receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(receipt["deterministic_seed"], 2026071302)
+        self.assertEqual(receipt["input_manifest_sha256"], real_file_sha256(Path("outputs/rheed_peak_saddle/real_diagnostics/real_input_manifest.csv")))
+
+    def test_stage2a_split_has_no_overlap_and_no_rq_columns(self) -> None:
+        split_rows = audit_read_csv_rows(Path("outputs/rheed_peak_saddle/real_diagnostics/split_manifest.csv"))
+        by_split = {}
+        for split in ("development_review", "blind_validation", "reserve"):
+            ids = {row["anonymous_review_id"] for row in split_rows if row["split"] == split}
+            by_split[split] = ids
+        self.assertEqual(len(by_split["development_review"]), 10)
+        self.assertEqual(len(by_split["blind_validation"]), 10)
+        self.assertEqual(len(by_split["reserve"]), 5)
+        self.assertFalse(by_split["development_review"] & by_split["blind_validation"])
+        self.assertFalse(by_split["development_review"] & by_split["reserve"])
+        self.assertFalse(by_split["blind_validation"] & by_split["reserve"])
+        self.assertTrue(all("rq" not in key.lower() and "afm" not in key.lower() for key in split_rows[0].keys()))
+
+    def test_stage2a_blinded_pages_hide_identity_stage_and_algorithm_values(self) -> None:
+        sample_ids = [row["sample_id"] for row in audit_read_csv_rows(Path("annotations/rheed_peak_saddle/real_review/unblind_key.csv"))]
+        forbidden_tokens = set(sample_ids) | {
+            "select_",
+            "active_growth",
+            "after_growth",
+            "rampdown_or_cooldown",
+            "rampup_or_heating",
+            "Rq",
+            "AFM",
+            "adhesion_median",
+            "clipped_adhesion",
+            "raw_adhesion",
+        }
+        for html_path in (
+            Path("reports/rheed_peak_saddle/real_diagnostics/all_sample_qc_review.html"),
+            Path("reports/rheed_peak_saddle/real_diagnostics/development_sample_review.html"),
+            Path("reports/rheed_peak_saddle/real_diagnostics/development_pair_review.html"),
+        ):
+            text = html_path.read_text(encoding="utf-8")
+            for token in forbidden_tokens:
+                self.assertNotIn(token, text, f"{token} leaked in {html_path}")
+            self.assertNotIn("algorithm_shadow_audit", text)
+
+    def test_stage2a_review_templates_have_no_prefilled_human_labels(self) -> None:
+        template_paths = [
+            Path("annotations/rheed_peak_saddle/real_review/all_sample_qc_template.csv"),
+            Path("annotations/rheed_peak_saddle/real_review/development_sample_review_template.csv"),
+            Path("annotations/rheed_peak_saddle/real_review/development_pair_review_template.csv"),
+        ]
+        id_columns = {"anonymous_review_id", "anonymous_pair_id"}
+        for path in template_paths:
+            rows = audit_read_csv_rows(path)
+            self.assertGreater(len(rows), 0)
+            for row in rows:
+                for key, value in row.items():
+                    if key not in id_columns:
+                        self.assertEqual(value, "", f"{path}:{key} was prefilled")
+
+    def test_stage2a_unblind_key_contains_no_rq_or_afm_and_is_unlinked(self) -> None:
+        key = Path("annotations/rheed_peak_saddle/real_review/unblind_key.csv")
+        text = key.read_text(encoding="utf-8")
+        self.assertIn("DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.", text)
+        self.assertNotIn("Rq", text)
+        self.assertNotIn("AFM", text)
+        for html_path in (
+            Path("reports/rheed_peak_saddle/real_diagnostics/all_sample_qc_review.html"),
+            Path("reports/rheed_peak_saddle/real_diagnostics/development_sample_review.html"),
+            Path("reports/rheed_peak_saddle/real_diagnostics/development_pair_review.html"),
+        ):
+            self.assertNotIn("unblind_key.csv", html_path.read_text(encoding="utf-8"))
+
+    def test_stage2a_blind_validation_review_page_not_generated(self) -> None:
+        paths = list(Path("reports/rheed_peak_saddle/real_diagnostics").glob("*blind*validation*review*.html"))
+        self.assertEqual(paths, [])
+
+    def test_stage2a_algorithm_shadow_audit_is_separate(self) -> None:
+        shadow = Path("reports/rheed_peak_saddle/real_diagnostics/algorithm_shadow_audit.html")
+        self.assertTrue(shadow.is_file())
+        self.assertIn("DO NOT OPEN BEFORE COMPLETING THE BLINDED REVIEW", shadow.read_text(encoding="utf-8"))
+        for html_path in (
+            Path("reports/rheed_peak_saddle/real_diagnostics/all_sample_qc_review.html"),
+            Path("reports/rheed_peak_saddle/real_diagnostics/development_sample_review.html"),
+            Path("reports/rheed_peak_saddle/real_diagnostics/development_pair_review.html"),
+        ):
+            self.assertNotIn("algorithm_shadow_audit.html", html_path.read_text(encoding="utf-8"))
+
+    def test_stage2a_checkpoint_and_template_hashes_exist(self) -> None:
+        checkpoint = Path("reports/rheed_peak_saddle/checkpoint_2a_real_diagnostics.md")
+        self.assertTrue(checkpoint.is_file())
+        text = checkpoint.read_text(encoding="utf-8")
+        self.assertIn("HUMAN ANNOTATION REQUIRED", text)
+        self.assertIn("No AFM data were accessed", text)
+        repro = json.loads(Path("outputs/rheed_peak_saddle/real_diagnostics/reproducibility_manifest.json").read_text(encoding="utf-8"))
+        for name in ("all_sample_qc_template.csv", "development_sample_review_template.csv", "development_pair_review_template.csv"):
+            self.assertIn(name, repro["annotation_template_hashes"])
 
 
 if __name__ == "__main__":
