@@ -1,0 +1,39 @@
+{
+  "random_seed": 20260713,
+  "repo_root": ".",
+  "outputs_dir": "outputs/rheed_single_frame_manual",
+  "reports_dir": "reports/rheed_single_frame_manual",
+  "removelist_path": "removelist.txt",
+  "manual_selection_root": "data/manual_selection",
+  "existing_manual_pair_manifest": "outputs/rheed_roughness/manual_pair_visualization/manual_pair_figure_manifest.csv",
+  "data_roots": {
+    "plane_corrected_afm_root": "data/plane_corrected_afm"
+  },
+  "afm": {
+    "height_unit_default": "nm",
+    "primary_scan_size_um": 1.0,
+    "primary_scan_size_tolerance_um": 0.10
+  },
+  "rheed": {
+    "image_size": 256,
+    "threshold_percentiles": [75, 85, 90, 95],
+    "horizontal_closing_lengths": [5, 11, 21],
+    "adaptive_threshold_block_size": 31
+  },
+  "models": {
+    "max_inner_splits": 5,
+    "permutation_resamples": 2000,
+    "bootstrap_ensembles": 32,
+    "confidence_interval_nominal": 0.90,
+    "embedding_pca_components": [2, 4, 8],
+    "physics_pca_components": [2, 4, 6]
+  },
+  "perturbations": {
+    "brightness_scales": [0.8, 0.9, 1.1, 1.2],
+    "gammas": [0.85, 1.15],
+    "translations_px": [-4, 4],
+    "blur_sigmas": [0.7],
+    "noise_sigmas": [0.015],
+    "crop_jitter_px": [-4, 4]
+  }
+}
