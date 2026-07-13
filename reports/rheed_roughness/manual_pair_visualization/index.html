@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Manual RHEED-AFM Pair Gallery</title>
+<style>
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f6f7f8; color: #1d1f21; }
+header { position: sticky; top: 0; z-index: 2; background: #fff; border-bottom: 1px solid #d9dde2; padding: 14px 18px; display: flex; gap: 16px; align-items: center; }
+h1 { font-size: 18px; margin: 0; }
+select { font-size: 14px; padding: 5px 8px; }
+main { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 14px; padding: 14px; }
+.card { background: #fff; border: 1px solid #d9dde2; border-radius: 8px; padding: 12px; }
+.card h2 { margin: 0 0 8px; font-size: 16px; }
+.images { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+figure { margin: 0; }
+img { width: 100%; height: 220px; object-fit: contain; background: #111; }
+figcaption { font-size: 12px; color: #555; margin-top: 4px; }
+dl { display: grid; grid-template-columns: 110px 1fr; gap: 3px 8px; font-size: 13px; }
+dt { font-weight: 600; }
+dd { margin: 0; overflow-wrap: anywhere; }
+details { font-size: 12px; color: #444; }
+code { overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Manual RHEED-AFM Pair Gallery</h1>
+  <label>Sort <select id="sorter">
+    <option value="rq">Rq</option>
+    <option value="sample">Sample ID</option>
+    <option value="scan">Scan size</option>
+    <option value="material">Material</option>
+  </select></label>
+</header>
+<main id="cards">
+
+<article class="card" data-sample="6022" data-rq="1.649340225" data-scan="1" data-material="unknown">
+  <h2>Sample 6022</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6022_select_After_GaSb.jpg" alt="Manual RHEED screenshot for sample 6022"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6022_N6022_Ctr_000_native.png" alt="AFM height map for sample 6022"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_After_GaSb.jpg</dd>
+    <dt>Rq</dt><dd>1.649 nm</dd>
+    <dt>Ra</dt><dd>1.303 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6022_Ctr_000</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6022/RHEED/select_After_GaSb.jpg</code><br>
+    <code>data/plane_corrected_afm/6022/N6022_Ctr_000/N6022_Ctr_000_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6023" data-rq="10.28980427" data-scan="1" data-material="unknown">
+  <h2>Sample 6023</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6023_select_after_ramping_down.jpg" alt="Manual RHEED screenshot for sample 6023"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6023_N6023_Ctr_004_native.png" alt="AFM height map for sample 6023"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_ramping_down.jpg</dd>
+    <dt>Rq</dt><dd>10.290 nm</dd>
+    <dt>Ra</dt><dd>7.279 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6023_Ctr_004</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6023/RHEED/select_after_ramping_down.jpg</code><br>
+    <code>data/plane_corrected_afm/6023/N6023_Ctr_004/N6023_Ctr_004_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6028" data-rq="6.072564398" data-scan="1" data-material="unknown">
+  <h2>Sample 6028</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6028_select_GaSb.jpg" alt="Manual RHEED screenshot for sample 6028"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6028_N6028_1um_004_native.png" alt="AFM height map for sample 6028"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_GaSb.jpg</dd>
+    <dt>Rq</dt><dd>6.073 nm</dd>
+    <dt>Ra</dt><dd>4.714 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6028_1um_004</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6028/RHEED/select_GaSb.jpg</code><br>
+    <code>data/plane_corrected_afm/6028/N6028_1um_004/N6028_1um_004_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6029" data-rq="2.561024917" data-scan="1" data-material="unknown">
+  <h2>Sample 6029</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6029_select_after_ramping_down_GaSb.jpg" alt="Manual RHEED screenshot for sample 6029"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6029_N6029_1um_008_native.png" alt="AFM height map for sample 6029"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_ramping_down_GaSb.jpg</dd>
+    <dt>Rq</dt><dd>2.561 nm</dd>
+    <dt>Ra</dt><dd>2.041 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6029_1um_008</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6029/RHEED/select_after_ramping_down_GaSb.jpg</code><br>
+    <code>data/plane_corrected_afm/6029/N6029_1um_008/N6029_1um_008_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6033" data-rq="2.529371992" data-scan="1" data-material="unknown">
+  <h2>Sample 6033</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6033_select_15min_of_GaSb.jpg" alt="Manual RHEED screenshot for sample 6033"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6033_N6033_1um_016_native.png" alt="AFM height map for sample 6033"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_15min_of_GaSb.jpg</dd>
+    <dt>Rq</dt><dd>2.529 nm</dd>
+    <dt>Ra</dt><dd>2.007 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6033_1um_016</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6033/RHEED/select_15min_of_GaSb.jpg</code><br>
+    <code>data/plane_corrected_afm/6033/N6033_1um_016/N6033_1um_016_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6041" data-rq="2.019250344" data-scan="1" data-material="unknown">
+  <h2>Sample 6041</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6041_select_oxy.jpg" alt="Manual RHEED screenshot for sample 6041"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6041_N6041_1um_003_native.png" alt="AFM height map for sample 6041"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_oxy.jpg</dd>
+    <dt>Rq</dt><dd>2.019 nm</dd>
+    <dt>Ra</dt><dd>1.607 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6041_1um_003</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6041/RHEED/select_oxy.jpg</code><br>
+    <code>data/plane_corrected_afm/6041/N6041_1um_003/N6041_1um_003_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6043" data-rq="7.371982719" data-scan="1.016" data-material="unknown">
+  <h2>Sample 6043</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6043_select_after_ramping_to_GaSb.jpg" alt="Manual RHEED screenshot for sample 6043"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6043_N6043_1um_3_native.png" alt="AFM height map for sample 6043"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_ramping_to_GaSb.jpg</dd>
+    <dt>Rq</dt><dd>7.372 nm</dd>
+    <dt>Ra</dt><dd>5.646 nm</dd>
+    <dt>Scan size</dt><dd>1.02 x 1.02 um</dd>
+    <dt>AFM scan ID</dt><dd>N6043_1um_3</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6043/RHEED/select_after_ramping_to_GaSb.jpg</code><br>
+    <code>data/plane_corrected_afm/6043/N6043_1um_3/N6043_1um_3_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6047" data-rq="4.693406794" data-scan="1" data-material="unknown">
+  <h2>Sample 6047</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6047_select_after_rampdown_to_200C.jpg" alt="Manual RHEED screenshot for sample 6047"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6047_N6047_1um_008_native.png" alt="AFM height map for sample 6047"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_rampdown_to_200C.jpg</dd>
+    <dt>Rq</dt><dd>4.693 nm</dd>
+    <dt>Ra</dt><dd>3.528 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6047_1um_008</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6047/RHEED/select_after_rampdown_to_200C.jpg</code><br>
+    <code>data/plane_corrected_afm/6047/N6047_1um_008/N6047_1um_008_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6048" data-rq="3.227337519" data-scan="1" data-material="unknown">
+  <h2>Sample 6048</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6048_select_after_rampdown.jpg" alt="Manual RHEED screenshot for sample 6048"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6048_N6048_1um_026_native.png" alt="AFM height map for sample 6048"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_rampdown.jpg</dd>
+    <dt>Rq</dt><dd>3.227 nm</dd>
+    <dt>Ra</dt><dd>2.615 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6048_1um_026</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6048/RHEED/select_after_rampdown.jpg</code><br>
+    <code>data/plane_corrected_afm/6048/N6048_1um_026/N6048_1um_026_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6056" data-rq="3.225375938" data-scan="1" data-material="unknown">
+  <h2>Sample 6056</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6056_select_after_rampdown_to_200C.jpg" alt="Manual RHEED screenshot for sample 6056"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6056_GdSb_N6056_ctr_006_native.png" alt="AFM height map for sample 6056"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_rampdown_to_200C.jpg</dd>
+    <dt>Rq</dt><dd>3.225 nm</dd>
+    <dt>Ra</dt><dd>2.515 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>GdSb_N6056_ctr_006</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6056/RHEED/select_after_rampdown_to_200C.jpg</code><br>
+    <code>data/plane_corrected_afm/6056/GdSb_N6056_ctr_006/GdSb_N6056_ctr_006_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6057" data-rq="5.337333425" data-scan="1" data-material="unknown">
+  <h2>Sample 6057</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6057_select_GaSb_2min.jpg" alt="Manual RHEED screenshot for sample 6057"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6057_GdSb_N6057_edge_019_native.png" alt="AFM height map for sample 6057"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_GaSb_2min.jpg</dd>
+    <dt>Rq</dt><dd>5.337 nm</dd>
+    <dt>Ra</dt><dd>4.144 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>GdSb_N6057_edge_019</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6057/RHEED/select_GaSb_2min.jpg</code><br>
+    <code>data/plane_corrected_afm/6057/GdSb_N6057_edge_019/GdSb_N6057_edge_019_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6062" data-rq="3.176725469" data-scan="1" data-material="unknown">
+  <h2>Sample 6062</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6062_select_after_rampdown_to_300C.jpg" alt="Manual RHEED screenshot for sample 6062"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6062_N62_Ctr_001_native.png" alt="AFM height map for sample 6062"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_rampdown_to_300C.jpg</dd>
+    <dt>Rq</dt><dd>3.177 nm</dd>
+    <dt>Ra</dt><dd>2.383 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N62_Ctr_001</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6062/RHEED/select_after_rampdown_to_300C.jpg</code><br>
+    <code>data/plane_corrected_afm/6062/N62_Ctr_001/N62_Ctr_001_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6063" data-rq="6.003847945" data-scan="1" data-material="unknown">
+  <h2>Sample 6063</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6063_select_rampdown_to_300C.jpg" alt="Manual RHEED screenshot for sample 6063"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6063_N63_Ctr_001_native.png" alt="AFM height map for sample 6063"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_rampdown_to_300C.jpg</dd>
+    <dt>Rq</dt><dd>6.004 nm</dd>
+    <dt>Ra</dt><dd>4.628 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N63_Ctr_001</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6063/RHEED/select_rampdown_to_300C.jpg</code><br>
+    <code>data/plane_corrected_afm/6063/N63_Ctr_001/N63_Ctr_001_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6067" data-rq="1.274350913" data-scan="1" data-material="unknown">
+  <h2>Sample 6067</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6067_select_oxy.jpg" alt="Manual RHEED screenshot for sample 6067"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6067_N6067_1um_000_native.png" alt="AFM height map for sample 6067"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_oxy.jpg</dd>
+    <dt>Rq</dt><dd>1.274 nm</dd>
+    <dt>Ra</dt><dd>1.010 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6067_1um_000</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6067/RHEED/select_oxy.jpg</code><br>
+    <code>data/plane_corrected_afm/6067/N6067_1um_000/N6067_1um_000_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6070" data-rq="3.047229531" data-scan="1" data-material="unknown">
+  <h2>Sample 6070</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6070_select_rampdown_to_300C.jpg" alt="Manual RHEED screenshot for sample 6070"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6070_N69_center_003_native.png" alt="AFM height map for sample 6070"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_rampdown_to_300C.jpg</dd>
+    <dt>Rq</dt><dd>3.047 nm</dd>
+    <dt>Ra</dt><dd>2.405 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N69_center_003</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6070/RHEED/select_rampdown_to_300C.jpg</code><br>
+    <code>data/plane_corrected_afm/6070/N69_center_003/N69_center_003_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6072" data-rq="1.470114926" data-scan="1" data-material="unknown">
+  <h2>Sample 6072</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6072_select_rampdown_to_250C.jpg" alt="Manual RHEED screenshot for sample 6072"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6072_6072_500_nm_004_native.png" alt="AFM height map for sample 6072"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_rampdown_to_250C.jpg</dd>
+    <dt>Rq</dt><dd>1.470 nm</dd>
+    <dt>Ra</dt><dd>1.137 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>6072_500_nm_004</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>scan_size_metadata_filename_disagreement:1x1_metadata_vs_0.5x0.5_filename</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6072/RHEED/select_rampdown_to_250C.jpg</code><br>
+    <code>data/plane_corrected_afm/6072/6072_500_nm_004/6072_500_nm_004_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6073" data-rq="1.517172691" data-scan="1" data-material="unknown">
+  <h2>Sample 6073</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6073_select_oxy.jpg" alt="Manual RHEED screenshot for sample 6073"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6073_N73_ctr_001_native.png" alt="AFM height map for sample 6073"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_oxy.jpg</dd>
+    <dt>Rq</dt><dd>1.517 nm</dd>
+    <dt>Ra</dt><dd>1.180 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N73_ctr_001</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6073/RHEED/select_oxy.jpg</code><br>
+    <code>data/plane_corrected_afm/6073/N73_ctr_001/N73_ctr_001_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6078" data-rq="1.638258512" data-scan="1" data-material="unknown">
+  <h2>Sample 6078</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6078_select_GaSb_6min.jpg" alt="Manual RHEED screenshot for sample 6078"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6078_N78_Ctr_000_native.png" alt="AFM height map for sample 6078"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_GaSb_6min.jpg</dd>
+    <dt>Rq</dt><dd>1.638 nm</dd>
+    <dt>Ra</dt><dd>1.266 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N78_Ctr_000</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6078/RHEED/select_GaSb_6min.jpg</code><br>
+    <code>data/plane_corrected_afm/6078/N78_Ctr_000/N78_Ctr_000_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6080" data-rq="5.15853754" data-scan="1" data-material="unknown">
+  <h2>Sample 6080</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6080_select_after_rampdown_to_200C.jpg" alt="Manual RHEED screenshot for sample 6080"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6080_N80_Edg_000_native.png" alt="AFM height map for sample 6080"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_rampdown_to_200C.jpg</dd>
+    <dt>Rq</dt><dd>5.159 nm</dd>
+    <dt>Ra</dt><dd>4.022 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N80_Edg_000</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6080/RHEED/select_after_rampdown_to_200C.jpg</code><br>
+    <code>data/plane_corrected_afm/6080/N80_Edg_000/N80_Edg_000_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6081" data-rq="3.181476807" data-scan="1" data-material="unknown">
+  <h2>Sample 6081</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6081_select_after_rampdown_for_GaSB.jpg" alt="Manual RHEED screenshot for sample 6081"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6081_N81_Ctr_000_native.png" alt="AFM height map for sample 6081"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_rampdown_for_GaSB.jpg</dd>
+    <dt>Rq</dt><dd>3.181 nm</dd>
+    <dt>Ra</dt><dd>2.547 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N81_Ctr_000</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6081/RHEED/select_after_rampdown_for_GaSB.jpg</code><br>
+    <code>data/plane_corrected_afm/6081/N81_Ctr_000/N81_Ctr_000_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6082" data-rq="1.863613281" data-scan="1" data-material="unknown">
+  <h2>Sample 6082</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6082_select_after_rampdown_to_200C.jpg" alt="Manual RHEED screenshot for sample 6082"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6082_N6082_1um_001_native.png" alt="AFM height map for sample 6082"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_rampdown_to_200C.jpg</dd>
+    <dt>Rq</dt><dd>1.864 nm</dd>
+    <dt>Ra</dt><dd>1.462 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6082_1um_001</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6082/RHEED/select_after_rampdown_to_200C.jpg</code><br>
+    <code>data/plane_corrected_afm/6082/N6082_1um_001/N6082_1um_001_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6084" data-rq="2.472767617" data-scan="1" data-material="unknown">
+  <h2>Sample 6084</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6084_select_after_ramping_down_to_200C.jpg" alt="Manual RHEED screenshot for sample 6084"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6084_N6084_1um_005_native.png" alt="AFM height map for sample 6084"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_ramping_down_to_200C.jpg</dd>
+    <dt>Rq</dt><dd>2.473 nm</dd>
+    <dt>Ra</dt><dd>1.953 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6084_1um_005</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6084/RHEED/select_after_ramping_down_to_200C.jpg</code><br>
+    <code>data/plane_corrected_afm/6084/N6084_1um_005/N6084_1um_005_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6085" data-rq="3.094774672" data-scan="1" data-material="unknown">
+  <h2>Sample 6085</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6085_select_ramping_down_to_300C.jpg" alt="Manual RHEED screenshot for sample 6085"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6085_N6085_1um_002_native.png" alt="AFM height map for sample 6085"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_ramping_down_to_300C.jpg</dd>
+    <dt>Rq</dt><dd>3.095 nm</dd>
+    <dt>Ra</dt><dd>2.449 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6085_1um_002</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6085/RHEED/select_ramping_down_to_300C.jpg</code><br>
+    <code>data/plane_corrected_afm/6085/N6085_1um_002/N6085_1um_002_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6088" data-rq="1.83231963" data-scan="1" data-material="unknown">
+  <h2>Sample 6088</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6088_select_after_ramping_down_for_GaSb.jpg" alt="Manual RHEED screenshot for sample 6088"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6088_N88_Ctr_000_native.png" alt="AFM height map for sample 6088"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_after_ramping_down_for_GaSb.jpg</dd>
+    <dt>Rq</dt><dd>1.832 nm</dd>
+    <dt>Ra</dt><dd>1.371 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N88_Ctr_000</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6088/RHEED/select_after_ramping_down_for_GaSb.jpg</code><br>
+    <code>data/plane_corrected_afm/6088/N88_Ctr_000/N88_Ctr_000_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6090" data-rq="4.685108055" data-scan="1" data-material="unknown">
+  <h2>Sample 6090</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6090_select_rampdown_to_200C.jpg" alt="Manual RHEED screenshot for sample 6090"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6090_N6090_1um_001_native.png" alt="AFM height map for sample 6090"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_rampdown_to_200C.jpg</dd>
+    <dt>Rq</dt><dd>4.685 nm</dd>
+    <dt>Ra</dt><dd>3.770 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6090_1um_001</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6090/RHEED/select_rampdown_to_200C.jpg</code><br>
+    <code>data/plane_corrected_afm/6090/N6090_1um_001/N6090_1um_001_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6094" data-rq="4.126557435" data-scan="1" data-material="unknown">
+  <h2>Sample 6094</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6094_select_GaSb_5min.jpg" alt="Manual RHEED screenshot for sample 6094"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6094_N6094_150nm_002_native.png" alt="AFM height map for sample 6094"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_GaSb_5min.jpg</dd>
+    <dt>Rq</dt><dd>4.127 nm</dd>
+    <dt>Ra</dt><dd>3.203 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6094_150nm_002</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>scan_size_metadata_filename_disagreement:1x1_metadata_vs_0.15x0.15_filename</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6094/RHEED/select_GaSb_5min.jpg</code><br>
+    <code>data/plane_corrected_afm/6094/N6094_150nm_002/N6094_150nm_002_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6095" data-rq="9.867135055" data-scan="1" data-material="unknown">
+  <h2>Sample 6095</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6095_select_rampdown_to_250C.jpg" alt="Manual RHEED screenshot for sample 6095"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6095_N6095_100_nm_001_native.png" alt="AFM height map for sample 6095"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_rampdown_to_250C.jpg</dd>
+    <dt>Rq</dt><dd>9.867 nm</dd>
+    <dt>Ra</dt><dd>8.314 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6095_100_nm_001</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>scan_size_metadata_filename_disagreement:1x1_metadata_vs_0.1x0.1_filename</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6095/RHEED/select_rampdown_to_250C.jpg</code><br>
+    <code>data/plane_corrected_afm/6095/N6095_100_nm_001/N6095_100_nm_001_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6097" data-rq="9.224106822" data-scan="1" data-material="unknown">
+  <h2>Sample 6097</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6097_select_2min_GaSb.jpg" alt="Manual RHEED screenshot for sample 6097"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6097_N6097_2um_008_native.png" alt="AFM height map for sample 6097"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_2min_GaSb.jpg</dd>
+    <dt>Rq</dt><dd>9.224 nm</dd>
+    <dt>Ra</dt><dd>7.490 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6097_2um_008</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>scan_size_metadata_filename_disagreement:1x1_metadata_vs_2x2_filename</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6097/RHEED/select_2min_GaSb.jpg</code><br>
+    <code>data/plane_corrected_afm/6097/N6097_2um_008/N6097_2um_008_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6099" data-rq="10.32143729" data-scan="1" data-material="unknown">
+  <h2>Sample 6099</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6099_select_ramping_to_650C.jpg" alt="Manual RHEED screenshot for sample 6099"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6099_N6099_1um_003_native.png" alt="AFM height map for sample 6099"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_ramping_to_650C.jpg</dd>
+    <dt>Rq</dt><dd>10.321 nm</dd>
+    <dt>Ra</dt><dd>9.149 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6099_1um_003</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6099/RHEED/select_ramping_to_650C.jpg</code><br>
+    <code>data/plane_corrected_afm/6099/N6099_1um_003/N6099_1um_003_plane_corrected.npy</code>
+  </details>
+</article>
+
+<article class="card" data-sample="6101" data-rq="2.127042653" data-scan="1" data-material="unknown">
+  <h2>Sample 6101</h2>
+  <div class="images">
+    <figure><img src="assets/rheed/6101_select_150_min_GaSb.jpg" alt="Manual RHEED screenshot for sample 6101"><figcaption>RHEED manual selection</figcaption></figure>
+    <figure><img src="assets/afm/6101_N6101_1um_002_native.png" alt="AFM height map for sample 6101"><figcaption>AFM physical height</figcaption></figure>
+  </div>
+  <dl>
+    <dt>RHEED file</dt><dd>select_150_min_GaSb.jpg</dd>
+    <dt>Rq</dt><dd>2.127 nm</dd>
+    <dt>Ra</dt><dd>1.609 nm</dd>
+    <dt>Scan size</dt><dd>1 x 1 um</dd>
+    <dt>AFM scan ID</dt><dd>N6101_1um_002</dd>
+    <dt>Material</dt><dd>unknown</dd>
+    <dt>AFM QC flags</dt><dd>none</dd>
+  </dl>
+  <details>
+    <summary>Source paths</summary>
+    <code>data/manual_selection/6101/RHEED/select_150_min_GaSb.jpg</code><br>
+    <code>data/plane_corrected_afm/6101/N6101_1um_002/N6101_1um_002_plane_corrected.npy</code>
+  </details>
+</article>
+
+</main>
+<script>
+const cards = document.getElementById('cards');
+document.getElementById('sorter').addEventListener('change', event => {
+  const mode = event.target.value;
+  const items = Array.from(cards.children);
+  items.sort((a, b) => {
+    if (mode === 'sample') return a.dataset.sample.localeCompare(b.dataset.sample, undefined, {numeric: true});
+    if (mode === 'material') return a.dataset.material.localeCompare(b.dataset.material) || a.dataset.sample.localeCompare(b.dataset.sample, undefined, {numeric: true});
+    if (mode === 'scan') return Number(a.dataset.scan) - Number(b.dataset.scan) || a.dataset.sample.localeCompare(b.dataset.sample, undefined, {numeric: true});
+    return Number(a.dataset.rq) - Number(b.dataset.rq) || a.dataset.sample.localeCompare(b.dataset.sample, undefined, {numeric: true});
+  });
+  items.forEach(item => cards.appendChild(item));
+});
+</script>
+</body>
+</html>
