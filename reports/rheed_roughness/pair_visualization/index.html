@@ -1,0 +1,779 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>RHEED-AFM Pair Visualization</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; margin: 24px; color: #202124; }
+.toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.card { border: 1px solid #d0d4da; border-radius: 8px; padding: 10px; background: #fff; }
+.card h3 { margin: 0 0 8px; font-size: 16px; }
+.images { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.images img { width: 100%; height: 190px; object-fit: contain; background: #111; }
+p { margin: 5px 0; font-size: 13px; }
+code { font-size: 11px; word-break: break-all; }
+</style>
+</head>
+<body>
+<h1>RHEED-AFM Pair Visualization</h1>
+<p>Representative frames and AFM scans are selected by deterministic quality rules that do not use cross-modality agreement.</p>
+<div class="toolbar">
+<label>Sort by <select id="sorter">
+<option value="sample">sample ID</option>
+<option value="rq">AFM Rq</option>
+<option value="morph">RHEED morphology index</option>
+<option value="scan">scan size</option>
+<option value="material">material</option>
+<option value="quality">frame quality</option>
+</select></label>
+<button id="direction">ascending</button>
+</div>
+<div class="grid" id="cards">
+
+<article class="card"
+ data-sample="6022"
+ data-rq="1.649340225"
+ data-morph="0.3704254426556314"
+ data-scan="1.0"
+ data-material="Ctr"
+ data-quality="0.7458329806794954">
+  <h3>Sample 6022</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6022/frame_000752_processed_roi.png" alt="RHEED 6022">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6022_N6022_Ctr_000_native.png" alt="AFM 6022">
+  </div>
+  <p><b>material</b> Ctr</p>
+  <p><b>Rq</b> 1.65 nm; <b>Ra</b> 1.3 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.37; <b>t</b> 25.1 s; <b>quality</b> 0.746</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6022_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6022_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6022 - Copy/videos/N6022 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6022/N6022_Ctr_000/N6022_Ctr_000_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6028"
+ data-rq="6.072564398"
+ data-morph="0.38203399159621376"
+ data-scan="1.0"
+ data-material="unknown"
+ data-quality="0.6859712755091436">
+  <h3>Sample 6028</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6028/frame_000662_processed_roi.png" alt="RHEED 6028">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6028_N6028_1um_004_native.png" alt="AFM 6028">
+  </div>
+  <p><b>material</b> unknown</p>
+  <p><b>Rq</b> 6.07 nm; <b>Ra</b> 4.71 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.382; <b>t</b> 22.1 s; <b>quality</b> 0.686</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6028_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6028_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6028 - Copy/videos/N6028 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6028/N6028_1um_004/N6028_1um_004_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6029"
+ data-rq="2.561024917"
+ data-morph="0.3546846608860536"
+ data-scan="1.0"
+ data-material="unknown"
+ data-quality="0.757436006695576">
+  <h3>Sample 6029</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6029/frame_000529_processed_roi.png" alt="RHEED 6029">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6029_N6029_1um_008_native.png" alt="AFM 6029">
+  </div>
+  <p><b>material</b> unknown</p>
+  <p><b>Rq</b> 2.56 nm; <b>Ra</b> 2.04 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.355; <b>t</b> 17.6 s; <b>quality</b> 0.757</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6029_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6029_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6029 - Copy/videos/N6029 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6029/N6029_1um_008/N6029_1um_008_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6033"
+ data-rq="2.529371992"
+ data-morph="0.4642324922340756"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7909644835052307">
+  <h3>Sample 6033</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6033/frame_000652_processed_roi.png" alt="RHEED 6033">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6033_N6033_1um_016_native.png" alt="AFM 6033">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 2.53 nm; <b>Ra</b> 2.01 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.464; <b>t</b> 21.7 s; <b>quality</b> 0.791</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6033_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6033_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6033 - Copy/videos/N6033 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6033/N6033_1um_016/N6033_1um_016_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6041"
+ data-rq="2.019250344"
+ data-morph="0.34629651713159615"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7715147669468596">
+  <h3>Sample 6041</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6041/frame_000448_processed_roi.png" alt="RHEED 6041">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6041_N6041_1um_003_native.png" alt="AFM 6041">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 2.02 nm; <b>Ra</b> 1.61 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.346; <b>t</b> 14.9 s; <b>quality</b> 0.772</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6041_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6041_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6041 - Copy/videos/N6041 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6041/N6041_1um_003/N6041_1um_003_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6043"
+ data-rq="7.371982719"
+ data-morph="0.43522138842525354"
+ data-scan="1.016"
+ data-material="1um"
+ data-quality="0.7678449709802776">
+  <h3>Sample 6043</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6043/frame_000268_processed_roi.png" alt="RHEED 6043">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6043_N6043_1um_3_native.png" alt="AFM 6043">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 7.37 nm; <b>Ra</b> 5.65 nm; <b>scan</b> 1.02 µm</p>
+  <p><b>MI</b> 0.435; <b>t</b> 8.93 s; <b>quality</b> 0.768</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6043_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6043_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6043 - Copy/videos/N6043 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6043/N6043_1um_3/N6043_1um_3_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6047"
+ data-rq="4.693406794"
+ data-morph="0.34472004769930453"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7577368935068765">
+  <h3>Sample 6047</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6047/frame_000474_processed_roi.png" alt="RHEED 6047">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6047_N6047_1um_008_native.png" alt="AFM 6047">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 4.69 nm; <b>Ra</b> 3.53 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.345; <b>t</b> 15.8 s; <b>quality</b> 0.758</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6047_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6047_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6047 - Copy/videos/N6047 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6047/N6047_1um_008/N6047_1um_008_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6048"
+ data-rq="3.227337519"
+ data-morph="0.3833572078550283"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7183732305453349">
+  <h3>Sample 6048</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6048/frame_000340_processed_roi.png" alt="RHEED 6048">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6048_N6048_1um_026_native.png" alt="AFM 6048">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 3.23 nm; <b>Ra</b> 2.62 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.383; <b>t</b> 11.3 s; <b>quality</b> 0.718</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6048_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6048_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6048 - Copy/videos/N6048 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6048/N6048_1um_026/N6048_1um_026_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6054"
+ data-rq="3.681179114"
+ data-morph="0.0"
+ data-scan="0.5"
+ data-material="GdSb"
+ data-quality="0.48149852356964135">
+  <h3>Sample 6054</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6054/frame_000530_processed_roi.png" alt="RHEED 6054">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6054_GdSb_N6054_edg_000_native.png" alt="AFM 6054">
+  </div>
+  <p><b>material</b> GdSb</p>
+  <p><b>Rq</b> 3.68 nm; <b>Ra</b> 2.72 nm; <b>scan</b> 0.5 µm</p>
+  <p><b>MI</b> 0; <b>t</b> 17.7 s; <b>quality</b> 0.481</p>
+  <p><b>QC</b> insufficient_valid_frames;insufficient_valid_frame_fraction;severe_underexposure;detector_failure</p>
+  <p><a href="rheed_candidate_contact_sheets/6054_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6054_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6054 - Copy/videos/N6054 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6054/GdSb_N6054_edg_000/GdSb_N6054_edg_000_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6055"
+ data-rq="2.65283553"
+ data-morph="0.45801554347832385"
+ data-scan="0.5"
+ data-material="GdSb"
+ data-quality="0.7334679217545484">
+  <h3>Sample 6055</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6055/frame_000374_processed_roi.png" alt="RHEED 6055">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6055_GdSb_N6055_ctr_001_native.png" alt="AFM 6055">
+  </div>
+  <p><b>material</b> GdSb</p>
+  <p><b>Rq</b> 2.65 nm; <b>Ra</b> 1.94 nm; <b>scan</b> 0.5 µm</p>
+  <p><b>MI</b> 0.458; <b>t</b> 12.5 s; <b>quality</b> 0.733</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6055_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6055_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6055 - Copy/videos/N6055 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6055/GdSb_N6055_ctr_001/GdSb_N6055_ctr_001_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6056"
+ data-rq="3.225375938"
+ data-morph="0.0"
+ data-scan="1.0"
+ data-material="N56"
+ data-quality="0.7115726430543496">
+  <h3>Sample 6056</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6056/frame_000481_processed_roi.png" alt="RHEED 6056">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6056_GdSb_N6056_ctr_006_native.png" alt="AFM 6056">
+  </div>
+  <p><b>material</b> N56</p>
+  <p><b>Rq</b> 3.23 nm; <b>Ra</b> 2.51 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0; <b>t</b> 16 s; <b>quality</b> 0.712</p>
+  <p><b>QC</b> insufficient_valid_frames;insufficient_valid_frame_fraction;severe_underexposure</p>
+  <p><a href="rheed_candidate_contact_sheets/6056_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6056_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6056 - Copy/videos/N6056 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6056/GdSb_N6056_ctr_006/GdSb_N6056_ctr_006_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6057"
+ data-rq="5.337333425"
+ data-morph="0.3465737130496657"
+ data-scan="1.0"
+ data-material="GdSb"
+ data-quality="0.7399676649462827">
+  <h3>Sample 6057</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6057/frame_000353_processed_roi.png" alt="RHEED 6057">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6057_GdSb_N6057_edge_019_native.png" alt="AFM 6057">
+  </div>
+  <p><b>material</b> GdSb</p>
+  <p><b>Rq</b> 5.34 nm; <b>Ra</b> 4.14 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.347; <b>t</b> 11.8 s; <b>quality</b> 0.74</p>
+  <p><b>QC</b> insufficient_valid_frame_fraction</p>
+  <p><a href="rheed_candidate_contact_sheets/6057_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6057_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6057 - Copy/videos/N6057 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6057/GdSb_N6057_edge_019/GdSb_N6057_edge_019_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6058"
+ data-rq="5.841896671"
+ data-morph="0.0"
+ data-scan="1.0"
+ data-material="N58"
+ data-quality="0.557740297666317">
+  <h3>Sample 6058</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6058/frame_000350_processed_roi.png" alt="RHEED 6058">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6058_N58_Ctr_000_native.png" alt="AFM 6058">
+  </div>
+  <p><b>material</b> N58</p>
+  <p><b>Rq</b> 5.84 nm; <b>Ra</b> 4.56 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0; <b>t</b> 11.7 s; <b>quality</b> 0.558</p>
+  <p><b>QC</b> insufficient_valid_frames;insufficient_valid_frame_fraction</p>
+  <p><a href="rheed_candidate_contact_sheets/6058_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6058_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6058 - Copy/videos/N6058 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6058/N58_Ctr_000/N58_Ctr_000_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6062"
+ data-rq="3.176725469"
+ data-morph="0.37605114602567175"
+ data-scan="1.0"
+ data-material="N62"
+ data-quality="0.7518022100191463">
+  <h3>Sample 6062</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6062/frame_000438_processed_roi.png" alt="RHEED 6062">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6062_N62_Ctr_001_native.png" alt="AFM 6062">
+  </div>
+  <p><b>material</b> N62</p>
+  <p><b>Rq</b> 3.18 nm; <b>Ra</b> 2.38 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.376; <b>t</b> 14.6 s; <b>quality</b> 0.752</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6062_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6062_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6062 - Copy/videos/N6062 - Copy_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6062/N62_Ctr_001/N62_Ctr_001_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6063"
+ data-rq="6.003847945"
+ data-morph="0.40232254338005835"
+ data-scan="1.0"
+ data-material="N63"
+ data-quality="0.7628250517298043">
+  <h3>Sample 6063</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6063/frame_000773_processed_roi.png" alt="RHEED 6063">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6063_N63_Ctr_001_native.png" alt="AFM 6063">
+  </div>
+  <p><b>material</b> N63</p>
+  <p><b>Rq</b> 6 nm; <b>Ra</b> 4.63 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.402; <b>t</b> 25.8 s; <b>quality</b> 0.763</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6063_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6063_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6063/videos/N6063_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6063/N63_Ctr_001/N63_Ctr_001_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6065"
+ data-rq="5.606737369"
+ data-morph="0.3631358242209743"
+ data-scan="1.0"
+ data-material="N65"
+ data-quality="0.7753930056182718">
+  <h3>Sample 6065</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6065/frame_000395_processed_roi.png" alt="RHEED 6065">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6065_N65_Edg_001_native.png" alt="AFM 6065">
+  </div>
+  <p><b>material</b> N65</p>
+  <p><b>Rq</b> 5.61 nm; <b>Ra</b> 4.45 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.363; <b>t</b> 13.2 s; <b>quality</b> 0.775</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6065_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6065_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6065/videos/N6065_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6065/N65_Edg_001/N65_Edg_001_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6067"
+ data-rq="1.274350913"
+ data-morph="0.34241122749279007"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7380427585677216">
+  <h3>Sample 6067</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6067/frame_000718_processed_roi.png" alt="RHEED 6067">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6067_N6067_1um_000_native.png" alt="AFM 6067">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 1.27 nm; <b>Ra</b> 1.01 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.342; <b>t</b> 23.9 s; <b>quality</b> 0.738</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6067_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6067_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6067/videos/N6067_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6067/N6067_1um_000/N6067_1um_000_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6070"
+ data-rq="3.047229531"
+ data-morph="0.43532323344974194"
+ data-scan="1.0"
+ data-material="N69"
+ data-quality="0.6829596658964798">
+  <h3>Sample 6070</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6070/frame_000724_processed_roi.png" alt="RHEED 6070">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6070_N69_center_003_native.png" alt="AFM 6070">
+  </div>
+  <p><b>material</b> N69</p>
+  <p><b>Rq</b> 3.05 nm; <b>Ra</b> 2.4 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.435; <b>t</b> 24.1 s; <b>quality</b> 0.683</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6070_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6070_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6070/videos/N6070_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6070/N69_center_003/N69_center_003_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6072"
+ data-rq="1.466236377"
+ data-morph="0.39135953089213676"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7375988655268848">
+  <h3>Sample 6072</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6072/frame_000485_processed_roi.png" alt="RHEED 6072">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6072_6072_1um_009_native.png" alt="AFM 6072">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 1.47 nm; <b>Ra</b> 1.1 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.391; <b>t</b> 16.2 s; <b>quality</b> 0.738</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6072_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6072_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6072/videos/N6072_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6072/6072_1um_009/6072_1um_009_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6073"
+ data-rq="1.517172691"
+ data-morph="0.4110454631115752"
+ data-scan="1.0"
+ data-material="N73"
+ data-quality="0.760165374441862">
+  <h3>Sample 6073</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6073/frame_000514_processed_roi.png" alt="RHEED 6073">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6073_N73_ctr_001_native.png" alt="AFM 6073">
+  </div>
+  <p><b>material</b> N73</p>
+  <p><b>Rq</b> 1.52 nm; <b>Ra</b> 1.18 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.411; <b>t</b> 17.1 s; <b>quality</b> 0.76</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6073_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6073_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6073/videos/N6073_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6073/N73_ctr_001/N73_ctr_001_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6078"
+ data-rq="1.638258512"
+ data-morph="0.404952685439422"
+ data-scan="1.0"
+ data-material="N74"
+ data-quality="0.7733197639581672">
+  <h3>Sample 6078</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6078/frame_000375_processed_roi.png" alt="RHEED 6078">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6078_N78_Ctr_000_native.png" alt="AFM 6078">
+  </div>
+  <p><b>material</b> N74</p>
+  <p><b>Rq</b> 1.64 nm; <b>Ra</b> 1.27 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.405; <b>t</b> 12.5 s; <b>quality</b> 0.773</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6078_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6078_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6078/videos/N6078_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6078/N78_Ctr_000/N78_Ctr_000_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6080"
+ data-rq="5.15853754"
+ data-morph="0.41378539542579684"
+ data-scan="1.0"
+ data-material="N80"
+ data-quality="0.7070865616996732">
+  <h3>Sample 6080</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6080/frame_000343_processed_roi.png" alt="RHEED 6080">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6080_N80_Edg_000_native.png" alt="AFM 6080">
+  </div>
+  <p><b>material</b> N80</p>
+  <p><b>Rq</b> 5.16 nm; <b>Ra</b> 4.02 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.414; <b>t</b> 11.4 s; <b>quality</b> 0.707</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6080_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6080_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6080/videos/N6080_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6080/N80_Edg_000/N80_Edg_000_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6081"
+ data-rq="3.181476807"
+ data-morph="0.3558930647921701"
+ data-scan="1.0"
+ data-material="N81"
+ data-quality="0.6222472553488662">
+  <h3>Sample 6081</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6081/frame_000164_processed_roi.png" alt="RHEED 6081">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6081_N81_Ctr_000_native.png" alt="AFM 6081">
+  </div>
+  <p><b>material</b> N81</p>
+  <p><b>Rq</b> 3.18 nm; <b>Ra</b> 2.55 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.356; <b>t</b> 5.47 s; <b>quality</b> 0.622</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6081_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6081_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6081/videos/N6081_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6081/N81_Ctr_000/N81_Ctr_000_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6082"
+ data-rq="1.863613281"
+ data-morph="0.0"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7266175688645362">
+  <h3>Sample 6082</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6082/frame_000366_processed_roi.png" alt="RHEED 6082">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6082_N6082_1um_001_native.png" alt="AFM 6082">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 1.86 nm; <b>Ra</b> 1.46 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0; <b>t</b> 12.2 s; <b>quality</b> 0.727</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6082_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6082_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6082/videos/N6082_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6082/N6082_1um_001/N6082_1um_001_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6084"
+ data-rq="2.472767617"
+ data-morph="0.3759997827758161"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7708646144795439">
+  <h3>Sample 6084</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6084/frame_000399_processed_roi.png" alt="RHEED 6084">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6084_N6084_1um_005_native.png" alt="AFM 6084">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 2.47 nm; <b>Ra</b> 1.95 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.376; <b>t</b> 13.3 s; <b>quality</b> 0.771</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6084_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6084_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6084/videos/N6084_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6084/N6084_1um_005/N6084_1um_005_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6085"
+ data-rq="3.094774672"
+ data-morph="0.39711542114963433"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7028347191562718">
+  <h3>Sample 6085</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6085/frame_000460_processed_roi.png" alt="RHEED 6085">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6085_N6085_1um_002_native.png" alt="AFM 6085">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 3.09 nm; <b>Ra</b> 2.45 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.397; <b>t</b> 15.3 s; <b>quality</b> 0.703</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6085_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6085_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6085/videos/N6085_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6085/N6085_1um_002/N6085_1um_002_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6088"
+ data-rq="1.83231963"
+ data-morph="0.46192459527408936"
+ data-scan="1.0"
+ data-material="N88"
+ data-quality="0.7163414306511392">
+  <h3>Sample 6088</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6088/frame_000274_processed_roi.png" alt="RHEED 6088">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6088_N88_Ctr_000_native.png" alt="AFM 6088">
+  </div>
+  <p><b>material</b> N88</p>
+  <p><b>Rq</b> 1.83 nm; <b>Ra</b> 1.37 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.462; <b>t</b> 9.13 s; <b>quality</b> 0.716</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6088_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6088_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6088/videos/N6088_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6088/N88_Ctr_000/N88_Ctr_000_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6090"
+ data-rq="4.685108055"
+ data-morph="0.41869684437091437"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7207284747015936">
+  <h3>Sample 6090</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6090/frame_000243_processed_roi.png" alt="RHEED 6090">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6090_N6090_1um_001_native.png" alt="AFM 6090">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 4.69 nm; <b>Ra</b> 3.77 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.419; <b>t</b> 8.1 s; <b>quality</b> 0.721</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6090_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6090_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6090/videos/N6090_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6090/N6090_1um_001/N6090_1um_001_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6093"
+ data-rq="7.11793846"
+ data-morph="0.367386858433433"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.749436635105671">
+  <h3>Sample 6093</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6093/frame_000369_processed_roi.png" alt="RHEED 6093">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6093_N6093_1um_001_native.png" alt="AFM 6093">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 7.12 nm; <b>Ra</b> 5.67 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.367; <b>t</b> 12.3 s; <b>quality</b> 0.749</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6093_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6093_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6093/videos/N6093_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6093/N6093_1um_001/N6093_1um_001_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6094"
+ data-rq="4.126557435"
+ data-morph="0.4008527203799757"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7860760117351313">
+  <h3>Sample 6094</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6094/frame_000321_processed_roi.png" alt="RHEED 6094">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6094_N6094_150nm_002_native.png" alt="AFM 6094">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 4.13 nm; <b>Ra</b> 3.2 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.401; <b>t</b> 10.7 s; <b>quality</b> 0.786</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6094_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6094_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6094/videos/N6094_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6094/N6094_150nm_002/N6094_150nm_002_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6095"
+ data-rq="9.867135055"
+ data-morph="0.40768278352075127"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.7542986307791776">
+  <h3>Sample 6095</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6095/frame_000491_processed_roi.png" alt="RHEED 6095">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6095_N6095_100_nm_001_native.png" alt="AFM 6095">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 9.87 nm; <b>Ra</b> 8.31 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.408; <b>t</b> 16.4 s; <b>quality</b> 0.754</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6095_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6095_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6095/videos/N6095_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6095/N6095_100_nm_001/N6095_100_nm_001_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6097"
+ data-rq="9.224106822"
+ data-morph="0.3544012706457841"
+ data-scan="1.0"
+ data-material="2um"
+ data-quality="0.7128681579142473">
+  <h3>Sample 6097</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6097/frame_000235_processed_roi.png" alt="RHEED 6097">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6097_N6097_2um_008_native.png" alt="AFM 6097">
+  </div>
+  <p><b>material</b> 2um</p>
+  <p><b>Rq</b> 9.22 nm; <b>Ra</b> 7.49 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.354; <b>t</b> 7.83 s; <b>quality</b> 0.713</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6097_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6097_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6097/videos/N6097_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6097/N6097_2um_008/N6097_2um_008_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6099"
+ data-rq="10.32143729"
+ data-morph="0.3688313894545124"
+ data-scan="1.0"
+ data-material="1um"
+ data-quality="0.48333573408598646">
+  <h3>Sample 6099</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6099/frame_000135_processed_roi.png" alt="RHEED 6099">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6099_N6099_1um_003_native.png" alt="AFM 6099">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 10.3 nm; <b>Ra</b> 9.15 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.369; <b>t</b> 4.5 s; <b>quality</b> 0.483</p>
+  <p><b>QC</b> insufficient_valid_frames;insufficient_valid_frame_fraction;severe_underexposure</p>
+  <p><a href="rheed_candidate_contact_sheets/6099_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6099_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6099/videos/N6099_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6099/N6099_1um_003/N6099_1um_003_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6100"
+ data-rq="7.902150036"
+ data-morph="0.40352802020497297"
+ data-scan="2.0"
+ data-material="1um"
+ data-quality="0.7060294038139311">
+  <h3>Sample 6100</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6100/frame_000330_processed_roi.png" alt="RHEED 6100">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6100_N6100_1um_004_native.png" alt="AFM 6100">
+  </div>
+  <p><b>material</b> 1um</p>
+  <p><b>Rq</b> 7.9 nm; <b>Ra</b> 6.07 nm; <b>scan</b> 2 µm</p>
+  <p><b>MI</b> 0.404; <b>t</b> 11 s; <b>quality</b> 0.706</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6100_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6100_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6100/videos/N6100_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6100/N6100_1um_004/N6100_1um_004_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6101"
+ data-rq="2.127042653"
+ data-morph="0.31271577711871246"
+ data-scan="1.0"
+ data-material="5um"
+ data-quality="0.7497301305678833">
+  <h3>Sample 6101</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6101/frame_000366_processed_roi.png" alt="RHEED 6101">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6101_N6101_1um_002_native.png" alt="AFM 6101">
+  </div>
+  <p><b>material</b> 5um</p>
+  <p><b>Rq</b> 2.13 nm; <b>Ra</b> 1.61 nm; <b>scan</b> 1 µm</p>
+  <p><b>MI</b> 0.313; <b>t</b> 12.2 s; <b>quality</b> 0.75</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6101_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6101_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6101/videos/N6101_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6101/N6101_1um_002/N6101_1um_002_plane_corrected.npy</code></details>
+</article>
+
+<article class="card"
+ data-sample="6102"
+ data-rq="47.88727718"
+ data-morph="0.3605989089889126"
+ data-scan="0.664063"
+ data-material="2um"
+ data-quality="0.7374731979085243">
+  <h3>Sample 6102</h3>
+  <div class="images">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/rheed/6102/frame_000418_processed_roi.png" alt="RHEED 6102">
+    <img src="../../../outputs/rheed_roughness/pair_visualization/cache/afm/native/6102_N6102_2um_000_native.png" alt="AFM 6102">
+  </div>
+  <p><b>material</b> 2um</p>
+  <p><b>Rq</b> 47.9 nm; <b>Ra</b> 40.6 nm; <b>scan</b> 0.664 µm</p>
+  <p><b>MI</b> 0.361; <b>t</b> 13.9 s; <b>quality</b> 0.737</p>
+  <p><b>QC</b> nan</p>
+  <p><a href="rheed_candidate_contact_sheets/6102_rheed_candidates.png">RHEED candidates</a> | <a href="afm_candidate_contact_sheets/6102_afm_candidates.png">AFM scans</a></p>
+  <details><summary>source paths</summary><code>data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256/N6102/videos/N6102_raw_crop_256x256.mp4</code><br><code>data/plane_corrected_afm/6102/N6102_2um_000/N6102_2um_000_plane_corrected.npy</code></details>
+</article>
+
+</div>
+<script>
+let asc = true;
+function sortCards() {
+  const key = document.getElementById('sorter').value;
+  const root = document.getElementById('cards');
+  const cards = Array.from(root.children);
+  cards.sort((a, b) => {
+    const av = a.dataset[key] || '';
+    const bv = b.dataset[key] || '';
+    const an = parseFloat(av), bn = parseFloat(bv);
+    let cmp = (!Number.isNaN(an) && !Number.isNaN(bn)) ? an - bn : av.localeCompare(bv);
+    return asc ? cmp : -cmp;
+  });
+  cards.forEach(c => root.appendChild(c));
+}
+document.getElementById('sorter').addEventListener('change', sortCards);
+document.getElementById('direction').addEventListener('click', () => {
+  asc = !asc;
+  document.getElementById('direction').textContent = asc ? 'ascending' : 'descending';
+  sortCards();
+});
+sortCards();
+</script>
+</body>
+</html>

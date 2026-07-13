@@ -1,0 +1,743 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>RHEED Roughness Audit</title>
+<style>
+    body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif; margin: 24px; color: #202124; }
+    h1, h2, h3 { letter-spacing: 0; }
+    table { border-collapse: collapse; width: 100%; font-size: 13px; }
+    th, td { border-bottom: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+    th { background: #f3f4f6; position: sticky; top: 0; }
+    .metric { display: inline-block; margin: 6px 12px 6px 0; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; background: #fafafa; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .card { border: 1px solid #d8d8d8; border-radius: 8px; padding: 10px; background: white; }
+    .card h3 { margin: 0 0 6px 0; font-size: 15px; }
+    .card p { font-size: 12px; margin: 8px 0 0 0; }
+    .thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; align-items: start; }
+    .figure { max-width: 900px; margin: 12px 0 22px; }
+    code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<h1>RHEED Streak/Spot Score versus AFM Roughness</h1>
+<p>This static report reuses the existing RHEED shape preprocessing and spot/streak geometry implementation. It reports association and diagnostics, not causal or optimized prediction claims.</p>
+<div class="metric">paired samples: 3</div>
+<div class="metric">inclusive samples: 3</div>
+<div class="metric">strict-QC samples: 2</div>
+<div class="metric">primary morphology Spearman rho: -1</div>
+<div class="metric">permutation p: nan</div>
+
+<h2>Data Overview</h2>
+<div class="figure"><img src='figures/data_overview.png' alt='data overview' style='width:100%;height:auto'></div>
+
+<h2>Correlation Diagnostics</h2>
+<div class="figure"><img src='figures/correlation_morphology_vs_rq.svg' alt='morphology scatter' style='width:100%;height:auto'></div>
+<div class="figure"><img src='figures/correlation_spottiness_vs_rq.svg' alt='spottiness scatter' style='width:100%;height:auto'></div>
+<div class="figure"><img src='figures/correlation_streakiness_vs_rq.svg' alt='streakiness scatter' style='width:100%;height:auto'></div>
+<table>
+<thead><tr>
+<th>analysis_subset</th>
+<th>target</th>
+<th>target_scale</th>
+<th>predictor</th>
+<th>predictor_note</th>
+<th>n_samples</th>
+<th>spearman_rho</th>
+<th>spearman_p_asymptotic</th>
+<th>spearman_bootstrap_ci_low</th>
+<th>spearman_bootstrap_ci_high</th>
+<th>spearman_permutation_p</th>
+<th>kendall_tau</th>
+<th>kendall_p_asymptotic</th>
+<th>bootstrap_resamples</th>
+<th>permutation_resamples</th>
+</tr></thead><tbody>
+<tr>
+<td>primary_1um_inclusive</td>
+<td>afm_Rq_median_nm</td>
+<td>raw_nm</td>
+<td>median_morphology_index</td>
+<td>higher means more spotty</td>
+<td>3</td>
+<td>-1</td>
+<td>0</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-1</td>
+<td>0.3333</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_inclusive</td>
+<td>afm_Rq_median_nm</td>
+<td>raw_nm</td>
+<td>median_spottiness</td>
+<td>raw spot component score</td>
+<td>3</td>
+<td>-0.5</td>
+<td>0.6667</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-0.3333</td>
+<td>1</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_inclusive</td>
+<td>afm_Rq_median_nm</td>
+<td>raw_nm</td>
+<td>median_streakiness</td>
+<td>raw streak/bar component score</td>
+<td>3</td>
+<td>-0.5</td>
+<td>0.6667</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-0.3333</td>
+<td>1</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_inclusive</td>
+<td>afm_Rq_median_nm</td>
+<td>log10_nm</td>
+<td>median_morphology_index</td>
+<td>higher means more spotty</td>
+<td>3</td>
+<td>-1</td>
+<td>0</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-1</td>
+<td>0.3333</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_inclusive</td>
+<td>afm_Rq_median_nm</td>
+<td>log10_nm</td>
+<td>median_spottiness</td>
+<td>raw spot component score</td>
+<td>3</td>
+<td>-0.5</td>
+<td>0.6667</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-0.3333</td>
+<td>1</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_inclusive</td>
+<td>afm_Rq_median_nm</td>
+<td>log10_nm</td>
+<td>median_streakiness</td>
+<td>raw streak/bar component score</td>
+<td>3</td>
+<td>-0.5</td>
+<td>0.6667</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-0.3333</td>
+<td>1</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_strict_qc</td>
+<td>afm_Rq_median_nm</td>
+<td>raw_nm</td>
+<td>median_morphology_index</td>
+<td>higher means more spotty</td>
+<td>2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_strict_qc</td>
+<td>afm_Rq_median_nm</td>
+<td>raw_nm</td>
+<td>median_spottiness</td>
+<td>raw spot component score</td>
+<td>2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_strict_qc</td>
+<td>afm_Rq_median_nm</td>
+<td>raw_nm</td>
+<td>median_streakiness</td>
+<td>raw streak/bar component score</td>
+<td>2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_strict_qc</td>
+<td>afm_Rq_median_nm</td>
+<td>log10_nm</td>
+<td>median_morphology_index</td>
+<td>higher means more spotty</td>
+<td>2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_strict_qc</td>
+<td>afm_Rq_median_nm</td>
+<td>log10_nm</td>
+<td>median_spottiness</td>
+<td>raw spot component score</td>
+<td>2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>primary_1um_strict_qc</td>
+<td>afm_Rq_median_nm</td>
+<td>log10_nm</td>
+<td>median_streakiness</td>
+<td>raw streak/bar component score</td>
+<td>2</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>all_scan_sizes_inclusive</td>
+<td>afm_Rq_all_scan_sizes_median_nm</td>
+<td>raw_nm</td>
+<td>median_morphology_index</td>
+<td>higher means more spotty</td>
+<td>3</td>
+<td>-1</td>
+<td>0</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-1</td>
+<td>0.3333</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>all_scan_sizes_inclusive</td>
+<td>afm_Rq_all_scan_sizes_median_nm</td>
+<td>raw_nm</td>
+<td>median_spottiness</td>
+<td>raw spot component score</td>
+<td>3</td>
+<td>-0.5</td>
+<td>0.6667</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-0.3333</td>
+<td>1</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>all_scan_sizes_inclusive</td>
+<td>afm_Rq_all_scan_sizes_median_nm</td>
+<td>raw_nm</td>
+<td>median_streakiness</td>
+<td>raw streak/bar component score</td>
+<td>3</td>
+<td>-0.5</td>
+<td>0.6667</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-0.3333</td>
+<td>1</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>all_scan_sizes_inclusive</td>
+<td>afm_Rq_all_scan_sizes_median_nm</td>
+<td>log10_nm</td>
+<td>median_morphology_index</td>
+<td>higher means more spotty</td>
+<td>3</td>
+<td>-1</td>
+<td>0</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-1</td>
+<td>0.3333</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>all_scan_sizes_inclusive</td>
+<td>afm_Rq_all_scan_sizes_median_nm</td>
+<td>log10_nm</td>
+<td>median_spottiness</td>
+<td>raw spot component score</td>
+<td>3</td>
+<td>-0.5</td>
+<td>0.6667</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-0.3333</td>
+<td>1</td>
+<td>500</td>
+<td>500</td>
+</tr>
+<tr>
+<td>all_scan_sizes_inclusive</td>
+<td>afm_Rq_all_scan_sizes_median_nm</td>
+<td>log10_nm</td>
+<td>median_streakiness</td>
+<td>raw streak/bar component score</td>
+<td>3</td>
+<td>-0.5</td>
+<td>0.6667</td>
+<td></td>
+<td></td>
+<td></td>
+<td>-0.3333</td>
+<td>1</td>
+<td>500</td>
+<td>500</td>
+</tr>
+</tbody></table>
+
+<h2>Score-Sorted RHEED Gallery</h2>
+<div class="gallery"><article class='card'>
+<h3>6023</h3>
+<div class='thumbs'>
+<img src='assets/rheed_frames/6023/frame_000976_raw.png' alt='6023 raw' style='width:100%;height:auto'>
+<img src='assets/rheed_frames/6023/frame_000976_overlay.png' alt='6023 overlay' style='width:100%;height:auto'>
+<img src='assets/afm/6023_N6023_Ctr_004.png' alt='6023 afm' style='width:100%;height:auto'>
+</div>
+<p>
+morph=0.359, spot=22.1, streak=37.4, Rq=10.3 nm, flags=insufficient_valid_frames
+</p>
+</article>
+<article class='card'>
+<h3>6028</h3>
+<div class='thumbs'>
+<img src='assets/rheed_frames/6028/frame_000640_raw.png' alt='6028 raw' style='width:100%;height:auto'>
+<img src='assets/rheed_frames/6028/frame_000640_overlay.png' alt='6028 overlay' style='width:100%;height:auto'>
+<img src='assets/afm/6028_N6028_1um_004.png' alt='6028 afm' style='width:100%;height:auto'>
+</div>
+<p>
+morph=0.368, spot=28.7, streak=48.6, Rq=6.07 nm, flags=
+</p>
+</article>
+<article class='card'>
+<h3>6022</h3>
+<div class='thumbs'>
+<img src='assets/rheed_frames/6022/frame_000740_raw.png' alt='6022 raw' style='width:100%;height:auto'>
+<img src='assets/rheed_frames/6022/frame_000740_overlay.png' alt='6022 overlay' style='width:100%;height:auto'>
+<img src='assets/afm/6022_N6022_Ctr_000.png' alt='6022 afm' style='width:100%;height:auto'>
+</div>
+<p>
+morph=0.369, spot=27.3, streak=47.4, Rq=1.65 nm, flags=
+</p>
+</article></div>
+
+<h2>AFM-Roughness-Sorted Paired Gallery</h2>
+<div class="gallery"><article class='card'>
+<h3>6022</h3>
+<div class='thumbs'>
+<img src='assets/rheed_frames/6022/frame_000740_raw.png' alt='6022 raw' style='width:100%;height:auto'>
+<img src='assets/rheed_frames/6022/frame_000740_overlay.png' alt='6022 overlay' style='width:100%;height:auto'>
+<img src='assets/afm/6022_N6022_Ctr_000.png' alt='6022 afm' style='width:100%;height:auto'>
+</div>
+<p>
+morph=0.369, spot=27.3, streak=47.4, Rq=1.65 nm, flags=
+</p>
+</article>
+<article class='card'>
+<h3>6028</h3>
+<div class='thumbs'>
+<img src='assets/rheed_frames/6028/frame_000640_raw.png' alt='6028 raw' style='width:100%;height:auto'>
+<img src='assets/rheed_frames/6028/frame_000640_overlay.png' alt='6028 overlay' style='width:100%;height:auto'>
+<img src='assets/afm/6028_N6028_1um_004.png' alt='6028 afm' style='width:100%;height:auto'>
+</div>
+<p>
+morph=0.368, spot=28.7, streak=48.6, Rq=6.07 nm, flags=
+</p>
+</article>
+<article class='card'>
+<h3>6023</h3>
+<div class='thumbs'>
+<img src='assets/rheed_frames/6023/frame_000976_raw.png' alt='6023 raw' style='width:100%;height:auto'>
+<img src='assets/rheed_frames/6023/frame_000976_overlay.png' alt='6023 overlay' style='width:100%;height:auto'>
+<img src='assets/afm/6023_N6023_Ctr_004.png' alt='6023 afm' style='width:100%;height:auto'>
+</div>
+<p>
+morph=0.359, spot=22.1, streak=37.4, Rq=10.3 nm, flags=insufficient_valid_frames
+</p>
+</article></div>
+
+<h2>Agreement and Counterexamples</h2>
+<p>Not enough paired samples for quadrant gallery.</p>
+
+<h2>Temporal Diagnostics</h2>
+<p>Per-sample traces are under <code>figures/temporal/</code>.</p>
+
+<h2>Confound Diagnostics</h2>
+<div class="figure"><img src='figures/confound_correlation_heatmap.png' alt='confound heatmap' style='width:100%;height:auto'></div>
+
+<h2>Group-Aware Prediction</h2>
+<table>
+<thead><tr>
+<th>model</th>
+<th>target</th>
+<th>n_samples</th>
+<th>feature_count</th>
+<th>grouping</th>
+<th>out_of_fold_mae</th>
+<th>out_of_fold_rmse</th>
+<th>out_of_fold_r2</th>
+<th>out_of_fold_spearman</th>
+<th>delta_mae_vs_nuisance</th>
+<th>delta_r2_vs_nuisance</th>
+</tr></thead><tbody>
+<tr>
+<td>A_nuisance_only</td>
+<td>log10_afm_Rq_median_nm</td>
+<td>3</td>
+<td>8</td>
+<td>leave_one_growth_run_out</td>
+<td>6.355</td>
+<td>10.8</td>
+<td>-1044</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>B_rheed_morphology_only</td>
+<td>log10_afm_Rq_median_nm</td>
+<td>3</td>
+<td>1</td>
+<td>leave_one_growth_run_out</td>
+<td>1.024</td>
+<td>1.291</td>
+<td>-13.92</td>
+<td>0.5</td>
+<td>-5.331</td>
+<td>1030</td>
+</tr>
+<tr>
+<td>C_nuisance_plus_rheed</td>
+<td>log10_afm_Rq_median_nm</td>
+<td>3</td>
+<td>9</td>
+<td>leave_one_growth_run_out</td>
+<td>5.705</td>
+<td>9.627</td>
+<td>-828.9</td>
+<td>1</td>
+<td>-0.6501</td>
+<td>214.7</td>
+</tr>
+<tr>
+<td>D_process_metadata_only</td>
+<td>log10_afm_Rq_median_nm</td>
+<td>3</td>
+<td>4</td>
+<td>leave_one_growth_run_out</td>
+<td>0.5597</td>
+<td>0.6245</td>
+<td>-2.492</td>
+<td>-1</td>
+<td>-5.796</td>
+<td>1041</td>
+</tr>
+<tr>
+<td>E_metadata_plus_rheed</td>
+<td>log10_afm_Rq_median_nm</td>
+<td>3</td>
+<td>5</td>
+<td>leave_one_growth_run_out</td>
+<td>0.508</td>
+<td>0.5278</td>
+<td>-1.495</td>
+<td>0.5</td>
+<td>-5.847</td>
+<td>1042</td>
+</tr>
+<tr>
+<td>negative_control_score_from_nuisance</td>
+<td>median_morphology_index</td>
+<td>3</td>
+<td>8</td>
+<td>leave_one_growth_run_out</td>
+<td>0.01688</td>
+<td>0.02174</td>
+<td>-22.97</td>
+<td>1</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+
+<h2>Material and Scan-Size Heterogeneity</h2>
+<div class="figure"><img src='figures/material_forest.png' alt='material forest' style='width:100%;height:auto'></div>
+<table>
+<thead><tr>
+<th>stratum_type</th>
+<th>stratum</th>
+<th>n_samples</th>
+<th>analysis_status</th>
+<th>spearman_rho</th>
+<th>spearman_p</th>
+</tr></thead><tbody>
+<tr>
+<td>material</td>
+<td>Ctr</td>
+<td>2</td>
+<td>too_few_samples</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>material</td>
+<td>unknown</td>
+<td>1</td>
+<td>too_few_samples</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+
+<h2>Perturbation Sensitivity</h2>
+<div class="figure"><img src='figures/perturbation_sensitivity.png' alt='perturbation sensitivity' style='width:100%;height:auto'></div>
+<table>
+<thead><tr>
+<th>perturbation</th>
+<th>n_frames</th>
+<th>median_absolute_score_change</th>
+<th>p90_absolute_score_change</th>
+<th>rank_preservation_spearman</th>
+<th>detector_failure_rate</th>
+</tr></thead><tbody>
+<tr>
+<td>brightness_1.75</td>
+<td>12</td>
+<td>0.04858</td>
+<td>0.1435</td>
+<td>-0.5175</td>
+<td>0</td>
+</tr>
+<tr>
+<td>scale_0.9</td>
+<td>12</td>
+<td>0.03697</td>
+<td>0.1086</td>
+<td>-0.3846</td>
+<td>0</td>
+</tr>
+<tr>
+<td>noise_0.02</td>
+<td>12</td>
+<td>0.03123</td>
+<td>0.04282</td>
+<td>-0.1958</td>
+<td>0</td>
+</tr>
+<tr>
+<td>contrast_1.5</td>
+<td>12</td>
+<td>0.02592</td>
+<td>0.06224</td>
+<td>-0.6434</td>
+<td>0</td>
+</tr>
+<tr>
+<td>saturate_0.85</td>
+<td>12</td>
+<td>0.01943</td>
+<td>0.06261</td>
+<td>-0.3077</td>
+<td>0</td>
+</tr>
+<tr>
+<td>rotate_5</td>
+<td>12</td>
+<td>0.01935</td>
+<td>0.02408</td>
+<td>0.5315</td>
+<td>0</td>
+</tr>
+<tr>
+<td>blur_2</td>
+<td>12</td>
+<td>0.01853</td>
+<td>0.03407</td>
+<td>0.3007</td>
+<td>0</td>
+</tr>
+<tr>
+<td>contrast_0.5</td>
+<td>12</td>
+<td>0.01811</td>
+<td>0.03814</td>
+<td>0.3846</td>
+<td>0</td>
+</tr>
+<tr>
+<td>translate_x_-8</td>
+<td>12</td>
+<td>0.01692</td>
+<td>0.02317</td>
+<td>0.4965</td>
+<td>0</td>
+</tr>
+<tr>
+<td>crop_jitter</td>
+<td>12</td>
+<td>0.01572</td>
+<td>0.02685</td>
+<td>0.6434</td>
+<td>0</td>
+</tr>
+<tr>
+<td>brightness_0.5</td>
+<td>12</td>
+<td>0.01551</td>
+<td>0.03288</td>
+<td>0.3566</td>
+<td>0</td>
+</tr>
+<tr>
+<td>brightness_0.75</td>
+<td>12</td>
+<td>0.01551</td>
+<td>0.03288</td>
+<td>0.3566</td>
+<td>0</td>
+</tr>
+<tr>
+<td>gamma_1.8</td>
+<td>12</td>
+<td>0.01525</td>
+<td>0.02958</td>
+<td>0.3007</td>
+<td>0</td>
+</tr>
+<tr>
+<td>translate_x_8</td>
+<td>12</td>
+<td>0.01475</td>
+<td>0.02629</td>
+<td>0.3846</td>
+<td>0</td>
+</tr>
+<tr>
+<td>brightness_1.25</td>
+<td>12</td>
+<td>0.01463</td>
+<td>0.08715</td>
+<td>-0.5874</td>
+<td>0</td>
+</tr>
+<tr>
+<td>saturate_0.95</td>
+<td>12</td>
+<td>0.01433</td>
+<td>0.04319</td>
+<td>0.0979</td>
+<td>0</td>
+</tr>
+<tr>
+<td>rotate_-5</td>
+<td>12</td>
+<td>0.01344</td>
+<td>0.03539</td>
+<td>0.2797</td>
+<td>0</td>
+</tr>
+<tr>
+<td>rotate_-2</td>
+<td>12</td>
+<td>0.01268</td>
+<td>0.02509</td>
+<td>0.4615</td>
+<td>0</td>
+</tr>
+<tr>
+<td>lowfreq_gradient</td>
+<td>12</td>
+<td>0.01223</td>
+<td>0.03938</td>
+<td>0.04895</td>
+<td>0</td>
+</tr>
+<tr>
+<td>rotate_2</td>
+<td>12</td>
+<td>0.01106</td>
+<td>0.02065</td>
+<td>0.6154</td>
+<td>0</td>
+</tr>
+</tbody></table>
+
+<h2>Manual Review</h2>
+<p>Blinded review materials are in <code>manual_review/</code>. Human ratings were not fabricated; the validation-result table records the pending annotation status.</p>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "status_counts": {
+    "GOOD": 4
+  },
+  "processed_successfully": 4,
+  "failures": 0,
+  "average_accepted_frames_per_sample": 16.0,
+  "min_accepted_frames": 16,
+  "max_accepted_frames": 16,
+  "common_rejection_reasons": {
+    "not_selected_lower_rank": 1084,
+    "no_plausible_rheed_pattern": 844,
+    "almost_black": 396,
+    "strong_shadow": 368,
+    "very_low_dynamic_range": 348,
+    "blocky_artifact": 274,
+    "largest_rectangular_component_too_large": 205,
+    "binary_artifact": 200,
+    "extreme_pixel_fraction_too_high": 141,
+    "too_few_gray_levels": 19,
+    "over_saturated": 1
+  },
+  "binary_or_block_artifacts_rejected": 474
+}
