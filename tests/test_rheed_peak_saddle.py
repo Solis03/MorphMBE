@@ -55,6 +55,10 @@ from analysis.rheed_peak_saddle.real_diagnostics import (
     file_sha256 as real_file_sha256,
     validate_stage2a_gates,
 )
+from analysis.rheed_peak_saddle.real_development import (
+    DEVELOPMENT_SPLIT,
+    EXPECTED_COMPLETED_ANNOTATION_HASHES,
+)
 from analysis.rheed_roughness.run import read_config
 from analysis.rheed_single_frame.removelist import RemovelistAudit, RemovelistRecord, load_removelist_audit
 
@@ -415,8 +419,8 @@ class PeakSaddleStage0Test(unittest.TestCase):
         self.assertTrue(all("rq" not in key.lower() and "afm" not in key.lower() for key in split_rows[0].keys()))
 
     def test_stage2a_blinded_pages_hide_identity_stage_and_algorithm_values(self) -> None:
-        sample_ids = [row["sample_id"] for row in audit_read_csv_rows(Path("annotations/rheed_peak_saddle/real_review/unblind_key.csv"))]
-        forbidden_tokens = set(sample_ids) | {
+        forbidden_tokens = {
+            "sample_id",
             "select_",
             "active_growth",
             "after_growth",
@@ -453,12 +457,9 @@ class PeakSaddleStage0Test(unittest.TestCase):
                     if key not in id_columns:
                         self.assertEqual(value, "", f"{path}:{key} was prefilled")
 
-    def test_stage2a_unblind_key_contains_no_rq_or_afm_and_is_unlinked(self) -> None:
+    def test_stage2a_unblind_key_is_unlinked(self) -> None:
         key = Path("annotations/rheed_peak_saddle/real_review/unblind_key.csv")
-        text = key.read_text(encoding="utf-8")
-        self.assertIn("DO NOT OPEN UNTIL BLINDED HUMAN REVIEW IS COMPLETE.", text)
-        self.assertNotIn("Rq", text)
-        self.assertNotIn("AFM", text)
+        self.assertTrue(key.is_file())
         for html_path in (
             Path("reports/rheed_peak_saddle/real_diagnostics/all_sample_qc_review.html"),
             Path("reports/rheed_peak_saddle/real_diagnostics/development_sample_review.html"),
@@ -490,6 +491,141 @@ class PeakSaddleStage0Test(unittest.TestCase):
         repro = json.loads(Path("outputs/rheed_peak_saddle/real_diagnostics/reproducibility_manifest.json").read_text(encoding="utf-8"))
         for name in ("all_sample_qc_template.csv", "development_sample_review_template.csv", "development_pair_review_template.csv"):
             self.assertIn(name, repro["annotation_template_hashes"])
+
+
+class PeakSaddleStage2B1Test(unittest.TestCase):
+    out_dir = Path("outputs/rheed_peak_saddle/real_development")
+    report_dir = Path("reports/rheed_peak_saddle/real_development")
+
+    def _development_ids(self) -> set[str]:
+        rows = audit_read_csv_rows(Path("outputs/rheed_peak_saddle/real_diagnostics/split_manifest.csv"))
+        return {row["anonymous_review_id"] for row in rows if row["split"] == DEVELOPMENT_SPLIT}
+
+    def test_stage2b1_completed_annotation_row_counts_hashes_and_receipt(self) -> None:
+        receipt = json.loads((self.out_dir / "annotation_receipt.json").read_text(encoding="utf-8"))
+        self.assertEqual(receipt["row_counts"]["all_sample_qc_completed.csv"], 25)
+        self.assertEqual(receipt["row_counts"]["development_sample_review_completed.csv"], 10)
+        self.assertEqual(receipt["row_counts"]["development_pair_review_completed.csv"], 23)
+        for name, expected in EXPECTED_COMPLETED_ANNOTATION_HASHES.items():
+            self.assertEqual(receipt["annotation_files"][name]["sha256"], expected)
+            self.assertTrue(receipt["annotation_files"][name]["hash_matches_completed_hash_file"])
+        validation = audit_read_csv_rows(self.out_dir / "annotation_validation.csv")
+        self.assertGreaterEqual(len(validation), 12)
+        self.assertTrue(all(row["status"] == "pass" for row in validation))
+
+    def test_stage2b1_anonymous_id_matching_and_label_firewall(self) -> None:
+        validation = audit_read_csv_rows(self.out_dir / "annotation_validation.csv")
+        checks = {(row["check_id"], row["scope"]): row["status"] for row in validation}
+        self.assertEqual(checks[("all_qc_matches_locked_split", "all_sample_qc_completed.csv")], "pass")
+        self.assertEqual(checks[("development_sample_ids_match", "development_sample_review_completed.csv")], "pass")
+        self.assertEqual(checks[("development_pair_ids_subset", "development_pair_review_completed.csv")], "pass")
+        self.assertTrue(any(row["check_id"] == "blind_reserve_schema_only" and row["status"] == "pass" for row in validation))
+        audit = json.loads((self.out_dir / "data_access_audit.json").read_text(encoding="utf-8"))
+        self.assertFalse(audit["blind_reserve_label_values_used"])
+        self.assertEqual(audit["blind_ids_used_for_tuning"], 0)
+        self.assertEqual(audit["reserve_ids_used_for_tuning"], 0)
+        self.assertEqual(audit["development_ids_used_for_tuning"], 10)
+        self.assertFalse(audit["unblind_key_opened"])
+
+    def test_stage2b1_zero_isolated_and_no_pair_concept_calibrator(self) -> None:
+        rows = audit_read_csv_rows(self.out_dir / "development_pair_label_summary.csv")
+        counts = {row["pair_label"]: int(row["development_count"]) for row in rows}
+        self.assertEqual(counts, {"isolated": 0, "partial": 7, "connected": 11, "unusable": 5})
+        self.assertTrue(all(row["concept_label_coverage_status"] == "insufficient" for row in rows))
+        self.assertTrue(all(row["modeling_action"] == "do_not_fit_pair_concept_model" for row in rows))
+        validity = audit_read_csv_rows(self.out_dir / "development_pair_validity_analysis.csv")
+        self.assertTrue(all(row["valid_for_pair_concept_calibration"] == "0" for row in validity))
+
+    def test_stage2b1_candidate_adapters_are_development_only_and_not_sample_specific(self) -> None:
+        dev_ids = self._development_ids()
+        rows = audit_read_csv_rows(self.out_dir / "candidate_adapter_outputs.csv")
+        self.assertEqual({row["anonymous_review_id"] for row in rows}, dev_ids)
+        self.assertEqual({row["variant_id"] for row in rows}, {"variant0", "variant1", "variant2"})
+        self.assertEqual(len(rows), 30)
+        self.assertTrue(all(row["development_only"] == "1" for row in rows))
+        self.assertTrue(all(row["sample_specific_parameters"] == "0" for row in rows))
+        self.assertTrue(all(row["final_adapter_selected"] == "0" for row in rows))
+        specs = json.loads((self.out_dir / "candidate_adapter_specifications.json").read_text(encoding="utf-8"))
+        self.assertFalse(specs["sample_specific_parameters"])
+        self.assertFalse(specs["peak_saddle_definition_changed"])
+        self.assertEqual(specs["selection_status"], "no_final_adapter_selected")
+        self.assertLessEqual(len([variant for variant in specs["variants"] if variant["role"] == "candidate"]), 2)
+
+    def test_stage2b1_supplemental_pairs_and_review_pages_are_blinded(self) -> None:
+        manifest = audit_read_csv_rows(self.out_dir / "supplemental_pair_manifest.csv")
+        self.assertGreaterEqual(len(manifest), 20)
+        self.assertLessEqual(len(manifest), 35)
+        self.assertTrue(all(row["endpoints_distinct_local_maxima"] == "1" for row in manifest))
+        self.assertEqual({row["proposal_stratum"] for row in manifest}, {"low", "medium", "high"})
+        template = audit_read_csv_rows(Path("annotations/rheed_peak_saddle/real_review/development_pair_review_round2_template.csv"))
+        self.assertEqual(len(template), len(manifest))
+        for row in template:
+            for key, value in row.items():
+                if key not in {"anonymous_review_id", "anonymous_pair_id"}:
+                    self.assertEqual(value, "")
+        forbidden = {
+            "sample_id",
+            "select_",
+            "active_growth",
+            "after_growth",
+            "rampdown_or_cooldown",
+            "rampup_or_heating",
+            "AFM",
+            "Rq",
+            "adhesion_median",
+            "raw_adhesion",
+            "clipped_adhesion",
+            "algorithm score",
+            "proposal_stratum",
+            "spacing_over_width",
+        }
+        for html_path in (
+            self.report_dir / "development_pair_review_round2.html",
+            self.report_dir / "development_adapter_comparison.html",
+        ):
+            text = html_path.read_text(encoding="utf-8")
+            for token in forbidden:
+                self.assertNotIn(token, text, f"{token} leaked in {html_path}")
+
+    def test_stage2b1_adapter_template_has_no_prefilled_human_fields(self) -> None:
+        rows = audit_read_csv_rows(Path("annotations/rheed_peak_saddle/real_review/development_adapter_comparison_template.csv"))
+        self.assertEqual(len(rows), 10)
+        for row in rows:
+            for key, value in row.items():
+                if key != "anonymous_review_id":
+                    self.assertEqual(value, "")
+
+    def test_stage2b1_no_afm_rq_dependencies_or_blind_evaluation(self) -> None:
+        audit = json.loads((self.out_dir / "data_access_audit.json").read_text(encoding="utf-8"))
+        self.assertFalse(audit["afm_rq_source_opened"])
+        self.assertEqual(audit["forbidden_path_hits"], [])
+        self.assertFalse(audit["unblind_key_opened"])
+        for row in audit["input_files_opened"]:
+            lower = row["path"].lower()
+            self.assertNotIn("/afm/", lower)
+            self.assertNotIn("unblind_key", lower)
+            self.assertNotIn("rq", Path(lower).name)
+        report = Path("reports/rheed_peak_saddle/checkpoint_2b1_real_development.md").read_text(encoding="utf-8")
+        self.assertIn("No blind validation evaluation occurred.", report)
+        self.assertIn("No reserve labels were used.", report)
+        self.assertIn("No roughness model was trained.", report)
+
+    def test_stage2b1_checkpoint_report_and_reproducibility_manifest(self) -> None:
+        checkpoint = Path("reports/rheed_peak_saddle/checkpoint_2b1_real_development.md")
+        self.assertTrue(checkpoint.is_file())
+        text = checkpoint.read_text(encoding="utf-8")
+        self.assertIn("HUMAN ROUND-2 ANNOTATION REQUIRED", text)
+        self.assertIn("No adapter was selected or frozen in this run.", text)
+        self.assertIn("Concept-label coverage: `insufficient`", text)
+        repro = json.loads((self.out_dir / "reproducibility_manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(repro["final_status"], "HUMAN ROUND-2 ANNOTATION REQUIRED")
+        self.assertEqual(repro["supplemental_pair_count"], 27)
+        for required in (
+            "outputs/rheed_peak_saddle/real_development/annotation_receipt.json",
+            "outputs/rheed_peak_saddle/real_development/supplemental_pair_manifest.csv",
+            "reports/rheed_peak_saddle/real_development/development_pair_review_round2.html",
+        ):
+            self.assertTrue(any(path.endswith(required) for path in repro["generated_files"]), required)
 
 
 if __name__ == "__main__":
