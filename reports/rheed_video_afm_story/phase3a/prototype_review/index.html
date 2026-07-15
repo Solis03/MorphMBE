@@ -1,0 +1,304 @@
+<!doctype html><html><head><meta charset='utf-8'><title>Phase 3A Prototype Review</title></head><body>
+<h1>AFM Morphology Prototype Review</h1>
+<p>Global AFM-side development decoder. Not an OOF RHEED prediction. Neutral prototype names are used for expert review.</p>
+<h2>P1</h2><p>Medoid sample 6022</p><img src='images/P1_medoid.png' width='320'><img src='images/P1_surface3d.png' width='360'>
+<h2>P2</h2><p>Medoid sample 6029</p><img src='images/P2_medoid.png' width='320'><img src='images/P2_surface3d.png' width='360'>
+<h2>P4</h2><p>Medoid sample 6070</p><img src='images/P4_medoid.png' width='320'><img src='images/P4_surface3d.png' width='360'>
+<h2>P0</h2><p>Medoid sample 6090</p><img src='images/P0_medoid.png' width='320'><img src='images/P0_surface3d.png' width='360'>
+<h2>P3</h2><p>Medoid sample 6095</p><img src='images/P3_medoid.png' width='320'><img src='images/P3_surface3d.png' width='360'>
+<h2>All member samples</h2>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>sample_id</th>
+      <th>growth_run_id</th>
+      <th>dominant_prototype</th>
+      <th>prototype_distribution_across_scans</th>
+      <th>prototype_purity</th>
+      <th>mixed_morphology</th>
+      <th>within_sample_heterogeneity</th>
+      <th>selected_k</th>
+      <th>representation</th>
+      <th>is_prototype_medoid</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>6022</td>
+      <td>6022</td>
+      <td>P1</td>
+      <td>{"P1": 3}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>4.264299</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>6028</td>
+      <td>6028</td>
+      <td>P2</td>
+      <td>{"P2": 3}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>4.463705</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6029</td>
+      <td>6029</td>
+      <td>P2</td>
+      <td>{"P2": 3}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>3.984901</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>6033</td>
+      <td>6033</td>
+      <td>P2</td>
+      <td>{"P2": 4}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>3.464416</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6047</td>
+      <td>6047</td>
+      <td>P2</td>
+      <td>{"P2": 6}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>4.238793</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6048</td>
+      <td>6048</td>
+      <td>P2</td>
+      <td>{"P2": 2}</td>
+      <td>1.0</td>
+      <td>True</td>
+      <td>11.000264</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6056</td>
+      <td>6056</td>
+      <td>P2</td>
+      <td>{"P2": 19}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>2.920340</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6057</td>
+      <td>6057</td>
+      <td>P2</td>
+      <td>{"P2": 7}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>2.307084</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6062</td>
+      <td>6062</td>
+      <td>P1</td>
+      <td>{"P1": 6}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>1.948116</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6063</td>
+      <td>6063</td>
+      <td>P2</td>
+      <td>{"P2": 6}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>3.216736</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6070</td>
+      <td>6070</td>
+      <td>P4</td>
+      <td>{"P4": 5}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>2.153669</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>6072</td>
+      <td>6072</td>
+      <td>P4</td>
+      <td>{"P4": 7}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>2.277500</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6078</td>
+      <td>6078</td>
+      <td>P2</td>
+      <td>{"P2": 4}</td>
+      <td>1.0</td>
+      <td>True</td>
+      <td>8.363809</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6080</td>
+      <td>6080</td>
+      <td>P2</td>
+      <td>{"P2": 2}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>7.768034</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6081</td>
+      <td>6081</td>
+      <td>P0</td>
+      <td>{"P0": 3}</td>
+      <td>1.0</td>
+      <td>True</td>
+      <td>11.229869</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6082</td>
+      <td>6082</td>
+      <td>P2</td>
+      <td>{"P2": 3}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>2.831103</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6084</td>
+      <td>6084</td>
+      <td>P2</td>
+      <td>{"P2": 4}</td>
+      <td>1.0</td>
+      <td>True</td>
+      <td>11.021306</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6085</td>
+      <td>6085</td>
+      <td>P2</td>
+      <td>{"P2": 4}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>5.509000</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6090</td>
+      <td>6090</td>
+      <td>P0</td>
+      <td>{"P0": 3}</td>
+      <td>1.0</td>
+      <td>True</td>
+      <td>11.205564</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>6094</td>
+      <td>6094</td>
+      <td>P2</td>
+      <td>{"P2": 10}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>2.203980</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6095</td>
+      <td>6095</td>
+      <td>P3</td>
+      <td>{"P3": 5}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>4.913096</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td>6099</td>
+      <td>6099</td>
+      <td>P3</td>
+      <td>{"P3": 5}</td>
+      <td>1.0</td>
+      <td>False</td>
+      <td>2.908930</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>6101</td>
+      <td>6101</td>
+      <td>P0</td>
+      <td>{"P0": 2}</td>
+      <td>1.0</td>
+      <td>True</td>
+      <td>11.658629</td>
+      <td>5</td>
+      <td>descriptors</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+</body></html>
