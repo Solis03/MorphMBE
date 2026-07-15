@@ -125,6 +125,63 @@ Run descriptor MVP on each one-to-one manifest and write a comparison summary:
 uv run python scripts/run_one_to_one_experiments.py --device cuda
 ```
 
+Prepare full-frame PNG libraries from RHEED MP4/MOV videos for manual keyframe
+selection:
+
+```bash
+uv run python scripts/prepare_rheed_keyframe_selection.py \
+  --input-root data/pair \
+  --output-root data/rheed_keyframe_selection
+```
+
+Run only one sample:
+
+```bash
+uv run python scripts/prepare_rheed_keyframe_selection.py \
+  --input-root data/pair \
+  --output-root data/rheed_keyframe_selection \
+  --sample-id 6022
+```
+
+The output layout is:
+
+```text
+data/rheed_keyframe_selection/
+  <sample_id>/
+    metadata.json
+    videos/
+      <video_id>/
+        frames/
+          0.png
+          1.png
+          ...
+```
+
+Each sample has one `metadata.json`. For every video, manually edit only the
+`selection` fields: `keyframe_index` is a 0-based PNG index, and
+`clip_frame_count` is the total number of frames in the later clip, including
+the keyframe itself. The exported images are lossless PNGs at the decoded
+video's original width, height, and RGB color pixels. This step does not apply
+grayscale conversion, crop, resize, exposure adjustment, brightness
+normalization, background subtraction, ROI extraction, or geometric alignment.
+Later model datasets can read continuous clips directly from the PNG folders
+without decoding MP4 again. The original MP4 files remain the highest-level
+source data and must be kept permanently; PNGs preserve decoded frames
+losslessly but cannot recover information already lost in MP4 encoding.
+
+Review keyframes and draw manual source-pixel ROIs:
+
+```bash
+uv run python tools/manual_rheed_roi_reviewer.py \
+  --root data/rheed_keyframe_selection
+```
+
+The reviewer restores saved selections from each sample's `metadata.json`.
+Dragging a rectangle may use a scaled display, but saved ROI coordinates are
+written in original PNG pixel coordinates under `selection.roi`. `Save and Next`
+preserves all other metadata and advances to the next incomplete video. Optional
+filters include `--sample-id`, `--video-id`, and `--start-from-first`.
+
 Preview the pipeline without modifying files:
 
 ```bash

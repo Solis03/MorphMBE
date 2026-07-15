@@ -16,6 +16,7 @@ data/SEM/
 data/processed/
 data/processed_afm/
 data/pair/
+data/rheed_keyframe_selection/**/frames/*.png
 data/plane_corrected_afm/
 outputs/
 checkpoints/
