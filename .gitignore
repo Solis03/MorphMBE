@@ -21,6 +21,12 @@ data/plane_corrected_afm/
 outputs/
 checkpoints/
 
+# Large derived paper-freeze archives stay local or belong in Releases/LFS.
+paper_freeze/*.tar.gz
+paper_freeze/*.tar.gz.sha256
+paper_freeze/*.zip
+paper_freeze/*.zip.sha256
+
 # Generated experiment artifacts under reports/
 reports/**/descriptor_data/
 reports/**/descriptor_report/

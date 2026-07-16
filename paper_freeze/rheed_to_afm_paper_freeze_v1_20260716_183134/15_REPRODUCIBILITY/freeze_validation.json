@@ -1,0 +1,120 @@
+{
+  "checks": [
+    {
+      "check": "freeze_id_exists",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "checksums_correct",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "active_historical_cohort_23",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "afm_scan_bank_116",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "removelist_active_zero",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "all_joins_sample_id",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "target_sample_id_consistent",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "strict_one_prediction_per_sample",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "strict_heldout_source_contribution_zero",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "full_cohort_deployment_23",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "unseen_not_training",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "model_objects_load",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "encoder_preprocessing_present",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "representative_afm_bank_readable",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "relative_paths_valid",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "unseen_smoke_test_runs",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "uses_unknown_afm_target_false",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "figure_source_data_complete",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "paper_numbers_match_tables",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "old_raw_input_hashes_recorded",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "old_raw_input_hashes_unchanged",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "model_artifact_hashes_present",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "no_symlinks_in_freeze",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "all_passed": true
+}

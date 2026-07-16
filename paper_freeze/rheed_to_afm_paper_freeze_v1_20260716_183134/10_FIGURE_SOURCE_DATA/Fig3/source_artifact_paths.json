@@ -1,0 +1,10 @@
+[
+  "removelist.txt",
+  "outputs/rheed_video_afm_story/variants/afm_second_order_y2_v1/phase6a_exhaustive_discovery/phase6a_summary.json",
+  "outputs/rheed_video_afm_story/variants/afm_second_order_y2_v1/phase6a_exhaustive_discovery/finalists/ensemble_metrics.json",
+  "outputs/rheed_video_afm_story/variants/afm_second_order_y2_v1/phase6a_exhaustive_discovery/finalists/ensemble_oof_predictions.csv",
+  "outputs/rheed_video_afm_story/variants/afm_second_order_y2_v1/phase6a_exhaustive_discovery/canonical_index/canonical_sample_index.csv",
+  "outputs/rheed_video_afm_story/variants/afm_second_order_y2_v1/phase7a_reconstruction_first/phase7a_summary.json",
+  "outputs/rheed_video_afm_story/variants/afm_second_order_y2_v1/phase7a_reconstruction_first/strict_visual_metrics.csv",
+  "outputs/rheed_video_afm_story/variants/afm_second_order_y2_v1/afm_bank/second_order_afm_decoder_manifest.csv"
+]

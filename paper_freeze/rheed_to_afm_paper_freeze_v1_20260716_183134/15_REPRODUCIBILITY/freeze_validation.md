@@ -1,0 +1,25 @@
+# Freeze Validation
+
+- freeze_id_exists: True 
+- checksums_correct: True 
+- active_historical_cohort_23: True 
+- afm_scan_bank_116: True 
+- removelist_active_zero: True 
+- all_joins_sample_id: True 
+- target_sample_id_consistent: True 
+- strict_one_prediction_per_sample: True 
+- strict_heldout_source_contribution_zero: True 
+- full_cohort_deployment_23: True 
+- unseen_not_training: True 
+- model_objects_load: True 
+- encoder_preprocessing_present: True 
+- representative_afm_bank_readable: True 
+- relative_paths_valid: True 
+- unseen_smoke_test_runs: True 
+- uses_unknown_afm_target_false: True 
+- figure_source_data_complete: True 
+- paper_numbers_match_tables: True 
+- old_raw_input_hashes_recorded: True 
+- old_raw_input_hashes_unchanged: True 
+- model_artifact_hashes_present: True 
+- no_symlinks_in_freeze: True 

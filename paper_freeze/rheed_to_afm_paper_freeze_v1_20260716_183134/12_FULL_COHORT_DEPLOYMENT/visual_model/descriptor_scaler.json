@@ -1,0 +1,12 @@
+{
+  "features": [
+    "rq_nm",
+    "ra_nm",
+    "robust_height_range_nm",
+    "psd bands",
+    "correlation length",
+    "anisotropy"
+  ],
+  "fit_scope": "23 historical groups",
+  "scaler": "frozen descriptor z-score convention"
+}

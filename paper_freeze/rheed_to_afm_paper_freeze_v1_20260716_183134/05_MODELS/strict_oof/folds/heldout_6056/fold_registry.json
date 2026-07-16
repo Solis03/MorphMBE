@@ -1,0 +1,33 @@
+{
+  "heldout_sample_id": "6056",
+  "model_coefficients": "not present in Phase6A artifact; deployment model is refit separately without new search",
+  "prediction": {
+    "predicted_target_nm": 2.9090498912779315,
+    "sample_id": "6056",
+    "true_target_nm": 2.764359931151072
+  },
+  "training_sample_ids": [
+    "6022",
+    "6028",
+    "6029",
+    "6033",
+    "6047",
+    "6048",
+    "6057",
+    "6062",
+    "6063",
+    "6070",
+    "6072",
+    "6078",
+    "6080",
+    "6081",
+    "6082",
+    "6084",
+    "6085",
+    "6090",
+    "6094",
+    "6095",
+    "6099",
+    "6101"
+  ]
+}

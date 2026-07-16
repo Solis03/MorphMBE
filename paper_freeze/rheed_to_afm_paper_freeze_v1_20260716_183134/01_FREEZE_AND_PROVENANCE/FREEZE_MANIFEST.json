@@ -1,0 +1,27 @@
+{
+  "afm_preprocessing": "second_order_y2",
+  "afm_target_variant": "T4_second_order_trimmed_mean",
+  "created_at": "2026-07-16T18:35:38Z",
+  "deployment_quantitative_model": "full_cohort_top5_median_ridge_ensemble",
+  "deployment_visual_method": "A3_full_cohort",
+  "excluded_sample_ids": [
+    "6023",
+    "6087"
+  ],
+  "freeze_id": "RHEED_AFM_PAPER_FREEZE_V1_20260716_183134",
+  "full_cohort_result_is_held_out": false,
+  "git_commit": "ac03f937097d52db992fee54147d9f37c50343c6",
+  "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "git_dirty": true,
+  "historical_afm_scans": 116,
+  "historical_training_growth_groups": 23,
+  "oracle_in_main_results": false,
+  "removelist_path": "removelist.txt",
+  "removelist_sha256": "8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b",
+  "rheed_encoder": "E1_dino_keyframe",
+  "rheed_preprocessing": "P1_raw_luminance",
+  "strict_quantitative_model": "top5_median_cross_fitted_ensemble",
+  "strict_result_is_held_out": true,
+  "strict_visual_method": "A3",
+  "unseen_samples_used_for_training": false
+}

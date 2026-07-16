@@ -1,0 +1,55 @@
+{
+  "abstain": false,
+  "config_hash": "6ee5f65011acc674a3a4e66b2c590f6da78129f7a8fb7c415afe2052e5e38980",
+  "domain_distance": null,
+  "ensemble_member_predictions": [
+    -1.236391911736336,
+    -1.236391911736336,
+    -1.456523440538644,
+    -1.456523440538644,
+    -1.236391911736336
+  ],
+  "exploratory_descriptor_predictions": {},
+  "freeze_id": "RHEED_AFM_PAPER_FREEZE_V1_20260716_183134",
+  "input_file_hashes": {
+    "video_path": ""
+  },
+  "interval_80": [
+    0.001,
+    0.002
+  ],
+  "interval_90": [
+    0.001,
+    -1.7927682720176872
+  ],
+  "model_hash": "398b17b52f536464c527cc3328b99ec45ecea5fd9823b34ea81a911a32579714",
+  "predicted_ra_nm": -0.9643856911543421,
+  "predicted_robust_height_range_nm": -5.563763602813512,
+  "predicted_rq_nm": -1.236391911736336,
+  "prediction_timestamp": "2026-07-16T18:35:43.968737+00:00",
+  "q10": 0.001,
+  "q50": -1.236391911736336,
+  "q90": 0.002,
+  "quality_flags": [],
+  "raw_prediction": -1.236391911736336,
+  "reliable_descriptor_predictions": {
+    "ra_nm": -0.9643856911543421,
+    "rq_nm": -1.236391911736336
+  },
+  "removelist_hash": "8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b",
+  "retrieval_distances": [
+    1.9433754780205157
+  ],
+  "retrieval_provenance": {
+    "method": "A3_full_cohort"
+  },
+  "retrieved_AFM_source_paths": [
+    "12_FULL_COHORT_DEPLOYMENT/visual_model/physical_maps/6101__N6101_5um_001.npy"
+  ],
+  "retrieved_AFM_source_sample_ids": [
+    "6101"
+  ],
+  "support_level": "technical_smoke",
+  "training_cohort_hash": "28986cedbcefa75f02a95fc2c525c9699d9fc1e975e15b9aee3456fefc6dd438",
+  "uses_unknown_afm_target": false
+}

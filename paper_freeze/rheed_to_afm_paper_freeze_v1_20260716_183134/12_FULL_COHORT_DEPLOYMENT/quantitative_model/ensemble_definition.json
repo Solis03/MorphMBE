@@ -1,0 +1,46 @@
+{
+  "aggregation": "median",
+  "frozen_from": "Phase6A top5_median_cross_fitted_ensemble",
+  "members": [
+    {
+      "aggregation_weight": 1.0,
+      "feature_set": "E1_dino_keyframe",
+      "model_family": "ridge",
+      "name": "model_01_trial_0004",
+      "target_variant": "T4_second_order_trimmed_mean",
+      "trial_id": "trial_0004"
+    },
+    {
+      "aggregation_weight": 1.0,
+      "feature_set": "E1_dino_keyframe",
+      "model_family": "ridge",
+      "name": "model_02_trial_0012",
+      "target_variant": "T4_second_order_trimmed_mean",
+      "trial_id": "trial_0012"
+    },
+    {
+      "aggregation_weight": 1.0,
+      "feature_set": "E1_dino_keyframe",
+      "model_family": "ridge",
+      "name": "model_03_trial_0006",
+      "target_variant": "T6_quality_weighted_second_order",
+      "trial_id": "trial_0006"
+    },
+    {
+      "aggregation_weight": 1.0,
+      "feature_set": "E1_dino_keyframe",
+      "model_family": "ridge",
+      "name": "model_04_trial_0014",
+      "target_variant": "T6_quality_weighted_second_order",
+      "trial_id": "trial_0014"
+    },
+    {
+      "aggregation_weight": 1.0,
+      "feature_set": "E1_dino_keyframe",
+      "model_family": "ridge",
+      "name": "model_05_trial_0028",
+      "target_variant": "T4_second_order_trimmed_mean",
+      "trial_id": "trial_0028"
+    }
+  ]
+}

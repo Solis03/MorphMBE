@@ -1,0 +1,2 @@
+freeze_id,sample_id,prediction_dir,prediction_sha256,timestamp,afm_labels_available_or_accessed
+RHEED_AFM_PAPER_FREEZE_V1_20260716_183134,6022,/Users/ziyi/Desktop/LAB/code/paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134/15_REPRODUCIBILITY/smoke_test_prediction/6022,44cbd20642490b93f2d711da2b5ee8fe38d246b73ba02382e40d25c7dca92300,2026-07-16T18:35:44.276282+00:00,False

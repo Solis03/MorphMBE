@@ -1,0 +1,2 @@
+sample_id,video_path,frames_dir,metadata_path,keyframe_index,clip_start_index,clip_end_index,roi_x,roi_y,roi_width,roi_height,source_width,source_height,growth_stage,notes
+6022,TECHNICAL_IN_SAMPLE_SMOKE_TEST,,,757,750,765,245,366,249,391,1024,1024,historical_smoke_test,TECHNICAL IN-SAMPLE SMOKE TEST; NOT A PERFORMANCE ESTIMATE

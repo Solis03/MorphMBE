@@ -1,0 +1,4 @@
+{
+  "physical_height_scaling": "conditioned Rq amplitude",
+  "retrieval_metric": "descriptor/prototype-conditioned distance with held-out source excluded"
+}

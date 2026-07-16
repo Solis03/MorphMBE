@@ -1,0 +1,1 @@
+sample_id,video_path,frames_dir,metadata_path,keyframe_index,clip_start_index,clip_end_index,roi_x,roi_y,roi_width,roi_height,source_width,source_height,growth_stage,notes

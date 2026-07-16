@@ -1,0 +1,10 @@
+{
+  "analysis/rheed_video_afm_story/afm_descriptors.py": "f2afa1bab7ba199a77676dc6063b1607cec53e40e60918cb7126ae5b4de14d06",
+  "analysis/rheed_video_afm_story/build_final_paper_freeze.py": "f82e9ae4c6d8e42e6bef8bb4f86b179a4709fef68e5e17942c15ad5c7bba40de",
+  "analysis/rheed_video_afm_story/rq_disentanglement.py": "eb9e190bebd12de31fb056fd98b247cc10f07ac89ee31ec2f1641ed507b5011e",
+  "analysis/rheed_video_afm_story/run_phase6a.py": "92d35547c9ed963e744adcaf29bb95145329d79c33901fadfcbaecf0667e271d",
+  "analysis/rheed_video_afm_story/run_phase7a.py": "d8fd9ca2d965f524bd23e83922f33cd46fe39af9b3959c5e8ba24de0afb08673",
+  "tests/test_final_paper_freeze.py": "9ad0015c17633919e50d3ee0baac155abe73d1b03f6c3f871286776443713276",
+  "tests/test_frozen_unseen_inference.py": "e151a721050c42c8a8d9f528e1c383cf9631be285557bd5204134e9d042ad74f",
+  "tests/test_prospective_registry.py": "7d4c9a53ca3633834779e9996e1447d970a568e49b01a41c9dd075eac2bac79e"
+}
