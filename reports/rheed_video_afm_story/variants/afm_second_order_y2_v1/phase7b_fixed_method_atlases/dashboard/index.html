@@ -1,0 +1,138 @@
+<!doctype html><meta charset='utf-8'><title>Phase 7B Fixed Method Atlases</title>
+<style>body{font-family:system-ui,sans-serif;margin:24px} table{border-collapse:collapse} td,th{border:1px solid #ccc;padding:4px 8px} img{max-width:420px}</style>
+<h1>Phase 7B Fixed-Method Strict OOF Atlases</h1>
+<p>Each atlas fixes one method family and one method_id across all 23 held-out samples. Held-out AFM is displayed only for retrospective comparison.</p>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>family</th>
+      <th>method_id</th>
+      <th>N</th>
+      <th>median_visual_composite</th>
+      <th>mean_visual_composite</th>
+      <th>median_psd_distance</th>
+      <th>median_histogram_wasserstein</th>
+      <th>median_corr_length_relative_error</th>
+      <th>strict_identity_pass</th>
+      <th>max_heldout_source_contribution</th>
+      <th>deployable_for_unseen</th>
+      <th>recommended_for_unseen</th>
+      <th>notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>retrieval</td>
+      <td>A3</td>
+      <td>23</td>
+      <td>0.211454</td>
+      <td>0.217381</td>
+      <td>0.393939</td>
+      <td>0.080779</td>
+      <td>0.222222</td>
+      <td>True</td>
+      <td>0.0</td>
+      <td>True</td>
+      <td>True</td>
+      <td>Frozen deployment recommendation: descriptor-conditioned representative AFM retrieval.</td>
+    </tr>
+    <tr>
+      <td>texture</td>
+      <td>E2</td>
+      <td>23</td>
+      <td>0.238993</td>
+      <td>0.244722</td>
+      <td>0.486041</td>
+      <td>0.071824</td>
+      <td>0.222222</td>
+      <td>True</td>
+      <td>0.0</td>
+      <td>True</td>
+      <td>False</td>
+      <td>Exploratory texture optimization candidate; not current frozen deployment recommendation.</td>
+    </tr>
+    <tr>
+      <td>quilting</td>
+      <td>VB2</td>
+      <td>23</td>
+      <td>0.249113</td>
+      <td>0.288959</td>
+      <td>0.437091</td>
+      <td>0.104803</td>
+      <td>0.125000</td>
+      <td>True</td>
+      <td>0.0</td>
+      <td>True</td>
+      <td>False</td>
+      <td>Exploratory deployable candidate; not current frozen deployment recommendation.</td>
+    </tr>
+    <tr>
+      <td>iaaft</td>
+      <td>D4</td>
+      <td>23</td>
+      <td>0.285221</td>
+      <td>0.289956</td>
+      <td>0.394053</td>
+      <td>0.080779</td>
+      <td>0.222222</td>
+      <td>True</td>
+      <td>0.0</td>
+      <td>True</td>
+      <td>False</td>
+      <td>Exploratory spectral synthesis candidate; not current frozen deployment recommendation.</td>
+    </tr>
+    <tr>
+      <td>residual</td>
+      <td>C1</td>
+      <td>23</td>
+      <td>0.296011</td>
+      <td>0.316116</td>
+      <td>0.718304</td>
+      <td>0.109417</td>
+      <td>0.250000</td>
+      <td>True</td>
+      <td>0.0</td>
+      <td>True</td>
+      <td>False</td>
+      <td>Exploratory synthesis candidate; not current frozen deployment recommendation.</td>
+    </tr>
+    <tr>
+      <td>vq</td>
+      <td>F1</td>
+      <td>23</td>
+      <td>0.343188</td>
+      <td>0.339205</td>
+      <td>0.884765</td>
+      <td>0.100264</td>
+      <td>0.142857</td>
+      <td>True</td>
+      <td>0.0</td>
+      <td>True</td>
+      <td>False</td>
+      <td>Exploratory VQ candidate; not current frozen deployment recommendation.</td>
+    </tr>
+    <tr>
+      <td>diffusion</td>
+      <td>G4</td>
+      <td>23</td>
+      <td>0.355491</td>
+      <td>0.333934</td>
+      <td>0.583612</td>
+      <td>0.120098</td>
+      <td>0.333333</td>
+      <td>True</td>
+      <td>0.0</td>
+      <td>True</td>
+      <td>False</td>
+      <td>Exploratory residual diffusion fallback candidate; not current frozen deployment recommendation.</td>
+    </tr>
+  </tbody>
+</table>
+<h2>Atlases</h2>
+<h3>retrieval / A3</h3><p><a href='figures/Fig_fixed_retrieval_all_23_strict_oof_atlas.pdf'>PDF</a></p><img src='figures/Fig_fixed_retrieval_all_23_strict_oof_atlas.png'>
+<h3>quilting / VB2</h3><p><a href='figures/Fig_fixed_quilting_all_23_strict_oof_atlas.pdf'>PDF</a></p><img src='figures/Fig_fixed_quilting_all_23_strict_oof_atlas.png'>
+<h3>residual / C1</h3><p><a href='figures/Fig_fixed_residual_all_23_strict_oof_atlas.pdf'>PDF</a></p><img src='figures/Fig_fixed_residual_all_23_strict_oof_atlas.png'>
+<h3>iaaft / D4</h3><p><a href='figures/Fig_fixed_iaaft_all_23_strict_oof_atlas.pdf'>PDF</a></p><img src='figures/Fig_fixed_iaaft_all_23_strict_oof_atlas.png'>
+<h3>texture / E2</h3><p><a href='figures/Fig_fixed_texture_all_23_strict_oof_atlas.pdf'>PDF</a></p><img src='figures/Fig_fixed_texture_all_23_strict_oof_atlas.png'>
+<h3>vq / F1</h3><p><a href='figures/Fig_fixed_vq_all_23_strict_oof_atlas.pdf'>PDF</a></p><img src='figures/Fig_fixed_vq_all_23_strict_oof_atlas.png'>
+<h3>diffusion / G4</h3><p><a href='figures/Fig_fixed_diffusion_all_23_strict_oof_atlas.pdf'>PDF</a></p><img src='figures/Fig_fixed_diffusion_all_23_strict_oof_atlas.png'>

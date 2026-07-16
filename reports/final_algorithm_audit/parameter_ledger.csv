@@ -1,0 +1,12 @@
+parameter_group,name,value,shape,source_file,evidence
+quantitative_ensemble,model_name,full_cohort_top5_median_ridge_ensemble,,paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134/12_FULL_COHORT_DEPLOYMENT/quantitative_model/model_registry.json,freeze model registry
+quantitative_ensemble,member_count,5,,paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134/12_FULL_COHORT_DEPLOYMENT/quantitative_model/ensemble_definition.json,ensemble_definition.json
+quantitative_ensemble,aggregation,median,,paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134/12_FULL_COHORT_DEPLOYMENT/quantitative_model/ensemble_definition.json,median of five member outputs in Rq nm space
+encoder,embedding_npz_shape,"[23, 1536]","[23, 1536]",outputs/rheed_video_afm_story/phase2a/embeddings/dino_vits14__keyframe_1__raw_luminance.npz,cached Phase2A DINO keyframe embeddings
+visual,strict_a3_candidate_count_per_fold,[22],,analysis/rheed_video_afm_story/run_phase7a.py,source_rows excludes heldout sample from 23 representative groups
+visual,deployment_bank_groups_scans,"{""groups"": 23, ""scans"": 116}",,paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134/12_FULL_COHORT_DEPLOYMENT/visual_model/afm_bank_manifest.csv,full-cohort visual bank manifest
+quantitative_member,model_01_trial_0004,ridge alpha=1.0,[1536],paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134/12_FULL_COHORT_DEPLOYMENT/quantitative_model/model_01_trial_0004.npz,serialized coef/intercept/feature_mean/feature_scale
+quantitative_member,model_02_trial_0012,ridge alpha=1.0,[1536],paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134/12_FULL_COHORT_DEPLOYMENT/quantitative_model/model_02_trial_0012.npz,serialized coef/intercept/feature_mean/feature_scale
+quantitative_member,model_03_trial_0006,ridge alpha=1.0,[1536],paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134/12_FULL_COHORT_DEPLOYMENT/quantitative_model/model_03_trial_0006.npz,serialized coef/intercept/feature_mean/feature_scale
+quantitative_member,model_04_trial_0014,ridge alpha=1.0,[1536],paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134/12_FULL_COHORT_DEPLOYMENT/quantitative_model/model_04_trial_0014.npz,serialized coef/intercept/feature_mean/feature_scale
+quantitative_member,model_05_trial_0028,ridge alpha=1.0,[1536],paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134/12_FULL_COHORT_DEPLOYMENT/quantitative_model/model_05_trial_0028.npz,serialized coef/intercept/feature_mean/feature_scale

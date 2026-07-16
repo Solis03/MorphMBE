@@ -1,0 +1,1 @@
+Main architecture of the frozen RHEED-to-Rq and representative-AFM retrieval pipeline. The visual branch uses fixed A3 retrieval and Rq rescaling of a historical source morphology; it is not a pixel decoder.

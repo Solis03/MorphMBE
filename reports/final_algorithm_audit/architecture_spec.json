@@ -1,0 +1,185 @@
+{
+  "deployment_rule": "Full-cohort deployment bank has 23 groups and 116 scans and is future-only, not an independent test.",
+  "edges": [
+    {
+      "label": "crop",
+      "source": "N01",
+      "target": "N02"
+    },
+    {
+      "label": "normalize",
+      "source": "N02",
+      "target": "N03"
+    },
+    {
+      "label": "aggregate",
+      "source": "N03",
+      "target": "N04"
+    },
+    {
+      "label": "scaled input",
+      "source": "N04",
+      "target": "N05"
+    },
+    {
+      "label": "median",
+      "source": "N05",
+      "target": "N06"
+    },
+    {
+      "label": "strict residual interval",
+      "source": "N06",
+      "target": "N07"
+    },
+    {
+      "label": "Rq condition",
+      "source": "N06",
+      "target": "N08"
+    },
+    {
+      "label": "descriptor vector",
+      "source": "N08",
+      "target": "N10"
+    },
+    {
+      "label": "candidate descriptors",
+      "source": "N09",
+      "target": "N10"
+    },
+    {
+      "label": "min distance source",
+      "source": "N10",
+      "target": "N11"
+    },
+    {
+      "label": "unit Rq",
+      "source": "N11",
+      "target": "N12"
+    },
+    {
+      "label": "amplitude values",
+      "source": "N07",
+      "target": "N13"
+    },
+    {
+      "label": "shared morphology rescaled",
+      "source": "N12",
+      "target": "N13"
+    },
+    {
+      "label": "current script caveat",
+      "source": "N14",
+      "target": "N15"
+    }
+  ],
+  "main_figure_rule": "Use fixed A3 retrieval for the visual route; do not draw Phase3A AE or Phase7B non-A3 comparison methods as final components.",
+  "nodes": [
+    {
+      "label": "Raw RHEED keyframe PNG",
+      "node_id": "N01",
+      "role": "input",
+      "shape": "H x W x 3 uint8",
+      "track": "shared"
+    },
+    {
+      "label": "Manual ROI crop and luminance",
+      "node_id": "N02",
+      "role": "preprocessing",
+      "shape": "roi_height x roi_width -> 224 x 224 uint8",
+      "track": "shared"
+    },
+    {
+      "label": "DINOv2 ViT-S/14 frozen encoder",
+      "node_id": "N03",
+      "role": "encoder",
+      "shape": "[1,3,224,224] -> CLS [1,384]",
+      "track": "quantitative"
+    },
+    {
+      "label": "Phase2A temporal aggregation",
+      "node_id": "N04",
+      "role": "feature",
+      "shape": "[1,384] -> [1,1536]",
+      "track": "quantitative"
+    },
+    {
+      "label": "Five full-cohort ridge members",
+      "node_id": "N05",
+      "role": "regression",
+      "shape": "5 x scalar Rq",
+      "track": "quantitative"
+    },
+    {
+      "label": "Median Rq ensemble",
+      "node_id": "N06",
+      "role": "prediction",
+      "shape": "q50 scalar nm",
+      "track": "quantitative"
+    },
+    {
+      "label": "Strict interval q10/q50/q90",
+      "node_id": "N07",
+      "role": "uncertainty",
+      "shape": "3 scalar Rq values",
+      "track": "strict_oof"
+    },
+    {
+      "label": "Predicted descriptor vector",
+      "node_id": "N08",
+      "role": "condition",
+      "shape": "[1,11]",
+      "track": "visual"
+    },
+    {
+      "label": "Strict A3 representative AFM bank",
+      "node_id": "N09",
+      "role": "retrieval bank",
+      "shape": "22 x 11 candidates per held-out fold",
+      "track": "strict_oof"
+    },
+    {
+      "label": "A3 distance and source selection",
+      "node_id": "N10",
+      "role": "selection",
+      "shape": "22 distances -> one source",
+      "track": "visual"
+    },
+    {
+      "label": "Selected historical AFM morphology",
+      "node_id": "N11",
+      "role": "source map",
+      "shape": "256 x 256",
+      "track": "visual"
+    },
+    {
+      "label": "Unit-Rq morphology projection",
+      "node_id": "N12",
+      "role": "normalization",
+      "shape": "256 x 256",
+      "track": "visual"
+    },
+    {
+      "label": "Representative AFM q10/q50/q90 maps",
+      "node_id": "N13",
+      "role": "output",
+      "shape": "3 x 256 x 256",
+      "track": "visual"
+    },
+    {
+      "label": "Full-cohort deployment visual bank",
+      "node_id": "N14",
+      "role": "future-only bank",
+      "shape": "23 groups / 116 scans",
+      "track": "deployment"
+    },
+    {
+      "label": "Current freeze unseen script",
+      "node_id": "N15",
+      "role": "discrepancy",
+      "shape": "deterministic placeholder embedding; Rq-nearest scan",
+      "track": "deployment caveat"
+    }
+  ],
+  "strict_oof_rule": "Each strict visual fold uses 22 candidate source groups after excluding the held-out sample.",
+  "title": "RHEED-to-Rq and Representative-AFM final architecture"
+}

@@ -1,0 +1,1 @@
+Detailed tensor-level architecture. DINOv2 ViT-S/14 produces 384-dimensional frame embeddings, Phase2A stores a 1536-dimensional temporal aggregate, and A3 ranks 22 strict OOF candidate representative AFM groups with an 11-dimensional descriptor vector.

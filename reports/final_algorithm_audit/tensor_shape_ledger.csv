@@ -1,0 +1,24 @@
+node_id,tensor_name,shape,dtype,operation,source_file,source_function,notes
+A01,raw_png_rgb,"[1080, 1920, 3]",uint8,read source keyframe PNG,clip_cache.py,frame_path/luminance_uint8,/Users/ziyi/Desktop/LAB/code/data/rheed_keyframe_selection/6081/videos/After rampong for GaSb/frames/135.png
+A02,grayscale_uint8,"[1080, 1920]",uint8,convert RGB to luminance,clip_cache.py,luminance_uint8,
+A03,roi_crop_uint8,"[772, 447]",uint8,manual ROI crop,clip_cache.py,build_clip_cache/_read_variant_frames,"xywh=[717, 127, 447, 772]"
+A04,keyframe_1_frames_uint8,"[1, 224, 224]",uint8,resize ROI and zero-pad to square,phase2_clip_variants.py,_read_variant_frames/build_clip_variants,/Users/ziyi/Desktop/LAB/code/outputs/rheed_video_afm_story/phase2a/clip_variants/keyframe_1/6081.npz
+A05,dino_rgb_float,"[1, 3, 224, 224]",float32,"scale uint8 to [0,1] and duplicate luminance to RGB",pretrained_embeddings.py,preprocess_frames,
+A06,dino_normalized_input,"[1, 3, 224, 224]",float32,ImageNet normalization,pretrained_embeddings.py,preprocess_frames,"DINO input shape [T=1,C=3,H=224,W=224]"
+A07,dino_patch_tokens,"[1, 256, 384]",float32,DINOv2 ViT-S/14 patch projection,pretrained_embeddings.py,load_dino,"shape recovered from dinov2_vits14 identifier: 224/14=16, 16*16=256 patches"
+A08,dino_token_sequence,"[1, 257, 384]",float32,prepend CLS token and transformer blocks,pretrained_embeddings.py,load_dino,upstream DINO weights are not copied in freeze; tensor values are not re-executed
+A09,dino_cls_output,"[1, 384]",float32,DINO CLS/frame embedding,pretrained_embeddings.py,extract_embeddings,shape recovered from DINO ViT-S/14; values not serialized separately
+A10,final_rheed_embedding,"[1, 1536]",float32,temporal aggregation mean/std/delta/slope,pretrained_embeddings.py,temporal_aggregate,keyframe_1 final dim = 4 * 384 = 1536; std/delta/slope components are zero for T=1
+Q01,feature_scaler_outputs,"[5, 1536]",float32,member feature scaling,build_final_paper_freeze.py,fit_full_cohort_quantitative,one row per ensemble member
+Q02,ensemble_member_outputs,[5],float32,ridge member scalar outputs,build_final_paper_freeze.py,fit_full_cohort_quantitative,
+Q03,full_cohort_predicted_rq_q50,[1],float32,median aggregation,build_final_paper_freeze.py,fit_full_cohort_quantitative,full-cohort in-sample for historical samples; not test performance
+Q04,strict_oof_predicted_rq_q50,[1],float32,strict OOF fold prediction,run_phase6a.py,finalists/ensemble_oof_predictions,fold coefficients are not serialized in freeze
+Q05,strict_q10_q50_q90,[3],float32,strict interval quantiles,run_phase7a.py,build_conditions,
+B01,predicted_descriptor_vector,"[1, 11]",float64,assemble predicted descriptor vector,run_phase7a.py,condition_for/condition_vector,"rq_nm,ra_nm,robust_height_range_nm,psd_low_fraction,psd_mid_fraction,psd_high_fraction,psd_slope,correlation_length_nm,anisotropy,height_skewness,height_kurtosis"
+B02,prototype_probabilities,"[1, 3]",float32,load prototype probabilities,run_phase7a.py,build_conditions,
+B03,afm_candidate_matrix,"[22, 11]",float32,strict OOF representative candidate descriptor bank excluding held-out sample,run_phase7a.py,source_rows/rank_sources,
+B04,a3_distance_vector,[22],float32,A3 distance vector,run_phase7a.py,rank_sources,sqrt(sum(((candidate-condition)/std(candidate_bank))^2)) + 0.05*abs(candidate_rq-condition_rq)
+B05,selected_source_index,[1],int32,select minimum A3 distance with sample_id/scan_id tie-break,run_phase7a.py,rank_sources/synthesize,source=6056 scan=GdSb_N6056_ctr_013
+B06,source_afm_centered_nm,"[256, 256]",float32,load selected historical source AFM,run_phase7a.py,read_map/resize_center,data/afm_second_order/6056/GdSb_N6056_ctr_013/GdSb_N6056_ctr_013_height.npy
+B07,unit_rq_morphology,"[256, 256]",float32,normalize morphology to unit Rq,rq_disentanglement.py,unit_shape/project_unit_rq_np,
+B08,representative_afm_q10_q50_q90,"[3, 256, 256]",float32,rescale one source morphology to q10/q50/q90 amplitudes,rq_disentanglement.py,physical_from_q,q10/q50/q90 share the same selected source morphology; only amplitude differs

@@ -1,0 +1,465 @@
+[
+  {
+    "device": "cpu",
+    "dtype": "uint8",
+    "max": 150.0,
+    "mean": 10.731920010288066,
+    "min": 0.0,
+    "node_id": "A01",
+    "notes": "/Users/ziyi/Desktop/LAB/code/data/rheed_keyframe_selection/6099/videos/ramping to 650C/frames/62.png",
+    "operation": "read source keyframe PNG",
+    "sample_id": "6099",
+    "shape": [
+      1920,
+      1080,
+      3
+    ],
+    "source_file": "clip_cache.py",
+    "source_function": "frame_path/luminance_uint8",
+    "std": 25.071325415826262,
+    "tensor_name": "raw_png_rgb",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "uint8",
+    "max": 57.0,
+    "mean": 4.597561728395061,
+    "min": 0.0,
+    "node_id": "A02",
+    "notes": "",
+    "operation": "convert RGB to luminance",
+    "sample_id": "6099",
+    "shape": [
+      1920,
+      1080
+    ],
+    "source_file": "clip_cache.py",
+    "source_function": "luminance_uint8",
+    "std": 6.676282593117588,
+    "tensor_name": "grayscale_uint8",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "uint8",
+    "max": 40.0,
+    "mean": 14.286271914547777,
+    "min": 0.0,
+    "node_id": "A03",
+    "notes": "xywh=[360, 481, 550, 783]",
+    "operation": "manual ROI crop",
+    "sample_id": "6099",
+    "shape": [
+      783,
+      550
+    ],
+    "source_file": "clip_cache.py",
+    "source_function": "build_clip_cache/_read_variant_frames",
+    "std": 5.793699067969139,
+    "tensor_name": "roi_crop_uint8",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "uint8",
+    "max": 38.0,
+    "mean": 10.010841836734693,
+    "min": 0.0,
+    "node_id": "A04",
+    "notes": "/Users/ziyi/Desktop/LAB/code/outputs/rheed_video_afm_story/phase2a/clip_variants/keyframe_1/6099.npz",
+    "operation": "resize ROI and zero-pad to square",
+    "sample_id": "6099",
+    "shape": [
+      1,
+      224,
+      224
+    ],
+    "source_file": "phase2_clip_variants.py",
+    "source_function": "_read_variant_frames/build_clip_variants",
+    "std": 8.138859477994162,
+    "tensor_name": "keyframe_1_frames_uint8",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 0.14901961386203766,
+    "mean": 0.0392582045625501,
+    "min": 0.0,
+    "node_id": "A05",
+    "notes": "",
+    "operation": "scale uint8 to [0,1] and duplicate luminance to RGB",
+    "sample_id": "6099",
+    "shape": [
+      1,
+      3,
+      224,
+      224
+    ],
+    "source_file": "pretrained_embeddings.py",
+    "source_function": "preprocess_frames",
+    "std": 0.03191709707618946,
+    "tensor_name": "dino_rgb_float",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": -1.1421349048614502,
+    "mean": -1.8122962317104787,
+    "min": -2.1179039478302,
+    "node_id": "A06",
+    "notes": "DINO input shape [T=1,C=3,H=224,W=224]",
+    "operation": "ImageNet normalization",
+    "sample_id": "6099",
+    "shape": [
+      1,
+      3,
+      224,
+      224
+    ],
+    "source_file": "pretrained_embeddings.py",
+    "source_function": "preprocess_frames",
+    "std": 0.19443757688295193,
+    "tensor_name": "dino_normalized_input",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 0.0,
+    "mean": 0.0,
+    "min": 0.0,
+    "node_id": "A07",
+    "notes": "shape recovered from dinov2_vits14 identifier: 224/14=16, 16*16=256 patches",
+    "operation": "DINOv2 ViT-S/14 patch projection",
+    "sample_id": "6099",
+    "shape": [
+      1,
+      256,
+      384
+    ],
+    "source_file": "pretrained_embeddings.py",
+    "source_function": "load_dino",
+    "std": 0.0,
+    "tensor_name": "dino_patch_tokens",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 0.0,
+    "mean": 0.0,
+    "min": 0.0,
+    "node_id": "A08",
+    "notes": "upstream DINO weights are not copied in freeze; tensor values are not re-executed",
+    "operation": "prepend CLS token and transformer blocks",
+    "sample_id": "6099",
+    "shape": [
+      1,
+      257,
+      384
+    ],
+    "source_file": "pretrained_embeddings.py",
+    "source_function": "load_dino",
+    "std": 0.0,
+    "tensor_name": "dino_token_sequence",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 0.0,
+    "mean": 0.0,
+    "min": 0.0,
+    "node_id": "A09",
+    "notes": "shape recovered from DINO ViT-S/14; values not serialized separately",
+    "operation": "DINO CLS/frame embedding",
+    "sample_id": "6099",
+    "shape": [
+      1,
+      384
+    ],
+    "source_file": "pretrained_embeddings.py",
+    "source_function": "extract_embeddings",
+    "std": 0.0,
+    "tensor_name": "dino_cls_output",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 6.03349494934082,
+    "mean": 0.016889378079213202,
+    "min": -9.883695602416992,
+    "node_id": "A10",
+    "notes": "keyframe_1 final dim = 4 * 384 = 1536; std/delta/slope components are zero for T=1",
+    "operation": "temporal aggregation mean/std/delta/slope",
+    "sample_id": "6099",
+    "shape": [
+      1,
+      1536
+    ],
+    "source_file": "pretrained_embeddings.py",
+    "source_function": "temporal_aggregate",
+    "std": 1.2016769701842651,
+    "tensor_name": "final_rheed_embedding",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 2.6905930042266846,
+    "mean": 0.0024450724963950656,
+    "min": -2.9262726306915283,
+    "node_id": "Q01",
+    "notes": "one row per ensemble member",
+    "operation": "member feature scaling",
+    "sample_id": "6099",
+    "shape": [
+      5,
+      1536
+    ],
+    "source_file": "build_final_paper_freeze.py",
+    "source_function": "fit_full_cohort_quantitative",
+    "std": 0.5790494381639586,
+    "tensor_name": "feature_scaler_outputs",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 10.827118873596191,
+    "mean": 10.470236015319824,
+    "min": 10.232314109802246,
+    "node_id": "Q02",
+    "notes": "",
+    "operation": "ridge member scalar outputs",
+    "sample_id": "6099",
+    "shape": [
+      5
+    ],
+    "source_file": "build_final_paper_freeze.py",
+    "source_function": "fit_full_cohort_quantitative",
+    "std": 0.291393633574368,
+    "tensor_name": "ensemble_member_outputs",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 10.232314109802246,
+    "mean": 10.232314109802246,
+    "min": 10.232314109802246,
+    "node_id": "Q03",
+    "notes": "full-cohort in-sample for historical samples; not test performance",
+    "operation": "median aggregation",
+    "sample_id": "6099",
+    "shape": [
+      1
+    ],
+    "source_file": "build_final_paper_freeze.py",
+    "source_function": "fit_full_cohort_quantitative",
+    "std": 0.0,
+    "tensor_name": "full_cohort_predicted_rq_q50",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 3.725470781326294,
+    "mean": 3.725470781326294,
+    "min": 3.725470781326294,
+    "node_id": "Q04",
+    "notes": "fold coefficients are not serialized in freeze",
+    "operation": "strict OOF fold prediction",
+    "sample_id": "6099",
+    "shape": [
+      1
+    ],
+    "source_file": "run_phase6a.py",
+    "source_function": "finalists/ensemble_oof_predictions",
+    "std": 0.0,
+    "tensor_name": "strict_oof_predicted_rq_q50",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 5.268584251403809,
+    "mean": 3.376097480456034,
+    "min": 1.48361074924469,
+    "node_id": "Q05",
+    "notes": "",
+    "operation": "strict interval quantiles",
+    "sample_id": "6099",
+    "shape": [
+      3
+    ],
+    "source_file": "run_phase7a.py",
+    "source_function": "build_conditions",
+    "std": 1.5452089617074811,
+    "tensor_name": "strict_q10_q50_q90",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float64",
+    "max": 24.156633290471284,
+    "mean": 4.679696785261729,
+    "min": -3.6317968025744016,
+    "node_id": "B01",
+    "notes": "rq_nm,ra_nm,robust_height_range_nm,psd_low_fraction,psd_mid_fraction,psd_high_fraction,psd_slope,correlation_length_nm,anisotropy,height_skewness,height_kurtosis",
+    "operation": "assemble predicted descriptor vector",
+    "sample_id": "6099",
+    "shape": [
+      1,
+      11
+    ],
+    "source_file": "run_phase7a.py",
+    "source_function": "condition_for/condition_vector",
+    "std": 8.169691847278974,
+    "tensor_name": "predicted_descriptor_vector",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 0.8999999761581421,
+    "mean": 0.3333333258827527,
+    "min": 0.05000000074505806,
+    "node_id": "B02",
+    "notes": "",
+    "operation": "load prototype probabilities",
+    "sample_id": "6099",
+    "shape": [
+      1,
+      3
+    ],
+    "source_file": "run_phase7a.py",
+    "source_function": "build_conditions",
+    "std": 0.40069383108199363,
+    "tensor_name": "prototype_probabilities",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 149.0196075439453,
+    "mean": 5.777328747836676,
+    "min": -4.592679023742676,
+    "node_id": "B03",
+    "notes": "",
+    "operation": "strict OOF representative candidate descriptor bank excluding held-out sample",
+    "sample_id": "6099",
+    "shape": [
+      22,
+      11
+    ],
+    "source_file": "run_phase7a.py",
+    "source_function": "source_rows/rank_sources",
+    "std": 14.40636629176203,
+    "tensor_name": "afm_candidate_matrix",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 7.477226257324219,
+    "mean": 4.387167746370489,
+    "min": 2.162198305130005,
+    "node_id": "B04",
+    "notes": "sqrt(sum(((candidate-condition)/std(candidate_bank))^2)) + 0.05*abs(candidate_rq-condition_rq)",
+    "operation": "A3 distance vector",
+    "sample_id": "6099",
+    "shape": [
+      22
+    ],
+    "source_file": "run_phase7a.py",
+    "source_function": "rank_sources",
+    "std": 1.3361000577196642,
+    "tensor_name": "a3_distance_vector",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "int32",
+    "max": 0.0,
+    "mean": 0.0,
+    "min": 0.0,
+    "node_id": "B05",
+    "notes": "source=6047 scan=N6047_1um_008",
+    "operation": "select minimum A3 distance with sample_id/scan_id tie-break",
+    "sample_id": "6099",
+    "shape": [
+      1
+    ],
+    "source_file": "run_phase7a.py",
+    "source_function": "rank_sources/synthesize",
+    "std": 0.0,
+    "tensor_name": "selected_source_index",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 18.429649353027344,
+    "mean": -1.4166062101139687e-08,
+    "min": -22.358348846435547,
+    "node_id": "B06",
+    "notes": "data/afm_second_order/6047/N6047_1um_008/N6047_1um_008_height.npy",
+    "operation": "load selected historical source AFM",
+    "sample_id": "6099",
+    "shape": [
+      256,
+      256
+    ],
+    "source_file": "run_phase7a.py",
+    "source_function": "read_map/resize_center",
+    "std": 4.694860442786797,
+    "tensor_name": "source_afm_centered_nm",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 3.925490617752075,
+    "mean": -2.0568147185429098e-09,
+    "min": -4.762299060821533,
+    "node_id": "B07",
+    "notes": "",
+    "operation": "normalize morphology to unit Rq",
+    "sample_id": "6099",
+    "shape": [
+      256,
+      256
+    ],
+    "source_file": "rq_disentanglement.py",
+    "source_function": "unit_shape/project_unit_rq_np",
+    "std": 0.9999990438082947,
+    "tensor_name": "unit_rq_morphology",
+    "track": "high_true_rq"
+  },
+  {
+    "device": "cpu",
+    "dtype": "float32",
+    "max": 20.681777954101562,
+    "mean": -6.806028888621067e-09,
+    "min": -25.090574264526367,
+    "node_id": "B08",
+    "notes": "q10/q50/q90 share the same selected source morphology; only amplitude differs",
+    "operation": "rescale one source morphology to q10/q50/q90 amplitudes",
+    "sample_id": "6099",
+    "shape": [
+      3,
+      256,
+      256
+    ],
+    "source_file": "rq_disentanglement.py",
+    "source_function": "physical_from_q",
+    "std": 3.7129070243542013,
+    "tensor_name": "representative_afm_q10_q50_q90",
+    "track": "high_true_rq"
+  }
+]
