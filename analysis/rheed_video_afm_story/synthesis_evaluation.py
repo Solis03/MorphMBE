@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import wasserstein_distance
 from skimage.metrics import structural_similarity
+from skimage.transform import resize
 
 from .afm_descriptors import descriptor_distance, describe_map
 from .common import repo_path, write_csv
@@ -14,6 +15,15 @@ from .rq_disentanglement import project_unit_rq_np, rq_np
 
 
 def eval_pair(true_phys: np.ndarray, pred_phys: np.ndarray, predicted_rq: float, true_rq: float) -> dict[str, float]:
+    if true_phys.shape != pred_phys.shape:
+        true_phys = resize(
+            true_phys.astype(np.float32),
+            pred_phys.shape,
+            order=1,
+            mode="reflect",
+            anti_aliasing=True,
+            preserve_range=True,
+        ).astype(np.float32)
     true_unit = project_unit_rq_np(true_phys)
     pred_unit = project_unit_rq_np(pred_phys)
     desc = descriptor_distance(true_unit, pred_unit)

@@ -1,0 +1,26 @@
+{
+  "variant_id": "afm_second_order_y2_v1",
+  "second_order_root": "data/afm_second_order",
+  "second_order_manifest_path": "data/afm_second_order/processing_manifest.csv",
+  "second_order_manifest_jsonl_path": "data/afm_second_order/processing_manifest.jsonl",
+  "phase1_manifest_path": "outputs/rheed_video_afm_story/phase1/modeling_manifest.parquet",
+  "phase1_afm_audit_path": "outputs/rheed_video_afm_story/phase1/afm_scan_audit.csv",
+  "phase2a_embedding_registry_path": "outputs/rheed_video_afm_story/phase2a/embedding_registry.csv",
+  "phase4a_base_config_path": "configs/rheed_video_afm_story_phase4a.yaml",
+  "phase4b_base_config_path": "configs/rheed_video_afm_story_phase4b.yaml",
+  "removelist_path": "removelist.txt",
+  "excluded_samples": ["6023", "6087"],
+  "expected_primary_n": 23,
+  "primary_scan_size_um": 1.0,
+  "scan_size_tolerance_um": 0.02,
+  "height_unit": "nm",
+  "variant_output_root": "outputs/rheed_video_afm_story/variants/afm_second_order_y2_v1",
+  "variant_report_root": "reports/rheed_video_afm_story/variants/afm_second_order_y2_v1",
+  "frozen_retrieval_weights": {
+    "w_q": 2.0,
+    "w_rheed": 0.25,
+    "w_phys": 0.25,
+    "w_stage": 0.0,
+    "top_k": 1
+  }
+}

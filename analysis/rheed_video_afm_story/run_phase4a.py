@@ -45,18 +45,25 @@ def provenance(config: dict[str, Any], report_root: Path) -> dict[str, bool]:
     return checks
 
 
+def _read_table(path: str | Path) -> pd.DataFrame:
+    p = repo_path(path)
+    if p.suffix == ".parquet":
+        return pd.read_parquet(p)
+    return pd.read_csv(p)
+
+
 def load_inputs(config: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
-    manifest = pd.read_parquet(repo_path(config["phase1_manifest_path"]))
+    manifest = _read_table(config["phase1_manifest_path"])
     manifest["sample_id"] = manifest["sample_id"].astype(str)
     manifest["growth_run_id"] = manifest["growth_run_id"].astype(str)
     excluded = set(config["excluded_samples"])
     manifest = manifest.query("usable_for_modeling and cohort_primary_1um").copy()
     manifest = manifest[~manifest["sample_id"].isin(excluded)].reset_index(drop=True)
-    bank = pd.read_parquet(repo_path(config["phase3a_morphology_bank_path"]))
+    bank = _read_table(config["phase3a_morphology_bank_path"])
     bank["sample_id"] = bank["sample_id"].astype(str)
     bank["growth_run_id"] = bank["growth_run_id"].astype(str)
     bank = bank[~bank["sample_id"].isin(excluded)].reset_index(drop=True)
-    decoder = pd.read_parquet(repo_path(config["phase3a_decoder_manifest_path"]))
+    decoder = _read_table(config["phase3a_decoder_manifest_path"])
     decoder["sample_id"] = decoder["sample_id"].astype(str)
     decoder = decoder[~decoder["sample_id"].isin(excluded)].reset_index(drop=True)
     return manifest, bank, decoder

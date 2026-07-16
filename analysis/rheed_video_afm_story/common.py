@@ -88,6 +88,8 @@ def write_json(value: Any, path: str | Path) -> None:
 
 
 def _json_default(value: Any) -> Any:
+    if isinstance(value, (np.bool_,)):
+        return bool(value)
     if isinstance(value, (np.integer,)):
         return int(value)
     if isinstance(value, (np.floating,)):
@@ -143,6 +145,8 @@ def infer_material(sample_id: str, afm_ids: list[str]) -> str:
 def save_parquet(df: pd.DataFrame, path: str | Path) -> str:
     file_path = repo_path(path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(file_path, index=False)
+    try:
+        df.to_parquet(file_path, index=False)
+    except ImportError:
+        df.to_csv(file_path.with_suffix(file_path.suffix + ".csv_fallback"), index=False)
     return display_path(file_path)
-

@@ -1,0 +1,13 @@
+review_id,sample_id,method,A,B
+0,6048,S4_calibrated_patch_synthesis,candidate,real
+1,6056,S4_calibrated_patch_synthesis,real,candidate
+2,6047,S4_calibrated_patch_synthesis,candidate,real
+3,6033,S4_calibrated_patch_synthesis,candidate,real
+4,6095,S4_calibrated_patch_synthesis,real,candidate
+5,6081,S4_calibrated_patch_synthesis,candidate,real
+6,6085,S4_calibrated_patch_synthesis,real,candidate
+7,6101,S4_calibrated_patch_synthesis,real,candidate
+8,6084,S4_calibrated_patch_synthesis,candidate,real
+9,6063,S4_calibrated_patch_synthesis,real,candidate
+10,6062,S4_calibrated_patch_synthesis,real,candidate
+11,6078,S4_calibrated_patch_synthesis,candidate,real

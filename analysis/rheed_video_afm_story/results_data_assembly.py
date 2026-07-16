@@ -30,6 +30,13 @@ def load_artifacts(config: dict[str, Any]) -> dict[str, Any]:
     return data
 
 
+def artifact_path(config: dict[str, Any], key: str, default: str) -> str:
+    item = config.get("artifacts", {}).get(key)
+    if isinstance(item, dict) and item.get("path"):
+        return str(item["path"])
+    return default
+
+
 def primary_manifest(data: dict[str, Any], config: dict[str, Any]) -> pd.DataFrame:
     excluded = set(config["cohort"]["excluded_samples"])
     m = data["phase1_manifest"].copy()
@@ -56,9 +63,9 @@ def build_sample_table(data: dict[str, Any], config: dict[str, Any]) -> pd.DataF
     descriptor_numeric = descriptors.groupby("sample_id").median(numeric_only=True)
     rq = data["phase4a_rq_oof"]
     rq = rq[rq["model_id"].eq(config["preferred_rq_model"])].copy()
-    conf = read_table("outputs/rheed_video_afm_story/phase4a/high_confidence_support.csv")
+    conf = read_table(artifact_path(config, "phase4a_confidence", "outputs/rheed_video_afm_story/phase4a/high_confidence_support.csv"))
     physics = data["phase4a_physics"].copy()
-    idx = read_table("outputs/rheed_video_afm_story/phase4a/automatic_spot_streak_index.csv")
+    idx = read_table(artifact_path(config, "phase4a_automatic_index", "outputs/rheed_video_afm_story/phase4a/automatic_spot_streak_index.csv"))
     retrieval = data["phase4a_retrieval"].copy()
     outputs = data["phase4a_synthesis_outputs"].copy()
     metrics = data["phase4a_synthesis_metrics"].copy()
@@ -165,9 +172,9 @@ def write_sample_table(df: pd.DataFrame, config: dict[str, Any]) -> None:
 
 def build_model_summary(data: dict[str, Any], config: dict[str, Any]) -> pd.DataFrame:
     rq = data["phase4a_rq_oof"].copy()
-    rq_metrics = read_table("outputs/rheed_video_afm_story/phase4a/rheed_rq_oof_metrics.csv")
-    high = read_table("outputs/rheed_video_afm_story/phase4a/high_confidence_rq_metrics.csv")
-    synth = read_table("outputs/rheed_video_afm_story/phase4a/synthesis_method_summary.csv")
+    rq_metrics = read_table(artifact_path(config, "phase4a_rq_metrics", "outputs/rheed_video_afm_story/phase4a/rheed_rq_oof_metrics.csv"))
+    high = read_table(artifact_path(config, "phase4a_high_confidence_metrics", "outputs/rheed_video_afm_story/phase4a/high_confidence_rq_metrics.csv"))
+    synth = read_table(artifact_path(config, "phase4a_synthesis_summary", "outputs/rheed_video_afm_story/phase4a/synthesis_method_summary.csv"))
     rows = []
     for model in ["R0_median", "R1_dino_pls", "R4_auto_iso_dino_residual"]:
         g = rq_metrics[rq_metrics["model_id"] == model].iloc[0]

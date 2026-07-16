@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 from typing import Any
 
@@ -55,6 +56,21 @@ def write_selection_file(sample_df: pd.DataFrame, selected: list[str], config: d
     )
 
 
+def select_main_figure_samples(sample_df: pd.DataFrame, config: dict[str, Any]) -> list[str]:
+    selection_path = config.get("main_figure_sample_selection_path")
+    if selection_path:
+        selection = json.loads(repo_path(selection_path).read_text(encoding="utf-8"))
+        requested = [str(sample_id) for sample_id in selection.get("selected_sample_ids", [])]
+        available = set(sample_df["sample_id"].astype(str))
+        selected = [sample_id for sample_id in requested if sample_id in available]
+        if len(selected) != len(requested):
+            missing = sorted(set(requested) - set(selected))
+            raise RuntimeError(f"Configured main figure sample selection is missing samples: {missing}")
+        if selected:
+            return selected
+    return quantile_sample_selection(sample_df, [0, 0.2, 0.4, 0.6, 0.8, 1.0])
+
+
 def write_all_samples_visual_table(sample_df: pd.DataFrame, config: dict[str, Any]) -> None:
     display_cols = [
         "sample_id",
@@ -89,6 +105,7 @@ def write_summary(
     validation: dict[str, Any],
     atlas_pages: dict[str, int],
     config: dict[str, Any],
+    selected: list[str],
 ) -> None:
     report_root = repo_path(config["report_root"])
     output_root = repo_path(config["output_root"])
@@ -100,7 +117,7 @@ def write_summary(
             "phase": "4B",
             "primary_sample_count": int(len(sample_df)),
             "excluded_samples": config["cohort"]["excluded_samples"],
-            "main_figure_sample_ids": quantile_sample_selection(sample_df, [0, 0.2, 0.4, 0.6, 0.8, 1.0]),
+            "main_figure_sample_ids": selected,
             "preferred_rq_model": config["preferred_rq_model"],
             "r4_mae_nm": float(r4["MAE"]),
             "r4_spearman": float(r4["Spearman"]),
@@ -126,7 +143,8 @@ def run(config_path: str | Path) -> dict[str, Any]:
     verify_config_hashes(config, before_hashes)
 
     data = load_artifacts(config)
-    data["same_growth"] = pd.read_csv(repo_path("outputs/rheed_video_afm_story/phase4a/same_growth_afm_similarity.csv"))
+    same_growth_path = config.get("same_growth_path", "outputs/rheed_video_afm_story/phase4a/same_growth_afm_similarity.csv")
+    data["same_growth"] = pd.read_csv(repo_path(same_growth_path))
 
     sample_df = build_sample_table(data, config)
     model_summary = build_model_summary(data, config)
@@ -136,7 +154,7 @@ def run(config_path: str | Path) -> dict[str, Any]:
     audit_schema(data, sample_df, config, before_hashes)
 
     set_publication_style()
-    selected = quantile_sample_selection(sample_df, [0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    selected = select_main_figure_samples(sample_df, config)
     write_selection_file(sample_df, selected, config)
 
     render_records: list[dict[str, Any]] = []
@@ -155,7 +173,7 @@ def run(config_path: str | Path) -> dict[str, Any]:
 
     validation = validate_visualization(sample_df, config, render_records, before_hashes)
     write_dashboard_and_text(sample_df, model_summary, validation, config)
-    write_summary(sample_df, model_summary, validation, atlas_pages, config)
+    write_summary(sample_df, model_summary, validation, atlas_pages, config, selected)
     return {
         "samples": len(sample_df),
         "figures": len(list((repo_path(config["report_root"]) / "figures").glob("*.png"))),

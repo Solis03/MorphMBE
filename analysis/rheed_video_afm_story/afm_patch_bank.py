@@ -4,13 +4,17 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from skimage.transform import resize
 
 from .common import repo_path
 from .rq_disentanglement import project_unit_rq_np
 
 
 def load_bank_shape(row: pd.Series) -> np.ndarray:
-    return project_unit_rq_np(np.load(repo_path(row["unit_shape_map_path"])).astype(np.float32))
+    arr = np.load(repo_path(row["unit_shape_map_path"])).astype(np.float32)
+    if arr.shape != (256, 256):
+        arr = resize(arr, (256, 256), order=1, mode="reflect", anti_aliasing=True, preserve_range=True).astype(np.float32)
+    return project_unit_rq_np(arr)
 
 
 def training_bank_for_sample(bank: pd.DataFrame, heldout_group: str, candidate_groups: list[str]) -> pd.DataFrame:

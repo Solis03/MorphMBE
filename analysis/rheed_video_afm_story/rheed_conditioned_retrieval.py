@@ -51,9 +51,10 @@ def run_retrieval(manifest: pd.DataFrame, bank: pd.DataFrame, rq_pred: pd.DataFr
     y = manifest["primary_rq_nm_median"].to_numpy(float)
     rows, audit = [], []
     chosen_weights = []
+    frozen_weights = config.get("frozen_retrieval_weights")
     for i, sid in enumerate(samples):
         train_mask = groups != groups[i]
-        weights = choose_weights(samples[train_mask], y[train_mask], stages[train_mask], X_dino[train_mask], phys[train_mask], config)
+        weights = dict(frozen_weights) if frozen_weights else choose_weights(samples[train_mask], y[train_mask], stages[train_mask], X_dino[train_mask], phys[train_mask], config)
         chosen_weights.append(weights)
         train_ids = samples[train_mask]
         pred_rq = float(best_pred.loc[sid, "predicted_rq_nm"])
@@ -83,7 +84,7 @@ def run_retrieval(manifest: pd.DataFrame, bank: pd.DataFrame, rq_pred: pd.DataFr
         audit.append({"heldout_sample_id": sid, "heldout_group": groups[i], "candidate_group_ids": json.dumps(cand_ids), "contains_heldout_group": bool(groups[i] in cand_ids), "group_balanced_first": True, "outer_heldout_afm_in_bank": False})
     candidates = pd.DataFrame(rows)
     audit_df = pd.DataFrame(audit)
-    # Final weights are the modal inner-CV selection.
+    # Final weights are either the controlled frozen setting or the modal inner-CV selection.
     weight_df = pd.DataFrame(chosen_weights)
     final = {c: (int(weight_df[c].mode().iloc[0]) if c == "top_k" else float(weight_df[c].mode().iloc[0])) for c in weight_df.columns}
     write_csv(candidates, output_root / "oof_retrieval_candidates.csv")
