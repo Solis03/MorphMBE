@@ -9,6 +9,7 @@ from typing import Any
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from .common import repo_path, save_parquet, write_csv, write_json
 from .rq_disentanglement import physical_from_q, project_unit_rq_np, rq_np
@@ -143,12 +144,27 @@ def plot_afm(ax: plt.Axes, arr: np.ndarray, title: str) -> None:
     ax.set_yticks([])
 
 
+def plot_afm_with_heightbar(ax: plt.Axes, arr: np.ndarray, title: str) -> None:
+    lo, hi = np.percentile(arr, [1, 99])
+    im = ax.imshow(arr, cmap="viridis", vmin=lo, vmax=hi)
+    ax.set_title(title, fontsize=6, pad=2)
+    ax.set_xticks([])
+    ax.set_yticks([])
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.025)
+    cb = ax.figure.colorbar(im, cax=cax)
+    cb.set_ticks([lo, hi])
+    cb.ax.set_yticklabels([f"{lo:.1f}", f"{hi:.1f}"])
+    cb.ax.tick_params(labelsize=4, length=1, pad=1)
+    cb.set_label("nm", fontsize=4, labelpad=1)
+
+
 def plot_rheed(ax: plt.Axes, img: np.ndarray | None, title: str) -> None:
     if img is None:
         ax.text(0.5, 0.5, "missing", ha="center", va="center", fontsize=6)
     else:
         ax.imshow(img, cmap="gray")
-    ax.set_title(title, fontsize=6)
+    ax.set_title(title, fontsize=6, pad=2)
     ax.set_xticks([])
     ax.set_yticks([])
 
@@ -220,6 +236,54 @@ def select_or_create_amp_map(
     return path
 
 
+def build_retrieval_presentation_figure(
+    rep: Path,
+    active_ids: list[str],
+    q50: pd.DataFrame,
+    conditions: pd.DataFrame,
+    index: pd.DataFrame,
+    method_id: str,
+) -> dict[str, str]:
+    samples_per_row = 3
+    panels_per_sample = 3
+    nrows = int(np.ceil(len(active_ids) / samples_per_row))
+    ncols = samples_per_row * panels_per_sample
+    fig, axes = plt.subplots(nrows, ncols, figsize=(15.0, max(8.0, nrows * 1.82)))
+    axes = np.atleast_2d(axes)
+    fig.suptitle(
+        f"Strict OOF fixed retrieval ({method_id}) atlas: RHEED keyframe, ground truth AFM, retrieved AFM q50",
+        fontsize=11,
+        weight="bold",
+    )
+    idx = index.drop_duplicates("sample_id").set_index("sample_id")
+    for pos, sid in enumerate(active_ids):
+        r = pos // samples_per_row
+        group = pos % samples_per_row
+        c0 = group * panels_per_sample
+        row = q50[q50["sample_id"].astype(str).eq(sid)].iloc[0]
+        q = q_values(conditions, sid)
+        true_rq = true_rq_value(conditions, sid)
+        gt = read_map(idx.loc[sid, "second_order_representative_afm_path"])
+        retrieved = read_map(repo_path(row["map_path"]))
+        rheed = render_rheed(sid)
+        plot_rheed(axes[r, c0], rheed, f"{sid}\nRHEED")
+        plot_afm_with_heightbar(axes[r, c0 + 1], gt, f"Ground truth\nRq {true_rq:.2f}")
+        plot_afm_with_heightbar(axes[r, c0 + 2], retrieved, f"Retrieved q50\nRq {q['q50']:.2f}")
+    for pos in range(len(active_ids), nrows * samples_per_row):
+        r = pos // samples_per_row
+        group = pos % samples_per_row
+        c0 = group * panels_per_sample
+        for c in range(c0, c0 + panels_per_sample):
+            axes[r, c].axis("off")
+    for ax in axes.flat:
+        ax.set_anchor("N")
+    fig.subplots_adjust(left=0.012, right=0.992, top=0.955, bottom=0.015, wspace=0.18, hspace=0.28)
+    stem = rep / "figures" / "Fig_fixed_retrieval_all_23_strict_oof_atlas"
+    paths = save_figure(fig, stem)
+    plt.close(fig)
+    return paths
+
+
 def build_family(
     out: Path,
     rep: Path,
@@ -235,13 +299,17 @@ def build_family(
     q50 = by_amp["q50"].sort_values("sample_id").reset_index(drop=True)
     rows: list[dict[str, Any]] = []
 
-    fig, axes = plt.subplots(len(active_ids), 6, figsize=(13.5, max(12, len(active_ids) * 1.55)))
-    axes = np.atleast_2d(axes)
-    fig.suptitle(
-        f"Strict OOF fixed {family} ({method_id}) atlas: RHEED-conditioned deployable path; held-out AFM shown only for retrospective comparison",
-        fontsize=12,
-        weight="bold",
-    )
+    if family == "retrieval":
+        fig = None
+        axes = None
+    else:
+        fig, axes = plt.subplots(len(active_ids), 6, figsize=(13.5, max(12, len(active_ids) * 1.55)))
+        axes = np.atleast_2d(axes)
+        fig.suptitle(
+            f"Strict OOF fixed {family} ({method_id}) atlas: RHEED-conditioned deployable path; held-out AFM shown only for retrospective comparison",
+            fontsize=12,
+            weight="bold",
+        )
 
     idx = index.drop_duplicates("sample_id").set_index("sample_id")
     for r, sid in enumerate(active_ids):
@@ -261,30 +329,35 @@ def build_family(
             render_single_map(read_map(map_path), rendered)
             rendered_paths[amp] = str(rendered)
 
-        plot_rheed(axes[r, 0], rheed, f"{sid} RHEED")
-        plot_afm(axes[r, 1], gt, "GT AFM")
-        plot_afm(axes[r, 2], read_map(amp_paths["q50"]), f"{method_id} q50")
-        plot_afm(axes[r, 3], read_map(amp_paths["q10"]), "q10")
-        plot_afm(axes[r, 4], read_map(amp_paths["q90"]), "q90")
-        axes[r, 5].axis("off")
+        if family != "retrieval" and axes is not None:
+            plot_rheed(axes[r, 0], rheed, f"{sid} RHEED")
+            plot_afm(axes[r, 1], gt, "GT AFM")
+            plot_afm(axes[r, 2], read_map(amp_paths["q50"]), f"{method_id} q50")
+            plot_afm(axes[r, 3], read_map(amp_paths["q10"]), "q10")
+            plot_afm(axes[r, 4], read_map(amp_paths["q90"]), "q90")
+            axes[r, 5].axis("off")
+            text_ax = axes[r, 5]
+        else:
+            text_ax = None
         source_ids = parse_list(row["source_sample_ids"])
-        axes[r, 5].text(
-            0.01,
-            0.96,
-            "\n".join(
-                [
-                    f"sample {sid}",
-                    f"true Rq {true_rq:.2f}",
-                    f"pred q50 {q['q50']:.2f}",
-                    f"out Rq {float(row['measured_rq_nm']):.2f}",
-                    f"PSD {float(row['normalized_psd_log_distance']):.2f}",
-                    f"source {','.join(source_ids[:3])}",
-                    "support strict_oof",
-                ]
-            ),
-            va="top",
-            fontsize=6,
-        )
+        if text_ax is not None:
+            text_ax.text(
+                0.01,
+                0.96,
+                "\n".join(
+                    [
+                        f"sample {sid}",
+                        f"true Rq {true_rq:.2f}",
+                        f"pred q50 {q['q50']:.2f}",
+                        f"out Rq {float(row['measured_rq_nm']):.2f}",
+                        f"PSD {float(row['normalized_psd_log_distance']):.2f}",
+                        f"source {','.join(source_ids[:3])}",
+                        "support strict_oof",
+                    ]
+                ),
+                va="top",
+                fontsize=6,
+            )
         rows.append(
             {
                 "sample_id": sid,
@@ -322,14 +395,18 @@ def build_family(
                 "rheed_keyframe_path": f"outputs/rheed_video_afm_story/phase2a/clip_variants/keyframe_1/{sid}.npz",
             }
         )
-    for ax in axes.flat:
-        ax.set_anchor("N")
-    fig.tight_layout(rect=(0, 0, 1, 0.985))
-    stem = rep / "figures" / f"Fig_fixed_{family}_all_23_strict_oof_atlas"
-    paths = save_figure(fig, stem)
-    plt.close(fig)
-
     table = pd.DataFrame(rows)
+    if family == "retrieval":
+        paths = build_retrieval_presentation_figure(rep, active_ids, q50, conditions, index, method_id)
+    else:
+        if axes is None or fig is None:
+            raise RuntimeError("Non-retrieval atlas figure was not initialized")
+        for ax in axes.flat:
+            ax.set_anchor("N")
+        fig.tight_layout(rect=(0, 0, 1, 0.985))
+        stem = rep / "figures" / f"Fig_fixed_{family}_all_23_strict_oof_atlas"
+        paths = save_figure(fig, stem)
+        plt.close(fig)
     table["atlas_png_path"] = paths["png"]
     table["atlas_pdf_path"] = paths["pdf"]
     write_csv(table, out / f"{family}_strict_outputs.csv")
