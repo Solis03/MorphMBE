@@ -1,0 +1,160 @@
+{
+  "all_checks_passed": true,
+  "checks": [
+    {
+      "details": "",
+      "name": "active_sample_ids_exact",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "prediction_sample_ids_exact",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "true_and_predicted_rq_not_identical",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 23,
+        "observed": 23
+      },
+      "name": "metric_N_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.2600983407909774,
+        "observed": 1.2600983407909774
+      },
+      "name": "metric_MAE_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.1205674310532974,
+        "observed": 1.1205674310532974
+      },
+      "name": "metric_median_AE_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.8393101333714263,
+        "observed": 1.8393101333714263
+      },
+      "name": "metric_RMSE_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.2939669042578328,
+        "observed": 0.2939669042578328
+      },
+      "name": "metric_R2_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.42885375494071143,
+        "observed": 0.42885375494071143
+      },
+      "name": "metric_Spearman_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.28063241106719367,
+        "observed": 0.28063241106719367
+      },
+      "name": "metric_Kendall_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.6403162055335968,
+        "observed": 0.6403162055335968
+      },
+      "name": "metric_pairwise_concordance_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.625,
+        "observed": 0.625
+      },
+      "name": "metric_low_high_balanced_accuracy_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.625,
+        "observed": 0.625
+      },
+      "name": "metric_high_rq_sensitivity_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.7333333333333333,
+        "observed": 0.7333333333333333
+      },
+      "name": "metric_high_rq_specificity_matches",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "retrieval_a3_only_n23",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "retrieval_no_heldout_source_contribution",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "retrieval_no_true_afm_selection",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "retrieval_no_true_descriptor_selection",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "strict_candidate_group_count_22",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "strict_identity_pass_all",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "prospective_deployment_blocker_exists",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "no_noncanonical_predict_unseen_py",
+      "pass": true
+    },
+    {
+      "details": [],
+      "name": "no_file_over_100mb",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "main_figures_exist",
+      "pass": true
+    }
+  ],
+  "freeze_id": "rheed_afm_single_frame_v1_2026-07-18",
+  "manifest_entry_count": 287
+}

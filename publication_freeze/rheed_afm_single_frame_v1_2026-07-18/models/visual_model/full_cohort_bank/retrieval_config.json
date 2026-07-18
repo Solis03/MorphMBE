@@ -1,0 +1,7 @@
+{
+  "descriptor_distance": "scaled descriptor/prototype conditioned",
+  "method": "A3_full_cohort",
+  "rq_amplitude_scaling": "predicted Rq",
+  "scan_selection": "descriptor-nearest scan",
+  "source_groups_allowed": 23
+}

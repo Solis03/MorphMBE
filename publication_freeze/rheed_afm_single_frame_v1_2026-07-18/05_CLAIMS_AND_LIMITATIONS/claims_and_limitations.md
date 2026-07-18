@@ -1,0 +1,1 @@
+Supported: retrospective 23-sample single-frame RHEED-to-Rq and strict A3 representative AFM retrieval. Limitations: small N; q10/q90 are not calibrated PIs; A3 is retrieval not novel generation; prospective deployment is blocked; strict fold fitted sklearn objects were not serialized upstream.

@@ -1,0 +1,2 @@
+family,method_id,N,median_visual_composite,mean_visual_composite,median_psd_distance,median_histogram_wasserstein,median_corr_length_relative_error,max_heldout_source_contribution,strict_identity_pass
+retrieval,A3,23,0.2114539805176648,0.2173810396752447,0.3939389836376274,0.0807791181908659,0.2222222222222221,0.0,True

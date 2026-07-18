@@ -1,0 +1,5 @@
+flowchart LR
+  A[Single selected RHEED keyframe] --> B[DINOv2 ViT-S/14 embedding]
+  B --> C[Top-five Ridge median ensemble]
+  C --> D[Predicted Rq q50 nm]
+  D --> E[A3 strict historical AFM retrieval]

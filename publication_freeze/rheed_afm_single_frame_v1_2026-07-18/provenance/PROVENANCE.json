@@ -1,0 +1,20 @@
+{
+  "created_utc": "2026-07-18T17:15:37.717814+00:00",
+  "excluded_historical_visual_families": [
+    "A2",
+    "A6",
+    "diffusion",
+    "VQ",
+    "quilting",
+    "residual",
+    "IAAFT",
+    "texture",
+    "oracle",
+    "mixed-best"
+  ],
+  "freeze_id": "rheed_afm_single_frame_v1_2026-07-18",
+  "git_commit": "677c47ee166aa5b611ea5dc5553be0f8f81d8659",
+  "prospective_deployment_blocked": true,
+  "selected_method_only": true,
+  "source_root": "/Users/ziyi/Desktop/LAB/code"
+}

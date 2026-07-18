@@ -1,0 +1,12 @@
+position,descriptor
+1,rq_nm
+2,ra_nm
+3,robust_height_range_nm
+4,psd_low_fraction
+5,psd_mid_fraction
+6,psd_high_fraction
+7,psd_slope
+8,correlation_length_nm
+9,anisotropy
+10,height_skewness
+11,height_kurtosis

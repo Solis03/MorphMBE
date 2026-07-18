@@ -1,0 +1,7 @@
+{
+  "predicted_rq_nm": "float",
+  "q10": "float",
+  "q50": "float",
+  "q90": "float",
+  "representative_afm": "npy/png"
+}

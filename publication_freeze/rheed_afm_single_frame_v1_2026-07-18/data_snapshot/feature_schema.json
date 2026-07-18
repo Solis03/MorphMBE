@@ -1,0 +1,13 @@
+{
+  "embedding_dim": 1536,
+  "encoder": "DINOv2 ViT-S/14",
+  "feature_set": "E1_dino_keyframe",
+  "input_shape": [
+    1,
+    224,
+    224
+  ],
+  "sample_count": 23,
+  "single_frame_variant": "keyframe_1 raw_luminance",
+  "weight_identifier": "facebookresearch/dinov2:dinov2_vits14"
+}

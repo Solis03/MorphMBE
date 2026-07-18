@@ -1,0 +1,22 @@
+{
+  "candidate_groups_per_heldout": 22,
+  "descriptor_order": [
+    "rq_nm",
+    "ra_nm",
+    "robust_height_range_nm",
+    "psd_low_fraction",
+    "psd_mid_fraction",
+    "psd_high_fraction",
+    "psd_slope",
+    "correlation_length_nm",
+    "anisotropy",
+    "height_skewness",
+    "height_kurtosis"
+  ],
+  "family": "retrieval",
+  "method_id": "A3",
+  "q10_q90_generation": "fold-training absolute-error quantile bands around q50, amplitude-only rescale; not validated 80% PI",
+  "rank_score": "sqrt(sum(((bank_descriptor-condition_descriptor)/training_bank_std)^2)) + 0.05*abs(bank_rq_nm-condition_rq_nm)",
+  "rq_duplication_note": "rq_nm is both inside the descriptor vector and in the small explicit A3 Rq penalty.",
+  "strict_leakage_rule": "heldout sample group excluded; true heldout AFM/descriptors not used for selection"
+}

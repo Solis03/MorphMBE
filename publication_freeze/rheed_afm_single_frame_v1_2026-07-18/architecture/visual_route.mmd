@@ -1,0 +1,5 @@
+flowchart LR
+  A[Predicted Rq and descriptors] --> B[Condition vector]
+  B --> C[Strict bank excludes heldout]
+  C --> D[A3 descriptor rank plus Rq penalty]
+  D --> E[Top historical AFM exemplar]
