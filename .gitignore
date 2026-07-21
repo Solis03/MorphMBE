@@ -21,6 +21,10 @@ data/plane_corrected_afm/
 outputs/
 checkpoints/
 
+# Local decode/cache files from prospective unseen keyframe selection.
+publication_freeze/prospective_unseen_single_frame_v1/cache/
+publication_freeze/prospective_unseen_single_frame_v1/logs/
+
 # Large derived paper-freeze archives stay local or belong in Releases/LFS.
 paper_freeze/*.tar.gz
 paper_freeze/*.tar.gz.sha256

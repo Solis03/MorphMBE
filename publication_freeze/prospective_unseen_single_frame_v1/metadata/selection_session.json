@@ -1,0 +1,24 @@
+{
+  "data_root": "data/compressedfile",
+  "freeze_reference": {
+    "freeze_id": "rheed_afm_single_frame_v1_2026-07-18",
+    "freeze_path": "publication_freeze/rheed_afm_single_frame_v1_2026-07-18"
+  },
+  "sample_ids": [
+    "N6342",
+    "N6358",
+    "N6382",
+    "N6389",
+    "N6390"
+  ],
+  "schema_version": "unseen-keyframe-selection-session-v1",
+  "status_by_sample": {
+    "N6342": "completed",
+    "N6358": "completed",
+    "N6382": "completed",
+    "N6389": "completed",
+    "N6390": "completed"
+  },
+  "tool_version": "prospective-unseen-keyframe-selector-v1",
+  "updated_at_utc": "2026-07-20T22:46:17.457232Z"
+}

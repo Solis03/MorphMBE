@@ -1,0 +1,28 @@
+{
+  "checks": [
+    "exactly five expected sample IDs",
+    "only MPG source references in completed metadata",
+    "no IMM or AVI final metadata source path",
+    "frame index within bounds",
+    "context window consistency",
+    "exported keyframe exists and hash matches",
+    "ROI metadata exists in source_frame_pixels and ROI crop hash matches",
+    "saved keyframe matches deterministic re-extraction",
+    "source video size and mtime unchanged from saved metadata",
+    "no full video copied into package",
+    "frozen manifest unchanged",
+    "no prediction outputs checked or generated",
+    "no AFM labels used by this package"
+  ],
+  "errors": [],
+  "frozen_directory_verification": {
+    "checked_files": 287,
+    "freeze_manifest_relpath": "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/provenance/MANIFEST.sha256",
+    "mismatches": [],
+    "status": "ok"
+  },
+  "incomplete_samples": [],
+  "schema_version": "unseen-keyframe-selection-validation-v1",
+  "status": "ok",
+  "warnings": []
+}
