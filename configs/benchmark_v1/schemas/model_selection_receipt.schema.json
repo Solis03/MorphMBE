@@ -1,0 +1,39 @@
+{
+  "properties": {
+    "candidate_model_id": {
+      "type": "string"
+    },
+    "historical_selection_metric": {
+      "type": "number"
+    },
+    "historical_selection_metric_name": {
+      "type": "string"
+    },
+    "protocol_hash": {
+      "type": "string"
+    },
+    "registry_hash": {
+      "type": "string"
+    },
+    "selected_without_pilot_truth": {
+      "type": "boolean"
+    },
+    "split_hash": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "timestamp",
+    "candidate_model_id",
+    "historical_selection_metric",
+    "historical_selection_metric_name",
+    "protocol_hash",
+    "registry_hash",
+    "split_hash",
+    "selected_without_pilot_truth"
+  ],
+  "type": "object"
+}

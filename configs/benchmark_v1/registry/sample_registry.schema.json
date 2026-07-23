@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "cohort_role_enum": [
+    "historical_development",
+    "prospective_pilot_seen",
+    "prospective_pending_truth",
+    "afm_only_unmatched"
+  ],
+  "properties": {
+    "afm_scan_count": {
+      "type": "string"
+    },
+    "afm_source_path": {
+      "type": "string"
+    },
+    "cohort_role": {
+      "type": "string"
+    },
+    "eligible_for_confirmatory_test": {
+      "type": "string"
+    },
+    "eligible_for_final_training": {
+      "type": "string"
+    },
+    "eligible_for_model_development": {
+      "type": "string"
+    },
+    "eligible_for_pilot_evaluation": {
+      "type": "string"
+    },
+    "eligible_for_primary_nested_cv": {
+      "type": "string"
+    },
+    "exclusion_reason": {
+      "type": "string"
+    },
+    "growth_group_id": {
+      "type": "string"
+    },
+    "has_afm": {
+      "type": "string"
+    },
+    "has_rheed": {
+      "type": "string"
+    },
+    "has_target": {
+      "type": "string"
+    },
+    "historical_or_prospective": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "paired_status": {
+      "type": "string"
+    },
+    "rheed_source_path": {
+      "type": "string"
+    },
+    "sample_id": {
+      "type": "string"
+    },
+    "sample_id_status": {
+      "type": "string"
+    },
+    "source_manifest_hash": {
+      "type": "string"
+    },
+    "target_definition": {
+      "type": "string"
+    },
+    "target_rq_nm": {
+      "type": "string"
+    },
+    "target_source_path": {
+      "type": "string"
+    },
+    "target_source_row": {
+      "type": "string"
+    },
+    "truth_visibility": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "sample_id",
+    "growth_group_id",
+    "cohort_role",
+    "paired_status",
+    "has_rheed",
+    "has_afm",
+    "has_target",
+    "target_rq_nm",
+    "target_definition",
+    "target_source_path",
+    "target_source_row",
+    "rheed_source_path",
+    "afm_source_path",
+    "afm_scan_count",
+    "historical_or_prospective",
+    "truth_visibility",
+    "eligible_for_model_development",
+    "eligible_for_primary_nested_cv",
+    "eligible_for_pilot_evaluation",
+    "eligible_for_confirmatory_test",
+    "eligible_for_final_training",
+    "exclusion_reason",
+    "sample_id_status",
+    "source_manifest_hash",
+    "notes"
+  ],
+  "title": "benchmark_v1_sample_registry_row",
+  "type": "object"
+}

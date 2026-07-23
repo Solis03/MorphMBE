@@ -1,0 +1,93 @@
+Benchmark Phase 0 preflight
+created_at: 2026-07-23T15:16:11Z
+
+[git branch before benchmark branch creation]
+experiment/natcomms-computational-benchmark-v1
+
+[current branch]
+experiment/natcomms-computational-benchmark-v1-20260723-110844
+
+[baseline tag]
+natcomms-publication-baseline-v0-20260723-000924
+
+[baseline tag object]
+a208c1c54115dc2d5f69b367a5c1b346ba2e9f26
+
+[baseline commit dereferenced]
+0a2414a06c4155123dc61cd8a95ded638fb725dc
+
+[current commit]
+0a2414a06c4155123dc61cd8a95ded638fb725dc
+
+[git status --short]
+?? reports/benchmark_phase0/
+
+[git status --branch]
+## experiment/natcomms-computational-benchmark-v1-20260723-110844
+?? reports/benchmark_phase0/
+
+[git log -10 --oneline]
+0a2414a docs: document canonical publication baseline and data provenance
+cde8a5a chore(cleanup): remove superseded exploratory artifacts
+2128c3b chore(cleanup): add repository audit and safety inventory
+a57f767 before cleanup
+c6d7481 Add prospective unseen predictions
+a74e047 paper freeze single frame
+677c47e better atlas figures
+cbc053e Add final algorithm audit
+834812e paper freeze
+ac03f93 7a - better visual result
+
+[git remote -v]
+origin	git@github.com:Solis03/MorphMBE.git (fetch)
+origin	git@github.com:Solis03/MorphMBE.git (push)
+
+[python executable]
+/Users/ziyi/Desktop/LAB/code/.venv/bin/python
+
+[python version]
+Python 3.12.7
+
+[uv version]
+uv 0.8.21 (f64da2745 2025-09-23)
+
+[operating system]
+Darwin MacBook-Pro-Ethan.local 25.5.0 Darwin Kernel Version 25.5.0: Mon Apr 27 20:38:56 PDT 2026; root:xnu-12377.121.6~2/RELEASE_ARM64_T6000 arm64
+
+[macOS version]
+ProductName:		macOS
+ProductVersion:		26.5.1
+BuildVersion:		25F80
+
+[CPU information]
+Apple M1 Pro
+logical_cpus: 10
+
+[GPU/CUDA information]
+Graphics/Displays:
+
+    Apple M1 Pro:
+
+      Chipset Model: Apple M1 Pro
+      Type: GPU
+      Bus: Built-In
+      Total Number of Cores: 16
+      Vendor: Apple (0x106b)
+      Metal Support: Metal 4
+      Displays:
+        Color LCD:
+          Display Type: Built-in Liquid Retina XDR Display
+          Resolution: 3456 x 2234 Retina
+          Main Display: Yes
+          Mirror: Off
+          Online: Yes
+          Automatically Adjust Brightness: Yes
+          Connection Type: Internal
+
+nvidia-smi not available
+
+[torch CUDA probe]
+torch_version: 2.12.0
+cuda_available: False
+cuda_version: None
+gpu_name: None

@@ -1,0 +1,146 @@
+protocol_version: benchmark_v1
+created_for_phase: Nature Communications Benchmark Phase 0
+base_seed: 20260723
+scientific_status: historical_model_selection_only; prospective pilot is seen/exploratory
+
+cohort_roles:
+  historical_development:
+    count: 23
+    role: Primary model-development cohort.
+    sample_ids: [6022, 6028, 6029, 6033, 6047, 6048, 6056, 6057, 6062, 6063, 6070, 6072, 6078, 6080, 6081, 6082, 6084, 6085, 6090, 6094, 6095, 6099, 6101]
+    eligibility: model development, primary nested CV, and final historical training only.
+  prospective_pilot_seen:
+    count: 4
+    role: Seen pilot/external diagnostic after historical-only model selection.
+    sample_ids: [N6342, N6358, N6382, N6389]
+    eligibility: pilot evaluation only; never model selection.
+  prospective_pending_truth:
+    count: 1
+    sample_id: N6390
+    role: RHEED prediction-only pending AFM truth; excluded from all metrics.
+  afm_only_unmatched:
+    count: 1
+    sample_id: N6324
+    role: AFM-only unmatched sample; excluded from all supervised metrics.
+  future_blind_confirmatory:
+    status: not yet collected
+    requirement: newly grown independent smooth, intermediate, and rough samples.
+
+primary_target:
+  historical_definition: T4_second_order_trimmed_mean
+  unit: nm
+  registry_values: raw untransformed nm values
+  target_transforms: model-side only; predictions must be inverse-transformed into nm before scoring
+  clipping: prohibited for primary numerical metrics
+  display_clipping: raw and clipped display values must be stored separately
+  prospective_available_definition: true_rq_nm_median_second_order
+  prospective_directly_comparable_to_T4: false
+  prospective_note: Pilot truth is retained but not used for model choice or confirmatory claims.
+
+historical_evaluation_design:
+  outer_evaluation: Leave-One-Growth-Group-Out
+  outer_fold_count: 23
+  outer_test_size_growth_groups: 1
+  outer_training_size_growth_groups: 22
+  inner_model_selection: Leave-One-Growth-Group-Out restricted to the 22 outer-training groups
+  primary_inner_loop_objective: minimize mean MAE in nm
+  tie_breaking_order:
+    - lower mean inner MAE
+    - lower model complexity
+    - fewer fitted parameters
+    - lexicographically smaller configuration ID
+  operations_inside_outer_training_fold_only:
+    - feature scaling
+    - PCA
+    - feature selection
+    - metadata imputation
+    - hyperparameter optimization
+    - target transformation fitting
+    - calibration
+    - conformal calibration
+    - OOD threshold selection
+    - ensemble selection
+    - temporal frame-selection tuning
+  prospective_samples_in_inner_or_outer_cv: prohibited
+
+metrics:
+  primary: MAE_nm
+  secondary:
+    - RMSE_nm
+    - R2
+    - Spearman_rho
+    - Kendall_tau
+    - Median_absolute_error_nm
+    - Pairwise_concordance
+    - Mean_signed_error_nm
+    - Low_range_MAE_nm
+    - Mid_range_MAE_nm
+    - High_range_MAE_nm
+  fixed_historical_strata:
+    low: target_rq_nm <= 2.08493192990621
+    mid: 2.08493192990621 < target_rq_nm <= 2.97097177637948
+    high: target_rq_nm > 2.97097177637948
+    definition: quantiles are fixed once from the historical target distribution only
+  prospective_pilot_reporting:
+    - report every individual prediction
+    - report signed and absolute error per sample
+    - report aggregate MAE and RMSE cautiously
+    - do not make strong claims from R2 or correlation on N=4
+    - label all results pilot/exploratory, not confirmatory
+
+statistical_uncertainty_registered_not_executed:
+  bootstrap_unit: growth_group
+  bootstrap_resamples: 10000
+  permutation_unit: growth_group
+  permutations: 10000
+  confidence_interval: 95 percent
+  seed_derivation: base seed + experiment ID + outer fold ID + model configuration ID
+  unrecorded_random_seeds: prohibited
+
+prospective_pilot_access_control:
+  normal_benchmark_runner_loads_pilot_truth: false
+  required_flag: --allow-seen-pilot-evaluation
+  required_inputs:
+    - selected candidate model ID
+    - historical model-selection receipt
+    - benchmark protocol hash
+    - clean Git working tree
+  receipt_fields:
+    - timestamp
+    - git_commit
+    - candidate_model_id
+    - historical_selection_metric
+    - protocol_hash
+    - registry_hash
+    - pilot_sample_ids
+    - command
+    - environment_hash
+  repeated_pilot_model_choice: prohibited
+
+future_confirmatory_cohort:
+  must_use_new_independent_growths: true
+  must_cover_morphology_range: smooth, intermediate, rough
+  model_frozen_before_afm: true
+  samples_selected_before_truth_known: true
+  append_only_registry_versioning: true
+  benchmark_v1_overwrite: prohibited
+
+leakage_rules:
+  explicitly_prohibited:
+    - frame-level random train/test splitting
+    - scan-level AFM splitting across sample folds
+    - multiple scans from the same sample appearing in train and test
+    - using prospective truth for preprocessing
+    - selecting representative samples by model error
+    - tuning clipping thresholds on test data
+    - fitting PCA or StandardScaler before the outer split
+    - choosing the best frame count based on prospective results
+    - using post-growth metadata as input
+    - reporting training-fit performance as independent validation
+
+determinism:
+  python: set PYTHONHASHSEED when executing stochastic experiments
+  numpy: use deterministic generators seeded from the derived seed
+  scikit_learn: pass explicit random_state where available
+  pytorch: set manual_seed and record deterministic backend settings
+  cuda: record availability and settings; do not claim bitwise GPU determinism unless verified

@@ -1,0 +1,43 @@
+{
+  "properties": {
+    "candidate_model_id": {
+      "type": "string"
+    },
+    "command": {
+      "type": "string"
+    },
+    "environment_hash": {
+      "type": "string"
+    },
+    "git_commit": {
+      "type": "string"
+    },
+    "historical_selection_metric": {
+      "type": "number"
+    },
+    "pilot_sample_ids": {
+      "type": "array"
+    },
+    "protocol_hash": {
+      "type": "string"
+    },
+    "registry_hash": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "timestamp",
+    "git_commit",
+    "candidate_model_id",
+    "historical_selection_metric",
+    "protocol_hash",
+    "registry_hash",
+    "pilot_sample_ids",
+    "command",
+    "environment_hash"
+  ],
+  "type": "object"
+}

@@ -1,0 +1,605 @@
+{
+  "afm_only_unmatched_rows": 1,
+  "baseline_commit": "0a2414a06c4155123dc61cd8a95ded638fb725dc",
+  "baseline_tag": "natcomms-publication-baseline-v0-20260723-000924",
+  "branch": "experiment/natcomms-computational-benchmark-v1-20260723-110844",
+  "candidate_future_growth_control_variables": {
+    "ambiguous_filename_tokens_requiring_expert_curation": [
+      "ramp-down temperature labels such as 200C, 250C, 300C",
+      "deposition/process duration labels such as 1 min, 2 min, 5 min, 15 min, 30 min",
+      "process stage/material labels such as GaSb and AlSb"
+    ],
+    "structured_machine_readable_variables": []
+  },
+  "canonical_removelist_path": "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/data_snapshot/removelist.txt",
+  "canonical_removelist_sha256": "8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b",
+  "current_commit_before_phase0_commits": "0a2414a06c4155123dc61cd8a95ded638fb725dc",
+  "fixed_historical_strata_quantiles": {
+    "definition": "low <= q33, q33 < mid <= q66, high > q66 on historical targets only",
+    "low_max_nm": 2.084931929906209,
+    "mid_max_nm": 2.970971776379479
+  },
+  "hashes": {
+    "environment_sha256": "83a9d88eb9809662c05ed19935e16b230adfe0fa9ee16fe19701ea861c0f2bcb",
+    "experiment_matrix_sha256": "8fa9e2dec2f7948be3764eee9c2bb24f2fe0e265a1b12033c363a541593573d9",
+    "historical_registry_sha256": "37fcc6ba161be63b7fcb66454b9783d4ca184a212b069612b24f94be634d44ab",
+    "lock_sha256": "c36cd447e2b122f105f69d57380eea037436f567fb2a4debe85403628dae875e",
+    "master_registry_sha256": "21cb4e7bdb5f0a57e4cfb66956d2063cd703f35c44638453ebdfa5ac47653256",
+    "prospective_pilot_registry_sha256": "b4bb9678026295d17dcda31909043815838210852ab38890d947bb410c1db532",
+    "protocol_sha256": "143ef5de1b7e3cc553a3d925b32a75e7875c8cccfbac25a202d59f841a89c945",
+    "split_sha256": "705f62f6eec27506f596b6dbe305f47bb6f8b500c9a0a91f29b2f64cd286d13f"
+  },
+  "historical_development_rows": 23,
+  "historical_sample_ids": [
+    "6022",
+    "6028",
+    "6029",
+    "6033",
+    "6047",
+    "6048",
+    "6056",
+    "6057",
+    "6062",
+    "6063",
+    "6070",
+    "6072",
+    "6078",
+    "6080",
+    "6081",
+    "6082",
+    "6084",
+    "6085",
+    "6090",
+    "6094",
+    "6095",
+    "6099",
+    "6101"
+  ],
+  "large_source_files": [
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1778867699000000000,
+      "relative_path": "data/pair/6022/RHEED/After GaSb.MP4",
+      "size_bytes": 2055039
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1778867696000000000,
+      "relative_path": "data/pair/6028/RHEED/GaSb.MP4",
+      "size_bytes": 2473421
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1778867699000000000,
+      "relative_path": "data/pair/6029/RHEED/After ramping down GaSb.MOV",
+      "size_bytes": 5452260
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1778867699000000000,
+      "relative_path": "data/pair/6033/RHEED/15 min of GaSb.MOV",
+      "size_bytes": 7565045
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1778867700000000000,
+      "relative_path": "data/pair/6047/RHEED/After rampdown to 200C.MOV",
+      "size_bytes": 2810659
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1778867701000000000,
+      "relative_path": "data/pair/6048/RHEED/After rampdown.MOV",
+      "size_bytes": 1611471
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037204000000000,
+      "relative_path": "data/pair/6056/RHEED/After rampdown to 200 C.MOV",
+      "size_bytes": 1287634
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037204000000000,
+      "relative_path": "data/pair/6057/RHEED/GaSb 2 min.MOV",
+      "size_bytes": 2011577
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037204000000000,
+      "relative_path": "data/pair/6062/RHEED/after rampdown to 300C.MOV",
+      "size_bytes": 1867520
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037592000000000,
+      "relative_path": "data/pair/6063/RHEED/rampdown to 300C.MOV",
+      "size_bytes": 4268766
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037584000000000,
+      "relative_path": "data/pair/6070/RHEED/rampdown to 300C.MOV",
+      "size_bytes": 2653753
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037592000000000,
+      "relative_path": "data/pair/6072/RHEED/rampdown to 250C.MOV",
+      "size_bytes": 3684435
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037584000000000,
+      "relative_path": "data/pair/6078/RHEED/GaSb 6 min.MOV",
+      "size_bytes": 2420493
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037591000000000,
+      "relative_path": "data/pair/6080/RHEED/After rampdown to 200C.MOV",
+      "size_bytes": 4338420
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037582000000000,
+      "relative_path": "data/pair/6081/RHEED/After rampong for GaSb.MOV",
+      "size_bytes": 938170
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037584000000000,
+      "relative_path": "data/pair/6082/RHEED/After rampdown to 200C.MOV",
+      "size_bytes": 2427976
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037584000000000,
+      "relative_path": "data/pair/6084/RHEED/After ramping down to 200C.MOV",
+      "size_bytes": 2849002
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037582000000000,
+      "relative_path": "data/pair/6085/RHEED/ramping down to 300C.MOV",
+      "size_bytes": 1870369
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037582000000000,
+      "relative_path": "data/pair/6090/RHEED/rampdown to 200C.MOV",
+      "size_bytes": 1996111
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037591000000000,
+      "relative_path": "data/pair/6094/RHEED/Gasb 5 min.MOV",
+      "size_bytes": 3122909
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037592000000000,
+      "relative_path": "data/pair/6095/RHEED/Rampdown to 250C.MOV",
+      "size_bytes": 3488959
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037582000000000,
+      "relative_path": "data/pair/6099/RHEED/ramping to 650C.MOV",
+      "size_bytes": 1441004
+    },
+    {
+      "existing_checksum": "",
+      "exists": true,
+      "mtime_ns": 1779037584000000000,
+      "relative_path": "data/pair/6101/RHEED/30 min GaSb.MOV",
+      "size_bytes": 2352731
+    },
+    {
+      "existing_checksum": "c26009c4e14ba042be4dc0d0924d6f6321e3222b3cf8fcd6c4d36ac12fd6e106",
+      "exists": true,
+      "mtime_ns": 1784131356000000000,
+      "relative_path": "data/compressedfile/N6342/Ramp down to 200C.mpg",
+      "size_bytes": 59848230
+    },
+    {
+      "existing_checksum": "50aa7f2b7dd2a0063a740ca5d38e21dd9720dfd2c4dad5c931d9a4af9dffda28",
+      "exists": true,
+      "mtime_ns": 1784131476000000000,
+      "relative_path": "data/compressedfile/N6358/After rampdown to 200C.mpg",
+      "size_bytes": 29775164
+    },
+    {
+      "existing_checksum": "5f4c426d475adffb4594f19955e0c29c0f769b4a1684507fd59af7016274676d",
+      "exists": true,
+      "mtime_ns": 1784131546000000000,
+      "relative_path": "data/compressedfile/N6382/Rampdown to 200C.mpg",
+      "size_bytes": 31023580
+    },
+    {
+      "existing_checksum": "d753e1b963aea8c43cafb9916185dc4460bde89cf364f129a9fd78419ddb3016",
+      "exists": true,
+      "mtime_ns": 1784131802000000000,
+      "relative_path": "data/compressedfile/N6389/Rampdown to 300C.mpg",
+      "size_bytes": 45732938
+    },
+    {
+      "existing_checksum": "23e4e36ea178f39b4b131121249c7da5e13c5609e4707f153bf9284439e3d317",
+      "exists": true,
+      "mtime_ns": 1784131940000000000,
+      "relative_path": "data/compressedfile/N6390/rampdon to 200c.mpg",
+      "size_bytes": 29972688
+    },
+    {
+      "existing_checksum": "e2e6c3395c4993b7c1b57c3dd94af8d22ae125b84d97486b934f00c430cd6495",
+      "exists": true,
+      "mtime_ns": 1784528182000000000,
+      "relative_path": "data/pair_afm_extra_five/N6324/AFM/N6324_2um_1.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "ccf2258c75a74e70532ed8a1dfd529049cc5a6ca116abcd691bd30372a07a825",
+      "exists": true,
+      "mtime_ns": 1784528182000000000,
+      "relative_path": "data/pair_afm_extra_five/N6324/AFM/N6324_2um_2.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "3e952fa51e3e808b95165ed6ed8a50357d518f37b5b30927ce064d43162ae26a",
+      "exists": true,
+      "mtime_ns": 1784528182000000000,
+      "relative_path": "data/pair_afm_extra_five/N6324/AFM/N6324_2um_3.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "d59dbdb5f4eab1b14f98dcf026acdbf745dc56ff99edf4dec3dd977136a0f281",
+      "exists": true,
+      "mtime_ns": 1784528184000000000,
+      "relative_path": "data/pair_afm_extra_five/N6324/AFM/N6324_2um_4.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "3a479bf682499ee203cb7e79b9bf48146d64f4c11d43a6acefd13350f654ab2c",
+      "exists": true,
+      "mtime_ns": 1784528186000000000,
+      "relative_path": "data/pair_afm_extra_five/N6324/AFM/N6324_2um_5.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "67243091d84b1adef413a275c15b5a1c0a0526b510d1f52fa22fbba50681648f",
+      "exists": true,
+      "mtime_ns": 1784528190000000000,
+      "relative_path": "data/pair_afm_extra_five/N6342/AFM/N6342_2um_1.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "94507916b15dcc9bb601893c4f9ce19c61cc0006b5985189905011233ed3618b",
+      "exists": true,
+      "mtime_ns": 1784528190000000000,
+      "relative_path": "data/pair_afm_extra_five/N6342/AFM/N6342_2um_2.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "b31a8d9524b1c3e2a358ad2a00cc603ae84ce95362a32473b48f86f4168f4828",
+      "exists": true,
+      "mtime_ns": 1784528190000000000,
+      "relative_path": "data/pair_afm_extra_five/N6342/AFM/N6342_2um_3.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "02edfc1c8781041bbff728541771448d7914482d2aebe1c761c47004063703f5",
+      "exists": true,
+      "mtime_ns": 1784528188000000000,
+      "relative_path": "data/pair_afm_extra_five/N6342/AFM/N6342_2um_4.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "19d2074459a93dbcbaf62755d18b176a2efbd1fb512fe6f19099c32942e77546",
+      "exists": true,
+      "mtime_ns": 1784528188000000000,
+      "relative_path": "data/pair_afm_extra_five/N6342/AFM/N6342_2um_5.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "ee842ec802d599d23d2e7fac9abcb37174d0248267568ab6bfb7b2d104254799",
+      "exists": true,
+      "mtime_ns": 1784528184000000000,
+      "relative_path": "data/pair_afm_extra_five/N6358/AFM/N6358_2um_1.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "ac25e4c9e4dfc8f118b81e01c8002ce9ca0d90b03faffc4af4d1b0739d6bd727",
+      "exists": true,
+      "mtime_ns": 1784528186000000000,
+      "relative_path": "data/pair_afm_extra_five/N6358/AFM/N6358_2um_2.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "3fff9f21236c75f5eea9935f1064f46d47abc775526ecd7bf86f3a3ac5ad40fb",
+      "exists": true,
+      "mtime_ns": 1784528184000000000,
+      "relative_path": "data/pair_afm_extra_five/N6358/AFM/N6358_2um_3.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "50c17486dde3b7a5f17d798cd7c3f0a916a7d0f47fb77486365c31cfab3bf43b",
+      "exists": true,
+      "mtime_ns": 1784528184000000000,
+      "relative_path": "data/pair_afm_extra_five/N6358/AFM/N6358_2um_4.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "026ffe63b14021632a52305c714c1e99f6ac6016e9f3f85244f470ae7499b002",
+      "exists": true,
+      "mtime_ns": 1784528182000000000,
+      "relative_path": "data/pair_afm_extra_five/N6358/AFM/N6358_2um_5.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "c89f84b1cc99b06055d7e07e69fbbc33cddb245ba912b71c073528848c3c59a9",
+      "exists": true,
+      "mtime_ns": 1784528184000000000,
+      "relative_path": "data/pair_afm_extra_five/N6382/AFM/N6382_2um_1.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "549628ba119eee34c9445e8549f71241417282611f2d736eea2149d1e55bc16f",
+      "exists": true,
+      "mtime_ns": 1784528186000000000,
+      "relative_path": "data/pair_afm_extra_five/N6382/AFM/N6382_2um_2.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "764f3be3d4773a1b2b38ac5c110bb6b088607248dbeab3d2dd6212027bd84491",
+      "exists": true,
+      "mtime_ns": 1784528186000000000,
+      "relative_path": "data/pair_afm_extra_five/N6382/AFM/N6382_2um_3.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "31abecd42e2d1c56c6abe55db4b3341e0a5e25e5fd2c35d82b9e0a602bd14e38",
+      "exists": true,
+      "mtime_ns": 1784528188000000000,
+      "relative_path": "data/pair_afm_extra_five/N6382/AFM/N6382_2um_4.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "5a07b21a4d88f9d70cd93cb8b8d7260f995c1abca97fae5bc96836d956134127",
+      "exists": true,
+      "mtime_ns": 1784528188000000000,
+      "relative_path": "data/pair_afm_extra_five/N6382/AFM/N6382_2um_5.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "b7308493f58e055b3e96cde4b8c7ab0a1c18b57732fac464db8f654e09c3ca4c",
+      "exists": true,
+      "mtime_ns": 1784528188000000000,
+      "relative_path": "data/pair_afm_extra_five/N6389/AFM/N6389_2um_1.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "4ca80ef4cd27b8cfed552181622175991cb63bfc8f449457c8950d50fe6d9c9c",
+      "exists": true,
+      "mtime_ns": 1784528186000000000,
+      "relative_path": "data/pair_afm_extra_five/N6389/AFM/N6389_2um_2.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "1e84525b7a425bbde079f69d0fb100d4ee7dcf637deeeeb6e3ffa111f5154002",
+      "exists": true,
+      "mtime_ns": 1784528186000000000,
+      "relative_path": "data/pair_afm_extra_five/N6389/AFM/N6389_2um_3.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "6cbd13cdf1ae54886173e2c1d1a3e2052ef9126bd8a2e129c0abd9002d0ee1e7",
+      "exists": true,
+      "mtime_ns": 1784528186000000000,
+      "relative_path": "data/pair_afm_extra_five/N6389/AFM/N6389_2um_4.000",
+      "size_bytes": 4235264
+    },
+    {
+      "existing_checksum": "50c07aa59c7359d42fa397b7adcb923d4b2d9bb6c075a3fa871a522fb145a4b9",
+      "exists": true,
+      "mtime_ns": 1784528186000000000,
+      "relative_path": "data/pair_afm_extra_five/N6389/AFM/N6389_2um_5.000",
+      "size_bytes": 4235264
+    }
+  ],
+  "master_registry_rows": 29,
+  "metadata_leakage_summary": {
+    "allowed_post_growth_predictive_fields": [],
+    "high_leakage_risk_field_count": 59,
+    "high_leakage_risk_fields": [
+      "canonical_sample_index_full.roi_height",
+      "canonical_sample_index_full.first_order_rq_nm",
+      "canonical_sample_index_full.second_order_rq_nm",
+      "historical_sample_targets.T4_second_order_trimmed_mean",
+      "historical_sample_targets.scan_count",
+      "historical_sample_targets.scan_rq_mad",
+      "historical_sample_targets.scan_rq_iqr",
+      "prospective_keyframe_manifest.height",
+      "prospective_predictions.predicted_rq_nm",
+      "prospective_predictions.q50_predicted_rq_nm",
+      "prospective_predictions.predicted_rq_nm_clipped_nonnegative",
+      "prospective_predictions.physical_plausibility_flag",
+      "prospective_predictions.member_q10_rq_nm",
+      "prospective_predictions.member_q90_rq_nm",
+      "prospective_predictions.member_min_rq_nm",
+      "prospective_predictions.member_max_rq_nm",
+      "prospective_predictions.ensemble_member_count",
+      "prospective_predictions.interval_note",
+      "prospective_predictions.training_sample_count",
+      "prospective_predictions.training_sample_ids",
+      "prospective_predictions.uses_all_23_training_samples",
+      "prospective_predictions.raw_keyframe_png",
+      "prospective_predictions.roi_keyframe_png",
+      "prospective_predictions.model_ready_keyframe_npz",
+      "prospective_predictions.roi_xyxy",
+      "prospective_predictions.display_transform",
+      "prospective_predictions.selected_frame_index_0based",
+      "prospective_predictions.selected_timestamp_sec",
+      "prospective_afm_truth.afm_scan_count",
+      "prospective_afm_truth.scan_size_x_um",
+      "prospective_afm_truth.scan_size_y_um",
+      "prospective_afm_truth.resolution_h",
+      "prospective_afm_truth.resolution_w",
+      "prospective_afm_truth.primary_channel",
+      "prospective_afm_truth.height_unit",
+      "prospective_afm_truth.true_rq_nm_median_second_order",
+      "prospective_afm_truth.true_rq_nm_iqr_second_order",
+      "prospective_afm_truth.true_rq_nm_mad_second_order",
+      "prospective_afm_truth.true_rq_nm_min_second_order",
+      "prospective_afm_truth.true_rq_nm_max_second_order",
+      "prospective_afm_truth.representative_rq_nm_second_order",
+      "prospective_afm_truth.representative_local_copy_npy",
+      "prospective_afm_truth.representative_preview_png",
+      "prospective_afm_truth.all_scan_preview_png",
+      "prospective_afm_truth.selection_rule",
+      "prospective_afm_scan_manifest.scan_size_x_um",
+      "prospective_afm_scan_manifest.scan_size_y_um",
+      "prospective_afm_scan_manifest.resolution_h",
+      "prospective_afm_scan_manifest.resolution_w",
+      "prospective_afm_scan_manifest.primary_channel",
+      "prospective_afm_scan_manifest.height_unit",
+      "prospective_afm_scan_manifest.raw_afm_file",
+      "prospective_afm_scan_manifest.rq_raw_nm",
+      "prospective_afm_scan_manifest.rq_second_order_nm",
+      "prospective_afm_scan_manifest.ra_second_order_nm",
+      "prospective_afm_scan_manifest.peak_to_valley_second_order_nm",
+      "prospective_afm_scan_manifest.fit_fraction",
+      "prospective_afm_scan_manifest.robust_iterations",
+      "prospective_afm_scan_manifest.is_representative"
+    ],
+    "post_growth_outcome_field_count": 59,
+    "unknown_control_role_fields": [
+      "canonical_sample_index_full.is_primary",
+      "canonical_sample_index_full.is_removed",
+      "canonical_sample_index_full.removelist_reason",
+      "canonical_sample_index_full.source_video",
+      "canonical_sample_index_full.clip_start_index",
+      "canonical_sample_index_full.clip_end_index",
+      "prospective_keyframe_manifest.source_video_filename"
+    ]
+  },
+  "paired_supervised_rows": 27,
+  "primary_target": "T4_second_order_trimmed_mean",
+  "primary_target_unit": "nm",
+  "prospective_pending_truth_rows": 1,
+  "prospective_pilot_seen_ids": [
+    "N6342",
+    "N6358",
+    "N6382",
+    "N6389"
+  ],
+  "prospective_pilot_seen_rows": 4,
+  "prospective_truth_compatibility": {
+    "action": "pilot truth retained but not used for model selection or primary confirmatory claims",
+    "directly_comparable": false,
+    "historical_definition": "T4_second_order_trimmed_mean",
+    "prospective_available_definition": "true_rq_nm_median_second_order"
+  },
+  "protocol_version": "benchmark_v1",
+  "remaining_blockers_before_B00": [
+    "None for historical fold-median B00 dry-run and split/registry validation.",
+    "Actual B00 execution is intentionally not run in Phase 0.",
+    "Prospective pilot aggregate interpretation remains blocked by median-vs-T4 target mismatch and seen-truth status."
+  ],
+  "source_files": [
+    "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/README.md",
+    "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/data_snapshot/canonical_sample_index.csv",
+    "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/data_snapshot/canonical_sample_index_full.csv",
+    "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/data_snapshot/sample_targets.csv",
+    "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/data_snapshot/removelist.txt",
+    "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/provenance/GIT_INFO.json",
+    "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/provenance/PROVENANCE.json",
+    "publication_freeze/prospective_unseen_single_frame_v1/README.md",
+    "publication_freeze/prospective_unseen_single_frame_v1/ground_truth_afm/README.md",
+    "publication_freeze/prospective_unseen_single_frame_v1/manifests/unseen_keyframe_manifest.csv",
+    "publication_freeze/prospective_unseen_single_frame_v1/predictions/full_cohort_single_frame_v1/predictions.csv",
+    "publication_freeze/prospective_unseen_single_frame_v1/ground_truth_afm/manifests/afm_extra_five_sample_level_ground_truth.csv",
+    "publication_freeze/prospective_unseen_single_frame_v1/ground_truth_afm/manifests/afm_extra_five_second_order_scan_manifest.csv",
+    "publication_freeze/prospective_unseen_single_frame_v1/ground_truth_afm/manifests/full_cohort_prediction_vs_afm_truth_join.csv",
+    "publication_freeze/prospective_unseen_single_frame_v1/ground_truth_afm/manifests/sample_id_mismatch_report.json"
+  ],
+  "unmatched_and_pending_ids": [
+    "N6390",
+    "N6324"
+  ],
+  "validation": {
+    "benchmark_pytest": "25 passed via uv run pytest -q",
+    "canonical_hash_diff": "zero_differences",
+    "command_log": "reports/benchmark_phase0/20260723-110844/validation_commands.jsonl",
+    "compileall": "passed for src scripts tools",
+    "dry_run_id": "run_d4c1159ed570f1f21f239e2e",
+    "dry_run_status": "ok",
+    "git_fsck": "exit_0_with_dangling_unreachable_objects_reported",
+    "git_lfs_fsck": "Git LFS fsck OK",
+    "last_recorded_command_status": {
+      "git fsck --full": {
+        "exit_code": 0,
+        "runtime_seconds": 15.32739287498407
+      },
+      "uv run pytest -q": {
+        "exit_code": 0,
+        "runtime_seconds": 0.5389694580808282
+      },
+      "uv run python -m compileall src scripts tools": {
+        "exit_code": 0,
+        "runtime_seconds": 0.1438136249780655
+      },
+      "uv run python scripts/benchmark_v1/benchmark_dry_run.py --environment-hash 83a9d88eb9809662c05ed19935e16b230adfe0fa9ee16fe19701ea861c0f2bcb --report-path reports/benchmark_phase0/20260723-110844/dry_run.log": {
+        "exit_code": 0,
+        "runtime_seconds": 0.11250549997203052
+      },
+      "uv run python scripts/benchmark_v1/generate_splits.py --check": {
+        "exit_code": 0,
+        "runtime_seconds": 0.07563941599801183
+      },
+      "uv run python scripts/benchmark_v1/run_frozen_validators_readonly.py --output reports/benchmark_phase0/20260723-110844/frozen_validator_results.json": {
+        "exit_code": 0,
+        "runtime_seconds": 3.715589875006117
+      },
+      "uv run python scripts/benchmark_v1/validate_protocol.py": {
+        "exit_code": 0,
+        "runtime_seconds": 0.06395033397711813
+      },
+      "uv run python scripts/benchmark_v1/validate_registry.py": {
+        "exit_code": 0,
+        "runtime_seconds": 0.077899208990857
+      },
+      "zsh -lc find publication_freeze/rheed_afm_single_frame_v1_2026-07-18 publication_freeze/prospective_unseen_single_frame_v1 -type f -print0 | LC_ALL=C sort -z | xargs -0 shasum -a 256 > reports/benchmark_phase0/20260723-110844/canonical_hashes_after.sha256 && diff -u reports/benchmark_phase0/20260723-110844/canonical_hashes_before.sha256 reports/benchmark_phase0/20260723-110844/canonical_hashes_after.sha256": {
+        "exit_code": 0,
+        "runtime_seconds": 0.3999124999390915
+      },
+      "zsh -lc if command -v git-lfs >/dev/null 2>&1 || git lfs version >/dev/null 2>&1; then git lfs fsck; else echo \"git lfs not available\"; fi": {
+        "exit_code": 0,
+        "runtime_seconds": 0.5150525830686092
+      }
+    },
+    "prospective_validator_status": "passed_on_temp_copy",
+    "retrospective_verifier_status": "passed_on_temp_copy"
+  }
+}

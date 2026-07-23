@@ -1,0 +1,27 @@
+{
+  "created_at": "2026-07-23T16:13:01.833750Z",
+  "note": "Validators were run on temporary copies to avoid modifying immutable publication packages.",
+  "prospective_validator": {
+    "command": [
+      "/Users/ziyi/Desktop/LAB/code/.venv/bin/python3",
+      "/var/folders/xj/vlmd7j2s2djdsdvb5lyrfn3w0000gn/T/rheed2morph_phase0_validators_s61bwr7_/publication_freeze/prospective_unseen_single_frame_v1/code/validate_keyframe_selections.py",
+      "--require-complete"
+    ],
+    "exit_code": 0,
+    "runtime_seconds": 3.069654499995522,
+    "stderr": "",
+    "stdout": "{\n  \"status\": \"ok\",\n  \"error_count\": 0,\n  \"warning_count\": 0\n}\n"
+  },
+  "retrospective_verifier": {
+    "command": [
+      "/Users/ziyi/Desktop/LAB/code/.venv/bin/python3",
+      "/var/folders/xj/vlmd7j2s2djdsdvb5lyrfn3w0000gn/T/rheed2morph_phase0_validators_s61bwr7_/publication_freeze/rheed_afm_single_frame_v1_2026-07-18/code/verify_freeze.py"
+    ],
+    "exit_code": 0,
+    "runtime_seconds": 0.4690460830461234,
+    "stderr": "",
+    "stdout": "{\n  \"all_checks_passed\": true,\n  \"checks\": [\n    {\n      \"details\": \"\",\n      \"name\": \"active_sample_ids_exact\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"prediction_sample_ids_exact\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"true_and_predicted_rq_not_identical\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 23,\n        \"observed\": 23\n      },\n      \"name\": \"metric_N_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 1.2600983407909774,\n        \"observed\": 1.2600983407909774\n      },\n      \"name\": \"metric_MAE_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 1.1205674310532974,\n        \"observed\": 1.1205674310532974\n      },\n      \"name\": \"metric_median_AE_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 1.8393101333714263,\n        \"observed\": 1.8393101333714263\n      },\n      \"name\": \"metric_RMSE_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 0.2939669042578328,\n        \"observed\": 0.2939669042578328\n      },\n      \"name\": \"metric_R2_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 0.42885375494071143,\n        \"observed\": 0.42885375494071143\n      },\n      \"name\": \"metric_Spearman_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 0.28063241106719367,\n        \"observed\": 0.28063241106719367\n      },\n      \"name\": \"metric_Kendall_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 0.6403162055335968,\n        \"observed\": 0.6403162055335968\n      },\n      \"name\": \"metric_pairwise_concordance_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 0.625,\n        \"observed\": 0.625\n      },\n      \"name\": \"metric_low_high_balanced_accuracy_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 0.625,\n        \"observed\": 0.625\n      },\n      \"name\": \"metric_high_rq_sensitivity_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": {\n        \"expected\": 0.7333333333333333,\n        \"observed\": 0.7333333333333333\n      },\n      \"name\": \"metric_high_rq_specificity_matches\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"retrieval_a3_only_n23\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"retrieval_no_heldout_source_contribution\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"retrieval_no_true_afm_selection\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"retrieval_no_true_descriptor_selection\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"strict_candidate_group_count_22\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"strict_identity_pass_all\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"prospective_deployment_blocker_exists\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"no_noncanonical_predict_unseen_py\",\n      \"pass\": true\n    },\n    {\n      \"details\": [],\n      \"name\": \"no_file_over_100mb\",\n      \"pass\": true\n    },\n    {\n      \"details\": \"\",\n      \"name\": \"main_figures_exist\",\n      \"pass\": true\n    }\n  ],\n  \"freeze_id\": \"rheed_afm_single_frame_v1_2026-07-18\",\n  \"manifest_entry_count\": 287\n}\n"
+  },
+  "status": "ok",
+  "temp_root": "/var/folders/xj/vlmd7j2s2djdsdvb5lyrfn3w0000gn/T/rheed2morph_phase0_validators_s61bwr7_"
+}

@@ -1,0 +1,31 @@
+{
+  "properties": {
+    "MAE_nm": {
+      "type": "number"
+    },
+    "R2": {
+      "type": "number"
+    },
+    "RMSE_nm": {
+      "type": "number"
+    },
+    "n_samples": {
+      "type": "integer"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "scope",
+    "MAE_nm",
+    "RMSE_nm",
+    "R2",
+    "n_samples"
+  ],
+  "type": "object"
+}

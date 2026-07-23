@@ -1,0 +1,107 @@
+{
+  "properties": {
+    "config_hash": {
+      "type": "string"
+    },
+    "environment_hash": {
+      "type": "string"
+    },
+    "experiment_id": {
+      "type": "string"
+    },
+    "failure_reason": {
+      "type": "string"
+    },
+    "feature_family": {
+      "type": "string"
+    },
+    "git_commit": {
+      "type": "string"
+    },
+    "git_dirty": {
+      "type": "boolean"
+    },
+    "inner_selection_method": {
+      "type": "string"
+    },
+    "input_source_hashes": {
+      "type": "object"
+    },
+    "model_family": {
+      "type": "string"
+    },
+    "outer_fold_id": {
+      "type": "string"
+    },
+    "output_paths": {
+      "type": "array"
+    },
+    "protocol_hash": {
+      "type": "string"
+    },
+    "protocol_version": {
+      "type": "string"
+    },
+    "random_seed": {
+      "type": "integer"
+    },
+    "registry_hash": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "runtime_seconds": {
+      "type": "number"
+    },
+    "sample_ids_test": {
+      "type": "array"
+    },
+    "sample_ids_train": {
+      "type": "array"
+    },
+    "sample_ids_validation": {
+      "type": "array"
+    },
+    "split_hash": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "target_transform": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "experiment_id",
+    "timestamp",
+    "git_commit",
+    "git_dirty",
+    "protocol_version",
+    "protocol_hash",
+    "registry_hash",
+    "split_hash",
+    "config_hash",
+    "environment_hash",
+    "random_seed",
+    "outer_fold_id",
+    "inner_selection_method",
+    "model_family",
+    "feature_family",
+    "target_transform",
+    "sample_ids_train",
+    "sample_ids_validation",
+    "sample_ids_test",
+    "input_source_hashes",
+    "output_paths",
+    "runtime_seconds",
+    "status",
+    "failure_reason"
+  ],
+  "type": "object"
+}

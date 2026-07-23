@@ -1,0 +1,8 @@
+{
+  "MAE_nm": 0.0,
+  "R2": 0.0,
+  "RMSE_nm": 0.0,
+  "n_samples": 23,
+  "run_id": "run_example",
+  "scope": "historical_outer_logo"
+}

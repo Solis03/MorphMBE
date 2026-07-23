@@ -1,0 +1,18 @@
+{
+  "baseline_commit": "0a2414a06c4155123dc61cd8a95ded638fb725dc",
+  "baseline_tag": "natcomms-publication-baseline-v0-20260723-000924",
+  "created_at": "2026-07-23T16:12:42.342433Z",
+  "created_by": "ziyi",
+  "current_git_commit_before_phase0_commits": "0a2414a06c4155123dc61cd8a95ded638fb725dc",
+  "environment_hash": "83a9d88eb9809662c05ed19935e16b230adfe0fa9ee16fe19701ea861c0f2bcb",
+  "experiment_matrix_hash": "8fa9e2dec2f7948be3764eee9c2bb24f2fe0e265a1b12033c363a541593573d9",
+  "future_confirmatory_required": true,
+  "git_branch": "experiment/natcomms-computational-benchmark-v1-20260723-110844",
+  "historical_registry_hash": "37fcc6ba161be63b7fcb66454b9783d4ca184a212b069612b24f94be634d44ab",
+  "master_registry_hash": "21cb4e7bdb5f0a57e4cfb66956d2063cd703f35c44638453ebdfa5ac47653256",
+  "prospective_pilot_registry_hash": "b4bb9678026295d17dcda31909043815838210852ab38890d947bb410c1db532",
+  "protocol_hash": "143ef5de1b7e3cc553a3d925b32a75e7875c8cccfbac25a202d59f841a89c945",
+  "protocol_version": "benchmark_v1",
+  "scientific_status": "benchmark_v1_protocol_freeze_historical_model_selection_only",
+  "split_hash": "705f62f6eec27506f596b6dbe305f47bb6f8b500c9a0a91f29b2f64cd286d13f"
+}

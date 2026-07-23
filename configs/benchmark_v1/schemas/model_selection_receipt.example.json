@@ -1,0 +1,10 @@
+{
+  "candidate_model_id": "example_candidate",
+  "historical_selection_metric": 0.0,
+  "historical_selection_metric_name": "mean_inner_MAE_nm",
+  "protocol_hash": "sha256-example",
+  "registry_hash": "sha256-example",
+  "selected_without_pilot_truth": true,
+  "split_hash": "sha256-example",
+  "timestamp": "2026-07-23T00:00:00Z"
+}

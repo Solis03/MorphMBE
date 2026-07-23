@@ -1,0 +1,16 @@
+{
+  "candidate_model_id": "example_candidate",
+  "command": "benchmark_dry_run.py --allow-seen-pilot-evaluation ...",
+  "environment_hash": "sha256-example",
+  "git_commit": "0a2414a06c4155123dc61cd8a95ded638fb725dc",
+  "historical_selection_metric": 0.0,
+  "pilot_sample_ids": [
+    "N6342",
+    "N6358",
+    "N6382",
+    "N6389"
+  ],
+  "protocol_hash": "sha256-example",
+  "registry_hash": "sha256-example",
+  "timestamp": "2026-07-23T00:00:00Z"
+}

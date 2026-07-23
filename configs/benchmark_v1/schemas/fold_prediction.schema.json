@@ -1,0 +1,39 @@
+{
+  "properties": {
+    "display_clip_applied": {
+      "type": "boolean"
+    },
+    "outer_fold_id": {
+      "type": "string"
+    },
+    "prediction_rq_nm_clipped_display": {
+      "type": "number"
+    },
+    "prediction_rq_nm_for_metrics": {
+      "type": "number"
+    },
+    "prediction_rq_nm_raw": {
+      "type": "number"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "sample_id": {
+      "type": "string"
+    },
+    "target_rq_nm": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "run_id",
+    "outer_fold_id",
+    "sample_id",
+    "target_rq_nm",
+    "prediction_rq_nm_raw",
+    "prediction_rq_nm_for_metrics",
+    "prediction_rq_nm_clipped_display",
+    "display_clip_applied"
+  ],
+  "type": "object"
+}

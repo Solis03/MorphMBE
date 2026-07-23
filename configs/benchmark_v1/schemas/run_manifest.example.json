@@ -1,0 +1,33 @@
+{
+  "config_hash": "sha256-example",
+  "environment_hash": "sha256-example",
+  "experiment_id": "B00_fold_median",
+  "failure_reason": "",
+  "feature_family": "none",
+  "git_commit": "0a2414a06c4155123dc61cd8a95ded638fb725dc",
+  "git_dirty": false,
+  "inner_selection_method": "historical_inner_logo_mean_MAE_nm",
+  "input_source_hashes": {},
+  "model_family": "fold_median",
+  "outer_fold_id": "outer_logo_6022",
+  "output_paths": [
+    "outputs/benchmark_v1/runs/run_example"
+  ],
+  "protocol_hash": "sha256-example",
+  "protocol_version": "benchmark_v1",
+  "random_seed": 20260723,
+  "registry_hash": "sha256-example",
+  "run_id": "run_example",
+  "runtime_seconds": 0.0,
+  "sample_ids_test": [
+    "6022"
+  ],
+  "sample_ids_train": [
+    "6028"
+  ],
+  "sample_ids_validation": [],
+  "split_hash": "sha256-example",
+  "status": "DRY_RUN",
+  "target_transform": "none",
+  "timestamp": "2026-07-23T00:00:00Z"
+}
