@@ -28,6 +28,19 @@ Supporting cleanup and provenance notes:
 - `docs/current_scientific_baseline.md`
 - `docs/legacy_experiments_index.md`
 
+## Benchmark v1 Protocol Freeze
+
+Benchmark v1 artifacts live under `configs/benchmark_v1/`, with implementation
+helpers in `src/rheed2morph/benchmark/` and command-line tools in
+`scripts/benchmark_v1/`. Phase 0 freezes the sample registry, historical
+leave-one-growth-group-out splits, protocol text, output schemas, environment
+snapshot, and dry-run behavior. It does not train models or generate new Rq
+predictions.
+
+Primary model selection is restricted to the 23 historical development growth
+groups. The four current prospective matched samples are retained as
+`prospective_pilot_seen` and require explicit pilot-evaluation access controls.
+
 
 ## AFM Overview Figures
 
@@ -209,11 +222,17 @@ uv run python run_pipeline.py --dry-run
 
 ## Tests
 
-The smoke tests use the Python standard library test runner:
+The test suite uses pytest:
 
 ```bash
-PYTHONPATH=src uv run python -m unittest discover -s tests
+uv run pytest -q
 ```
 
-These tests verify package imports, expected data manifest layout, and basic
-pipeline path configuration.
+Benchmark Phase 0 also supports these validation commands:
+
+```bash
+uv run python scripts/benchmark_v1/validate_registry.py
+uv run python scripts/benchmark_v1/validate_protocol.py
+uv run python scripts/benchmark_v1/generate_splits.py --check
+uv run python scripts/benchmark_v1/benchmark_dry_run.py
+```
