@@ -1,0 +1,96 @@
+{
+  "algorithm_source_git_diff_detected": false,
+  "algorithm_source_git_diff_paths": [],
+  "algorithm_sources": [
+    {
+      "path": "analysis/rheed_video_afm_story/build_final_paper_freeze.py",
+      "sha256": "f82e9ae4c6d8e42e6bef8bb4f86b179a4709fef68e5e17942c15ad5c7bba40de"
+    },
+    {
+      "path": "scripts/fit_afm_second_order.py",
+      "sha256": "69e745d8c6ce2f08b9f91c4b64e83f40b5fbd176faefa82c4c4e061a1746c21a"
+    },
+    {
+      "path": "publication_freeze/prospective_unseen_single_frame_v1/code/generate_full_cohort_retrieval_images.py",
+      "sha256": "6ca2c5ecf09f6cfa447c121c7875c287e0fe3ef0e7f994efedb3d4c5c3682cab"
+    },
+    {
+      "path": "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/models/quantitative_model/full_cohort_deployment/ensemble_definition.json",
+      "sha256": "78887464eb55995fddd1f5188116f8a2d9359f223d41b8c2d15dbd8d70598654"
+    }
+  ],
+  "created_at": "2026-07-23T22:44:23Z",
+  "frozen_23_numeric_reproduction": {
+    "algorithm": "StandardScaler().fit(X); Ridge(alpha=1.0).fit(scaler.transform(X), y)",
+    "historical_training_sample_count": 23,
+    "max_abs_coef_difference": 0.0,
+    "max_abs_feature_mean_difference": 0.0,
+    "max_abs_feature_scale_difference": 0.0,
+    "max_abs_intercept_difference": 0.0,
+    "members": [
+      {
+        "abs_intercept_difference": 0.0,
+        "max_abs_coef_difference": 0.0,
+        "max_abs_feature_mean_difference": 0.0,
+        "max_abs_feature_scale_difference": 0.0,
+        "member_name": "model_01_trial_0004",
+        "target_variant": "T4_second_order_trimmed_mean",
+        "trial_id": "trial_0004"
+      },
+      {
+        "abs_intercept_difference": 0.0,
+        "max_abs_coef_difference": 0.0,
+        "max_abs_feature_mean_difference": 0.0,
+        "max_abs_feature_scale_difference": 0.0,
+        "member_name": "model_02_trial_0012",
+        "target_variant": "T4_second_order_trimmed_mean",
+        "trial_id": "trial_0012"
+      },
+      {
+        "abs_intercept_difference": 0.0,
+        "max_abs_coef_difference": 0.0,
+        "max_abs_feature_mean_difference": 0.0,
+        "max_abs_feature_scale_difference": 0.0,
+        "member_name": "model_03_trial_0006",
+        "target_variant": "T6_quality_weighted_second_order",
+        "trial_id": "trial_0006"
+      },
+      {
+        "abs_intercept_difference": 0.0,
+        "max_abs_coef_difference": 0.0,
+        "max_abs_feature_mean_difference": 0.0,
+        "max_abs_feature_scale_difference": 0.0,
+        "member_name": "model_04_trial_0014",
+        "target_variant": "T6_quality_weighted_second_order",
+        "trial_id": "trial_0014"
+      },
+      {
+        "abs_intercept_difference": 0.0,
+        "max_abs_coef_difference": 0.0,
+        "max_abs_feature_mean_difference": 0.0,
+        "max_abs_feature_scale_difference": 0.0,
+        "member_name": "model_05_trial_0028",
+        "target_variant": "T4_second_order_trimmed_mean",
+        "trial_id": "trial_0028"
+      }
+    ],
+    "status": "pass",
+    "tolerance": 1e-05
+  },
+  "only_data_division_changed": {
+    "added_training_samples": [
+      "N6358",
+      "N6382"
+    ],
+    "historical_training_count": 23,
+    "ignored_samples": [
+      "N6324"
+    ],
+    "prediction_samples": [
+      "N6342",
+      "N6389",
+      "N6390"
+    ]
+  },
+  "source_code_modified_for_this_experiment": false
+}

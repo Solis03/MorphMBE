@@ -1,0 +1,39 @@
+{
+  "algorithm": {
+    "aggregation": "median",
+    "ensemble_members": 5,
+    "features": "E1_dino_keyframe",
+    "per_fold_scaling": "StandardScaler fitted on 27 training rows only",
+    "per_member_model": "Ridge(alpha=1.0) fitted on 27 training rows only"
+  },
+  "comparison_target": "T4_second_order_trimmed_mean",
+  "created_at": "2026-07-23T23:27:29Z",
+  "evaluation_design": "strict 28-fold leave-one-out; each prediction uses the other 27 labeled samples",
+  "extra_five_sample_count": 5,
+  "historical_sample_count": 23,
+  "negative_raw_prediction_count": 1,
+  "nonnegative_clipped_output": {
+    "MAE_nm": 1.5501465802890435,
+    "R2": -0.05939814165713564,
+    "RMSE_nm": 2.1609375307838925,
+    "mean_bias_nm": 0.19035979217837282,
+    "median_absolute_error_nm": 1.1218176344111577
+  },
+  "original_added_training_sample_count": 2,
+  "original_prospective_test_sample_count": 3,
+  "raw_model_output": {
+    "Kendall_p": 0.011150613855211041,
+    "Kendall_tau": 0.3386243386243386,
+    "MAE_nm": 1.5599663255723066,
+    "Pearson_p": 0.0674151241587847,
+    "Pearson_r": 0.35055038890629686,
+    "R2": -0.06487757667027116,
+    "RMSE_nm": 2.166518740098196,
+    "Spearman_p": 0.015718230464180284,
+    "Spearman_rho": 0.4521072796934866,
+    "concordance_correlation_coefficient": 0.33792939487374724,
+    "mean_bias_nm": 0.18054004689510958,
+    "median_absolute_error_nm": 1.1794480781961378
+  },
+  "sample_count": 28
+}

@@ -1,0 +1,145 @@
+{
+  "added_training_samples": [
+    "N6358",
+    "N6382"
+  ],
+  "aggregation": "median",
+  "created_at": "2026-07-23T22:44:10Z",
+  "feature_scaling": "StandardScaler fitted on the 25 training rows",
+  "feature_set": "E1_dino_keyframe",
+  "frozen_23_reproduction_audit": {
+    "algorithm": "StandardScaler().fit(X); Ridge(alpha=1.0).fit(scaler.transform(X), y)",
+    "historical_training_sample_count": 23,
+    "max_abs_coef_difference": 0.0,
+    "max_abs_feature_mean_difference": 0.0,
+    "max_abs_feature_scale_difference": 0.0,
+    "max_abs_intercept_difference": 0.0,
+    "members": [
+      {
+        "abs_intercept_difference": 0.0,
+        "max_abs_coef_difference": 0.0,
+        "max_abs_feature_mean_difference": 0.0,
+        "max_abs_feature_scale_difference": 0.0,
+        "member_name": "model_01_trial_0004",
+        "target_variant": "T4_second_order_trimmed_mean",
+        "trial_id": "trial_0004"
+      },
+      {
+        "abs_intercept_difference": 0.0,
+        "max_abs_coef_difference": 0.0,
+        "max_abs_feature_mean_difference": 0.0,
+        "max_abs_feature_scale_difference": 0.0,
+        "member_name": "model_02_trial_0012",
+        "target_variant": "T4_second_order_trimmed_mean",
+        "trial_id": "trial_0012"
+      },
+      {
+        "abs_intercept_difference": 0.0,
+        "max_abs_coef_difference": 0.0,
+        "max_abs_feature_mean_difference": 0.0,
+        "max_abs_feature_scale_difference": 0.0,
+        "member_name": "model_03_trial_0006",
+        "target_variant": "T6_quality_weighted_second_order",
+        "trial_id": "trial_0006"
+      },
+      {
+        "abs_intercept_difference": 0.0,
+        "max_abs_coef_difference": 0.0,
+        "max_abs_feature_mean_difference": 0.0,
+        "max_abs_feature_scale_difference": 0.0,
+        "member_name": "model_04_trial_0014",
+        "target_variant": "T6_quality_weighted_second_order",
+        "trial_id": "trial_0014"
+      },
+      {
+        "abs_intercept_difference": 0.0,
+        "max_abs_coef_difference": 0.0,
+        "max_abs_feature_mean_difference": 0.0,
+        "max_abs_feature_scale_difference": 0.0,
+        "member_name": "model_05_trial_0028",
+        "target_variant": "T4_second_order_trimmed_mean",
+        "trial_id": "trial_0028"
+      }
+    ],
+    "status": "pass",
+    "tolerance": 1e-05
+  },
+  "frozen_algorithm_source": "analysis/rheed_video_afm_story/build_final_paper_freeze.py",
+  "frozen_source_function": "fit_full_cohort_quantitative",
+  "historical_training_sample_count": 23,
+  "ignored_samples": [
+    "N6324"
+  ],
+  "member_family": "Ridge",
+  "members": [
+    {
+      "aggregation_weight": 1.0,
+      "feature_set": "E1_dino_keyframe",
+      "model_family": "ridge",
+      "model_path": "publication_freeze/prospective_retrained_6358_6382_single_frame_v1/models/quantitative_model/model_01_trial_0004.npz",
+      "model_sha256": "b0d55fdf782751e36954f8cc97c735e8c0e12b5f05c750fb3e1ec3ed30ce06cd",
+      "name": "model_01_trial_0004",
+      "ridge_alpha": 1.0,
+      "target_variant": "T4_second_order_trimmed_mean",
+      "training_sample_count": 25,
+      "trial_id": "trial_0004"
+    },
+    {
+      "aggregation_weight": 1.0,
+      "feature_set": "E1_dino_keyframe",
+      "model_family": "ridge",
+      "model_path": "publication_freeze/prospective_retrained_6358_6382_single_frame_v1/models/quantitative_model/model_02_trial_0012.npz",
+      "model_sha256": "b0d55fdf782751e36954f8cc97c735e8c0e12b5f05c750fb3e1ec3ed30ce06cd",
+      "name": "model_02_trial_0012",
+      "ridge_alpha": 1.0,
+      "target_variant": "T4_second_order_trimmed_mean",
+      "training_sample_count": 25,
+      "trial_id": "trial_0012"
+    },
+    {
+      "aggregation_weight": 1.0,
+      "feature_set": "E1_dino_keyframe",
+      "model_family": "ridge",
+      "model_path": "publication_freeze/prospective_retrained_6358_6382_single_frame_v1/models/quantitative_model/model_03_trial_0006.npz",
+      "model_sha256": "f50c919ce7da5802f0fa8350bd7fc91394c6c9b0a15ae3addfdddd195a2cdf7e",
+      "name": "model_03_trial_0006",
+      "ridge_alpha": 1.0,
+      "target_variant": "T6_quality_weighted_second_order",
+      "training_sample_count": 25,
+      "trial_id": "trial_0006"
+    },
+    {
+      "aggregation_weight": 1.0,
+      "feature_set": "E1_dino_keyframe",
+      "model_family": "ridge",
+      "model_path": "publication_freeze/prospective_retrained_6358_6382_single_frame_v1/models/quantitative_model/model_04_trial_0014.npz",
+      "model_sha256": "f50c919ce7da5802f0fa8350bd7fc91394c6c9b0a15ae3addfdddd195a2cdf7e",
+      "name": "model_04_trial_0014",
+      "ridge_alpha": 1.0,
+      "target_variant": "T6_quality_weighted_second_order",
+      "training_sample_count": 25,
+      "trial_id": "trial_0014"
+    },
+    {
+      "aggregation_weight": 1.0,
+      "feature_set": "E1_dino_keyframe",
+      "model_family": "ridge",
+      "model_path": "publication_freeze/prospective_retrained_6358_6382_single_frame_v1/models/quantitative_model/model_05_trial_0028.npz",
+      "model_sha256": "b0d55fdf782751e36954f8cc97c735e8c0e12b5f05c750fb3e1ec3ed30ce06cd",
+      "name": "model_05_trial_0028",
+      "ridge_alpha": 1.0,
+      "target_variant": "T4_second_order_trimmed_mean",
+      "training_sample_count": 25,
+      "trial_id": "trial_0028"
+    }
+  ],
+  "model_name": "retrained_25_top5_median_ridge_ensemble",
+  "prediction_samples": [
+    "N6342",
+    "N6389",
+    "N6390"
+  ],
+  "ridge_alpha": 1.0,
+  "training_sample_count": 25,
+  "warning": "RETRAINED FULL-COHORT FIT; NOT THE FROZEN STRICT OOF BENCHMARK"
+}

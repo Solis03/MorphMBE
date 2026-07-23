@@ -1,0 +1,468 @@
+{
+  "check_count": 36,
+  "checks": [
+    {
+      "check": "existing_manifest_entries_match",
+      "detail": "239/239",
+      "passed": true
+    },
+    {
+      "check": "training_ids_exactly_23_plus_6358_6382",
+      "detail": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101",
+        "6358",
+        "6382"
+      ],
+      "passed": true
+    },
+    {
+      "check": "prediction_ids_exactly_6342_6389_6390",
+      "detail": [
+        "N6342",
+        "N6389",
+        "N6390"
+      ],
+      "passed": true
+    },
+    {
+      "check": "N6324_ignored",
+      "detail": [
+        "ignored"
+      ],
+      "passed": true
+    },
+    {
+      "check": "frozen_rerun_has_five_non6324_samples",
+      "detail": [
+        "N6342",
+        "N6358",
+        "N6382",
+        "N6389",
+        "N6390"
+      ],
+      "passed": true
+    },
+    {
+      "check": "retrained_prediction_ids_exact",
+      "detail": [
+        "N6342",
+        "N6389",
+        "N6390"
+      ],
+      "passed": true
+    },
+    {
+      "check": "retrained_training_count_25",
+      "detail": [
+        25,
+        25,
+        25
+      ],
+      "passed": true
+    },
+    {
+      "check": "quarter_manifest_has_25_maps",
+      "detail": 25,
+      "passed": true
+    },
+    {
+      "check": "five_maps_per_extra_sample",
+      "detail": {
+        "N6342": 5,
+        "N6358": 5,
+        "N6382": 5,
+        "N6389": 5,
+        "N6390": 5
+      },
+      "passed": true
+    },
+    {
+      "check": "all_quarter_maps_are_256_square",
+      "detail": "expected 256x256",
+      "passed": true
+    },
+    {
+      "check": "all_quarter_rq_values_recompute",
+      "detail": "tolerance 1e-10 nm",
+      "passed": true
+    },
+    {
+      "check": "model_01_trial_0004_training_ids",
+      "detail": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101",
+        "6358",
+        "6382"
+      ],
+      "passed": true
+    },
+    {
+      "check": "model_02_trial_0012_training_ids",
+      "detail": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101",
+        "6358",
+        "6382"
+      ],
+      "passed": true
+    },
+    {
+      "check": "model_03_trial_0006_training_ids",
+      "detail": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101",
+        "6358",
+        "6382"
+      ],
+      "passed": true
+    },
+    {
+      "check": "model_04_trial_0014_training_ids",
+      "detail": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101",
+        "6358",
+        "6382"
+      ],
+      "passed": true
+    },
+    {
+      "check": "model_05_trial_0028_training_ids",
+      "detail": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101",
+        "6358",
+        "6382"
+      ],
+      "passed": true
+    },
+    {
+      "check": "frozen_23_numeric_reproduction_passes",
+      "detail": "pass",
+      "passed": true
+    },
+    {
+      "check": "algorithm_sources_have_no_git_diff",
+      "detail": [],
+      "passed": true
+    },
+    {
+      "check": "retrieved_maps_match_predicted_rq",
+      "detail": "tolerance 1e-5 nm",
+      "passed": true
+    },
+    {
+      "check": "retrieval_bank_has_25_groups",
+      "detail": [
+        25,
+        25,
+        25
+      ],
+      "passed": true
+    },
+    {
+      "check": "test_ground_truth_excluded_from_retrieval",
+      "detail": [
+        false,
+        false,
+        false
+      ],
+      "passed": true
+    },
+    {
+      "check": "primary_figure_all_formats_exist",
+      "detail": [
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/main/Figure1_three_sample_prediction_atlas.png",
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/main/Figure1_three_sample_prediction_atlas.pdf",
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/main/Figure1_three_sample_prediction_atlas.svg"
+      ],
+      "passed": true
+    },
+    {
+      "check": "25_individual_ground_truth_renders",
+      "detail": 25,
+      "passed": true
+    },
+    {
+      "check": "3_individual_retrieved_renders",
+      "detail": 3,
+      "passed": true
+    },
+    {
+      "check": "loo_prediction_ids_exactly_all_28",
+      "detail": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101",
+        "6342",
+        "6358",
+        "6382",
+        "6389",
+        "6390"
+      ],
+      "passed": true
+    },
+    {
+      "check": "loo_has_one_prediction_per_sample",
+      "detail": {
+        "rows": 28,
+        "unique_ids": 28
+      },
+      "passed": true
+    },
+    {
+      "check": "loo_all_folds_train_on_27",
+      "detail": {
+        "fold_counts": [
+          27
+        ],
+        "member_counts": [
+          27
+        ],
+        "prediction_counts": [
+          27
+        ]
+      },
+      "passed": true
+    },
+    {
+      "check": "loo_held_out_absent_from_every_fold",
+      "detail": "28 fold manifests checked",
+      "passed": true
+    },
+    {
+      "check": "loo_each_fold_uses_exact_other_27_ids",
+      "detail": "ordered training IDs checked",
+      "passed": true
+    },
+    {
+      "check": "loo_has_five_member_predictions_per_sample",
+      "detail": {
+        "counts": {
+          "6022": 5,
+          "6028": 5,
+          "6029": 5,
+          "6033": 5,
+          "6047": 5,
+          "6048": 5,
+          "6056": 5,
+          "6057": 5,
+          "6062": 5,
+          "6063": 5,
+          "6070": 5,
+          "6072": 5,
+          "6078": 5,
+          "6080": 5,
+          "6081": 5,
+          "6082": 5,
+          "6084": 5,
+          "6085": 5,
+          "6090": 5,
+          "6094": 5,
+          "6095": 5,
+          "6099": 5,
+          "6101": 5,
+          "6342": 5,
+          "6358": 5,
+          "6382": 5,
+          "6389": 5,
+          "6390": 5
+        },
+        "rows": 140
+      },
+      "passed": true
+    },
+    {
+      "check": "loo_member_predictions_recompute_exactly",
+      "detail": 4.440892098500626e-16,
+      "passed": true
+    },
+    {
+      "check": "loo_ensemble_predictions_recompute_exactly",
+      "detail": 4.440892098500626e-16,
+      "passed": true
+    },
+    {
+      "check": "loo_mae_recomputes_exactly",
+      "detail": 1.5599663255723066,
+      "passed": true
+    },
+    {
+      "check": "loo_extra_five_display_ids",
+      "detail": [
+        "N6342",
+        "N6358",
+        "N6382",
+        "N6389",
+        "N6390"
+      ],
+      "passed": true
+    },
+    {
+      "check": "loo_paper_figures_all_formats_exist",
+      "detail": [
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/main/Figure2_leave_one_out_prediction_scatter.png",
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/main/Figure2_leave_one_out_prediction_scatter.pdf",
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/main/Figure2_leave_one_out_prediction_scatter.svg",
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/supplementary/SuppFigure10_leave_one_out_diagnostics.png",
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/supplementary/SuppFigure10_leave_one_out_diagnostics.pdf",
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/supplementary/SuppFigure10_leave_one_out_diagnostics.svg"
+      ],
+      "passed": true
+    },
+    {
+      "check": "algorithm_source_files_still_unmodified",
+      "detail": [],
+      "passed": true
+    }
+  ],
+  "created_at": "2026-07-23T23:27:32Z",
+  "status": "pass"
+}
