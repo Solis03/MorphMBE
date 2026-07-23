@@ -1,0 +1,628 @@
+validation_after.log
+created: 2026-07-23T01:32:56
+repo: /Users/ziyi/Desktop/LAB/code
+branch: cleanup/natcomms-publication-baseline-2026-07-22-20260723-000924
+
+===== SECTION 1: canonical_hash_comparison =====
+{
+  "added_count": 0,
+  "added_or_changed": [],
+  "after_rows": 383,
+  "before_rows": 383,
+  "kind": "canonical_hash_comparison",
+  "match": true,
+  "missing_count": 0,
+  "missing_or_changed": []
+}
+
+===== SECTION 2: command =====
+command: pytest -q
+cwd: /Users/ziyi/Desktop/LAB/code
+exit_code: 999
+runtime_sec: 0.003000020980834961
+--- stdout ---
+
+--- stderr ---
+FileNotFoundError(2, 'No such file or directory')
+
+===== SECTION 3: command =====
+command: /Users/ziyi/Desktop/LAB/code/.venv/bin/python -m pytest -q
+cwd: /Users/ziyi/Desktop/LAB/code
+exit_code: 1
+runtime_sec: 0.025621891021728516
+--- stdout ---
+
+--- stderr ---
+/Users/ziyi/Desktop/LAB/code/.venv/bin/python: No module named pytest
+
+
+===== SECTION 4: command =====
+command: python -m compileall src scripts tools
+cwd: /Users/ziyi/Desktop/LAB/code
+exit_code: 999
+runtime_sec: 0.001971006393432617
+--- stdout ---
+
+--- stderr ---
+FileNotFoundError(2, 'No such file or directory')
+
+===== SECTION 5: command =====
+command: /Users/ziyi/Desktop/LAB/code/.venv/bin/python -m compileall src scripts tools
+cwd: /Users/ziyi/Desktop/LAB/code
+exit_code: 0
+runtime_sec: 0.057045936584472656
+--- stdout ---
+Listing 'src'...
+Listing 'src/rheed2morph'...
+Listing 'src/rheed2morph/afm'...
+Listing 'src/rheed2morph/generative'...
+Listing 'src/rheed2morph/generative/models'...
+Listing 'src/rheed2morph/manifests'...
+Listing 'src/rheed2morph/pairing'...
+Listing 'src/rheed2morph/pipeline'...
+Listing 'src/rheed2morph/rheed'...
+Listing 'src/rheed2morph/rheed/models'...
+Listing 'src/rheed2morph/utils'...
+Listing 'src/rheed2morph.egg-info'...
+Listing 'scripts'...
+Listing 'scripts/afm_descriptor_reconstruction'...
+Listing 'scripts/afm_descriptor_reconstruction_large_dataset'...
+Listing 'tools'...
+
+--- stderr ---
+
+
+===== SECTION 6: command =====
+command: ../../.venv/bin/python code/verify_freeze.py
+cwd: /Users/ziyi/Desktop/LAB/code_cleanup_backups/20260723-000924/validation_tmp_post_repo_1/publication_freeze/rheed_afm_single_frame_v1_2026-07-18
+exit_code: 0
+runtime_sec: 0.5999391078948975
+--- stdout ---
+{
+  "all_checks_passed": true,
+  "checks": [
+    {
+      "details": "",
+      "name": "active_sample_ids_exact",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "prediction_sample_ids_exact",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "true_and_predicted_rq_not_identical",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 23,
+        "observed": 23
+      },
+      "name": "metric_N_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.2600983407909774,
+        "observed": 1.2600983407909774
+      },
+      "name": "metric_MAE_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.1205674310532974,
+        "observed": 1.1205674310532974
+      },
+      "name": "metric_median_AE_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.8393101333714263,
+        "observed": 1.8393101333714263
+      },
+      "name": "metric_RMSE_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.2939669042578328,
+        "observed": 0.2939669042578328
+      },
+      "name": "metric_R2_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.42885375494071143,
+        "observed": 0.42885375494071143
+      },
+      "name": "metric_Spearman_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.28063241106719367,
+        "observed": 0.28063241106719367
+      },
+      "name": "metric_Kendall_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.6403162055335968,
+        "observed": 0.6403162055335968
+      },
+      "name": "metric_pairwise_concordance_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.625,
+        "observed": 0.625
+      },
+      "name": "metric_low_high_balanced_accuracy_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.625,
+        "observed": 0.625
+      },
+      "name": "metric_high_rq_sensitivity_matches",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.7333333333333333,
+        "observed": 0.7333333333333333
+      },
+      "name": "metric_high_rq_specificity_matches",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "retrieval_a3_only_n23",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "retrieval_no_heldout_source_contribution",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "retrieval_no_true_afm_selection",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "retrieval_no_true_descriptor_selection",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "strict_candidate_group_count_22",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "strict_identity_pass_all",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "prospective_deployment_blocker_exists",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "no_noncanonical_predict_unseen_py",
+      "pass": true
+    },
+    {
+      "details": [],
+      "name": "no_file_over_100mb",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "main_figures_exist",
+      "pass": true
+    }
+  ],
+  "freeze_id": "rheed_afm_single_frame_v1_2026-07-18",
+  "manifest_entry_count": 287
+}
+
+--- stderr ---
+
+
+===== SECTION 7: command =====
+command: .venv/bin/python publication_freeze/prospective_unseen_single_frame_v1/code/validate_keyframe_selections.py --require-complete
+cwd: /Users/ziyi/Desktop/LAB/code_cleanup_backups/20260723-000924/validation_tmp_post_repo_1
+exit_code: 0
+runtime_sec: 3.1212711334228516
+--- stdout ---
+{
+  "status": "ok",
+  "error_count": 0,
+  "warning_count": 0
+}
+
+--- stderr ---
+
+
+===== SECTION 8: external_validation_tmp =====
+{
+  "kind": "external_validation_tmp",
+  "note": "Writable validation scripts ran only in this external temporary repo copy.",
+  "path": "/Users/ziyi/Desktop/LAB/code_cleanup_backups/20260723-000924/validation_tmp_post_repo_1"
+}
+
+===== SECTION 9: config_path_review =====
+{
+  "checked": 131,
+  "classification": "remaining pre-existing or optional config/output references; none were in the approved deletion plan",
+  "kind": "config_path_review",
+  "missing_count": 6,
+  "missing_paths": [
+    {
+      "file": "configs/rheed_roughness.yaml",
+      "in_deletion_plan": false,
+      "value": "data/manifests/afm_candidate_table_complete.csv"
+    },
+    {
+      "file": "configs/rheed_roughness.yaml",
+      "in_deletion_plan": false,
+      "value": "data/manifests/manifest_all_size_representative_one_to_one.csv"
+    },
+    {
+      "file": "configs/rheed_roughness.yaml",
+      "in_deletion_plan": false,
+      "value": "data/manifests/manifest_1um_one_to_one.csv"
+    },
+    {
+      "file": "configs/rheed_roughness.yaml",
+      "in_deletion_plan": false,
+      "value": "data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256"
+    },
+    {
+      "file": "configs/rheed_single_frame_manual.yaml",
+      "in_deletion_plan": false,
+      "value": "outputs/rheed_single_frame_manual"
+    },
+    {
+      "file": "configs/rheed_video_afm_story_phase4a.yaml",
+      "in_deletion_plan": false,
+      "value": "reports/rheed_video_afm_story/phase4a/rheed_expert_review/expert_rheed_labels_filled.csv"
+    }
+  ]
+}
+
+===== SECTION 10: read_only_validation =====
+{
+  "all_checks_passed": true,
+  "checks": [
+    {
+      "details": {
+        "added_count": 0,
+        "missing_count": 0
+      },
+      "name": "canonical_hashes_match_phase_a",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 23,
+        "observed": 23
+      },
+      "name": "retrospective_metric_N_unchanged",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.2600983407909774,
+        "observed": 1.2600983407909774
+      },
+      "name": "retrospective_metric_MAE_unchanged",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.8393101333714263,
+        "observed": 1.8393101333714263
+      },
+      "name": "retrospective_metric_RMSE_unchanged",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.2939669042578328,
+        "observed": 0.2939669042578328
+      },
+      "name": "retrospective_metric_R2_unchanged",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.42885375494071143,
+        "observed": 0.42885375494071143
+      },
+      "name": "retrospective_metric_Spearman_unchanged",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.1205674310532974,
+        "observed": 1.1205674310532974
+      },
+      "name": "retrospective_metric_median_AE_unchanged",
+      "pass": true
+    },
+    {
+      "details": {
+        "groups": [
+          "6022",
+          "6028",
+          "6029",
+          "6033",
+          "6047",
+          "6048",
+          "6056",
+          "6057",
+          "6062",
+          "6063",
+          "6070",
+          "6072",
+          "6078",
+          "6080",
+          "6081",
+          "6082",
+          "6084",
+          "6085",
+          "6090",
+          "6094",
+          "6095",
+          "6099",
+          "6101"
+        ],
+        "rows": 23
+      },
+      "name": "historical_23_groups_unchanged",
+      "pass": true
+    },
+    {
+      "details": [
+        "N6342",
+        "N6358",
+        "N6382",
+        "N6389",
+        "N6390"
+      ],
+      "name": "prospective_five_prediction_rows_unchanged",
+      "pass": true
+    },
+    {
+      "details": [
+        [
+          "N6342",
+          "-2.224452509209445"
+        ],
+        [
+          "N6358",
+          "-1.9099757774995205"
+        ],
+        [
+          "N6382",
+          "-1.670821698639616"
+        ]
+      ],
+      "name": "negative_raw_predictions_unchanged",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "clipped_values_not_replacing_raw",
+      "pass": true
+    },
+    {
+      "details": {
+        "N6324": "afm_truth_without_prediction",
+        "N6342": "prediction_and_afm_truth_available",
+        "N6358": "prediction_and_afm_truth_available",
+        "N6382": "prediction_and_afm_truth_available",
+        "N6389": "prediction_and_afm_truth_available",
+        "N6390": "prediction_without_afm_truth"
+      },
+      "name": "prospective_join_status_unchanged",
+      "pass": true
+    },
+    {
+      "details": {
+        "N6324": "afm_truth_without_prediction",
+        "N6342": "prediction_and_afm_truth_available",
+        "N6358": "prediction_and_afm_truth_available",
+        "N6382": "prediction_and_afm_truth_available",
+        "N6389": "prediction_and_afm_truth_available",
+        "N6390": "prediction_without_afm_truth"
+      },
+      "name": "four_matched_afm_truth_samples",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "N6390_missing_afm_truth_unchanged",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "N6324_mismatch_unchanged",
+      "pass": true
+    },
+    {
+      "details": {
+        "afm_truth_sample_ids": [
+          "N6324",
+          "N6342",
+          "N6358",
+          "N6382",
+          "N6389"
+        ],
+        "afm_truth_without_prediction": [
+          "N6324"
+        ],
+        "note": "AFM-extra-five contains N6324 but the existing prospective prediction manifest contains N6390 instead.",
+        "prediction_sample_ids": [
+          "N6342",
+          "N6358",
+          "N6382",
+          "N6389",
+          "N6390"
+        ],
+        "prediction_without_afm_truth": [
+          "N6390"
+        ],
+        "unseen_keyframe_sample_ids": [
+          "N6342",
+          "N6358",
+          "N6382",
+          "N6389",
+          "N6390"
+        ]
+      },
+      "name": "mismatch_report_unchanged_semantics",
+      "pass": true
+    },
+    {
+      "details": {
+        "scan_rows": 25,
+        "truth_ids": [
+          "N6324",
+          "N6342",
+          "N6358",
+          "N6382",
+          "N6389"
+        ]
+      },
+      "name": "extra_five_afm_scan_and_sample_counts",
+      "pass": true
+    },
+    {
+      "details": {
+        "checked": 627,
+        "missing": [],
+        "missing_count": 0
+      },
+      "name": "canonical_manifest_paths_exist",
+      "pass": true
+    },
+    {
+      "details": {
+        "checked": 131,
+        "missing_count": 6,
+        "missing_paths": [
+          {
+            "file": "configs/rheed_roughness.yaml",
+            "in_deletion_plan": false,
+            "value": "data/manifests/afm_candidate_table_complete.csv"
+          },
+          {
+            "file": "configs/rheed_roughness.yaml",
+            "in_deletion_plan": false,
+            "value": "data/manifests/manifest_all_size_representative_one_to_one.csv"
+          },
+          {
+            "file": "configs/rheed_roughness.yaml",
+            "in_deletion_plan": false,
+            "value": "data/manifests/manifest_1um_one_to_one.csv"
+          },
+          {
+            "file": "configs/rheed_roughness.yaml",
+            "in_deletion_plan": false,
+            "value": "data/rheed_roi_shadow_right_v2_main_raw_crop_videos_256"
+          },
+          {
+            "file": "configs/rheed_single_frame_manual.yaml",
+            "in_deletion_plan": false,
+            "value": "outputs/rheed_single_frame_manual"
+          },
+          {
+            "file": "configs/rheed_video_afm_story_phase4a.yaml",
+            "in_deletion_plan": false,
+            "value": "reports/rheed_video_afm_story/phase4a/rheed_expert_review/expert_rheed_labels_filled.csv"
+          }
+        ]
+      },
+      "name": "config_path_review_completed_no_cleanup_removed_config_target",
+      "pass": true
+    },
+    {
+      "details": [],
+      "name": "no_broken_symlinks",
+      "pass": true
+    },
+    {
+      "details": {
+        "errors": [],
+        "rows": 309
+      },
+      "name": "quarantine_copies_match_and_originals_absent",
+      "pass": true
+    }
+  ],
+  "kind": "read_only_validation"
+}
+
+===== SECTION 11: command =====
+command: git fsck --full
+cwd: /Users/ziyi/Desktop/LAB/code
+exit_code: 0
+runtime_sec: 15.530751943588257
+--- stdout ---
+dangling tree e981b45017861eac6d58d725151ff117802c2f85
+dangling tree 6a0230c1023a8e771f06a7da710bcacbce925f59
+dangling tree 848203133ca5a88630d3356c3e7e41b432d94fd5
+dangling tree c80dca0eb6cf721d410af53e7c2f3eac8acd119e
+dangling blob c014a87047edd6df1ed419166bae07a6ecdb0b38
+dangling tree d91a411e58fa0007aedf3f4af1726be1e0820fa5
+dangling tree 3b1b27e0ac370a1ff4c699d9992c423f1563384a
+dangling tree 719cfe2d5d6766f52f35c4d2ae539c64d6eee8f7
+dangling tree 4e9e8cd15d14e77c1c3f1c761dc3cb6a1c5495e8
+dangling blob fb24e1718a1279a8abf4deff77285bb9892f3e5a
+dangling tree 1c2a1dd94799d91c2fdc9d788e06e307e8dfc1c5
+dangling tree 42b4f4c37dce82a79bf4d0543580973c0d495404
+dangling blob 57b6b9060ed769f8df5f2a5bf0ceb6421405d4a6
+dangling tree 2eba0060910a7439d0c13160a6745c1ac9c5a536
+dangling tree aac50fa8b192757f5e9336ff241e8542f91d8f99
+dangling tree 9249fc22cf4520eeb83edad5275ce17927cd9ba8
+dangling tree 70da5418f110d25c4b40cdabf56bdb78279c4fec
+dangling tree 98da7335f93a5decd3a7c99960933d2cf85d6aae
+dangling tree 37dbfdb58233a2cc33f20ac6e24c7e389d1c787d
+dangling tree 335eec34c48d4eea8f08e426bef6985b4a1f2359
+dangling blob 0e614a488eea15dd5269e45f134f2f7541245926
+dangling blob 69e4478106668882ae3a6e3c09cd986fbf4573ea
+dangling blob 8fece809b98f5e600a1668434f7dff66f4b1c7f5
+dangling tree 58f8f2c09d5df8886bc89d6dd78cefda9a4dab95
+dangling blob 35f92ddfba69cfd064f0b3867c8317809387e7b6
+dangling tree 537be761ddf087228b65c7a5aace2675dcb5320c
+dangling tree 747fe97be55ad044d0cf21b88ba5bd84a55218de
+
+--- stderr ---
+
+
+===== SECTION 12: command =====
+command: git lfs fsck
+cwd: /Users/ziyi/Desktop/LAB/code
+exit_code: 0
+runtime_sec: 0.41390013694763184
+--- stdout ---
+Git LFS fsck OK
+
+--- stderr ---
+
+

@@ -1,0 +1,449 @@
+validation_before.log
+created: 2026-07-23T00:29:10
+repo: /Users/ziyi/Desktop/LAB/code
+branch: cleanup/natcomms-publication-baseline-2026-07-22-20260723-000924
+
+===== SECTION 1: command =====
+command: pytest -q
+exit_code: 999
+runtime_sec: 0.002
+--- stdout ---
+
+--- stderr ---
+FileNotFoundError(2, 'No such file or directory')
+
+===== SECTION 2: command =====
+command: /Users/ziyi/Desktop/LAB/code/.venv/bin/python -m pytest -q
+exit_code: 1
+runtime_sec: 0.023
+--- stdout ---
+
+--- stderr ---
+/Users/ziyi/Desktop/LAB/code/.venv/bin/python: No module named pytest
+
+
+===== SECTION 3: command =====
+command: python -m compileall src scripts tools
+exit_code: 999
+runtime_sec: 0.002
+--- stdout ---
+
+--- stderr ---
+FileNotFoundError(2, 'No such file or directory')
+
+===== SECTION 4: command =====
+command: /Users/ziyi/Desktop/LAB/code/.venv/bin/python -m compileall src scripts tools
+exit_code: 0
+runtime_sec: 0.057
+--- stdout ---
+Listing 'src'...
+Listing 'src/rheed2morph'...
+Listing 'src/rheed2morph/afm'...
+Listing 'src/rheed2morph/generative'...
+Listing 'src/rheed2morph/generative/models'...
+Listing 'src/rheed2morph/manifests'...
+Listing 'src/rheed2morph/pairing'...
+Listing 'src/rheed2morph/pipeline'...
+Listing 'src/rheed2morph/rheed'...
+Listing 'src/rheed2morph/rheed/models'...
+Listing 'src/rheed2morph/utils'...
+Listing 'src/rheed2morph.egg-info'...
+Listing 'scripts'...
+Listing 'scripts/afm_descriptor_reconstruction'...
+Listing 'scripts/afm_descriptor_reconstruction_large_dataset'...
+Listing 'tools'...
+
+--- stderr ---
+
+
+===== SECTION 5: inspection =====
+{
+  "details": {
+    "not_run_reason": "script writes immutable provenance/MANIFEST.sha256 and provenance/verification_report.json",
+    "path": "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/code/verify_freeze.py",
+    "write_markers_found": [
+      "write_text(",
+      "MANIFEST.sha256",
+      "verification_report.json"
+    ]
+  },
+  "kind": "inspection",
+  "name": "verify_freeze.py read-only decision"
+}
+
+===== SECTION 6: inspection =====
+{
+  "details": {
+    "not_run_reason": "script writes selection_validation_report.json, consolidated manifests, provenance, and validation cache",
+    "path": "publication_freeze/prospective_unseen_single_frame_v1/code/validate_keyframe_selections.py",
+    "write_markers_found": [
+      "atomic_write_json",
+      "write_consolidated_manifests",
+      "refresh_provenance"
+    ]
+  },
+  "kind": "inspection",
+  "name": "prospective keyframe validator read-only decision"
+}
+
+===== SECTION 7: read_only_validation =====
+{
+  "all_checks_passed": true,
+  "checks": [
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/rheed_afm_single_frame_v1_2026-07-18/results/strict_oof/metrics.json",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/rheed_afm_single_frame_v1_2026-07-18/results/strict_oof/per_sample_errors.csv",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/rheed_afm_single_frame_v1_2026-07-18/data_snapshot/canonical_sample_index.csv",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/rheed_afm_single_frame_v1_2026-07-18/data_snapshot/sample_targets.csv",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/prospective_unseen_single_frame_v1/predictions/full_cohort_single_frame_v1/predictions.csv",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/prospective_unseen_single_frame_v1/predictions/full_cohort_single_frame_v1/ensemble_member_predictions.csv",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/prospective_unseen_single_frame_v1/predictions/full_cohort_single_frame_v1/retrieval/retrieval_results.csv",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/prospective_unseen_single_frame_v1/ground_truth_afm/manifests/afm_extra_five_second_order_scan_manifest.csv",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/prospective_unseen_single_frame_v1/ground_truth_afm/manifests/afm_extra_five_sample_level_ground_truth.csv",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/prospective_unseen_single_frame_v1/ground_truth_afm/manifests/full_cohort_prediction_vs_afm_truth_join.csv",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "required_artifact_readable:publication_freeze/prospective_unseen_single_frame_v1/ground_truth_afm/manifests/sample_id_mismatch_report.json",
+      "pass": true
+    },
+    {
+      "details": {
+        "Kendall": 0.28063241106719367,
+        "MAE": 1.2600983407909774,
+        "N": 23,
+        "R2": 0.2939669042578328,
+        "RMSE": 1.8393101333714263,
+        "Spearman": 0.42885375494071143,
+        "high_rq_sensitivity": 0.625,
+        "high_rq_specificity": 0.7333333333333333,
+        "high_tail_MAE": 2.166008324204992,
+        "low_high_balanced_accuracy": 0.625,
+        "low_tail_MAE": 1.0627871981474697,
+        "median_AE": 1.1205674310532974,
+        "model_name": "top5_median_cross_fitted_ensemble",
+        "pairwise_concordance": 0.6403162055335968,
+        "target_variant": "T4_second_order_trimmed_mean"
+      },
+      "name": "retrospective_metrics_N_23",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.2600983407909774,
+        "observed": 1.2600983407909774
+      },
+      "name": "retrospective_metric_MAE_exact",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 1.8393101333714263,
+        "observed": 1.8393101333714263
+      },
+      "name": "retrospective_metric_RMSE_exact",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.2939669042578328,
+        "observed": 0.2939669042578328
+      },
+      "name": "retrospective_metric_R2_exact",
+      "pass": true
+    },
+    {
+      "details": {
+        "expected": 0.42885375494071143,
+        "observed": 0.42885375494071143
+      },
+      "name": "retrospective_metric_Spearman_exact",
+      "pass": true
+    },
+    {
+      "details": 23,
+      "name": "canonical_sample_index_23_rows",
+      "pass": true
+    },
+    {
+      "details": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101"
+      ],
+      "name": "canonical_growth_groups_23_unique",
+      "pass": true
+    },
+    {
+      "details": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101"
+      ],
+      "name": "canonical_sample_ids_23_unique",
+      "pass": true
+    },
+    {
+      "details": [
+        "N6342",
+        "N6358",
+        "N6382",
+        "N6389",
+        "N6390"
+      ],
+      "name": "prospective_predictions_five_expected_ids",
+      "pass": true
+    },
+    {
+      "details": [
+        "N6342",
+        "N6358",
+        "N6382"
+      ],
+      "name": "prospective_raw_negative_predictions_preserved",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "prospective_clipped_column_does_not_replace_raw",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "prospective_uses_all_23_training_samples",
+      "pass": true
+    },
+    {
+      "details": 25,
+      "name": "prospective_ensemble_members_file_nonempty",
+      "pass": true
+    },
+    {
+      "details": 5,
+      "name": "prospective_retrieval_five_rows",
+      "pass": true
+    },
+    {
+      "details": [
+        "N6342",
+        "N6358",
+        "N6382",
+        "N6389",
+        "N6390"
+      ],
+      "name": "prospective_retrieval_ids_match_predictions",
+      "pass": true
+    },
+    {
+      "details": 25,
+      "name": "afm_extra_five_scan_manifest_25_rows",
+      "pass": true
+    },
+    {
+      "details": [
+        "N6324",
+        "N6342",
+        "N6358",
+        "N6382",
+        "N6389"
+      ],
+      "name": "afm_extra_five_sample_truth_ids",
+      "pass": true
+    },
+    {
+      "details": {
+        "N6324": "afm_truth_without_prediction",
+        "N6342": "prediction_and_afm_truth_available",
+        "N6358": "prediction_and_afm_truth_available",
+        "N6382": "prediction_and_afm_truth_available",
+        "N6389": "prediction_and_afm_truth_available",
+        "N6390": "prediction_without_afm_truth"
+      },
+      "name": "prediction_afm_join_statuses",
+      "pass": true
+    },
+    {
+      "details": {
+        "N6324": "afm_truth_without_prediction",
+        "N6342": "prediction_and_afm_truth_available",
+        "N6358": "prediction_and_afm_truth_available",
+        "N6382": "prediction_and_afm_truth_available",
+        "N6389": "prediction_and_afm_truth_available",
+        "N6390": "prediction_without_afm_truth"
+      },
+      "name": "prediction_afm_four_matched_samples",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "N6390_missing_afm_truth_preserved",
+      "pass": true
+    },
+    {
+      "details": "",
+      "name": "N6324_afm_without_prediction_preserved",
+      "pass": true
+    },
+    {
+      "details": {
+        "afm_truth_sample_ids": [
+          "N6324",
+          "N6342",
+          "N6358",
+          "N6382",
+          "N6389"
+        ],
+        "afm_truth_without_prediction": [
+          "N6324"
+        ],
+        "note": "AFM-extra-five contains N6324 but the existing prospective prediction manifest contains N6390 instead.",
+        "prediction_sample_ids": [
+          "N6342",
+          "N6358",
+          "N6382",
+          "N6389",
+          "N6390"
+        ],
+        "prediction_without_afm_truth": [
+          "N6390"
+        ],
+        "unseen_keyframe_sample_ids": [
+          "N6342",
+          "N6358",
+          "N6382",
+          "N6389",
+          "N6390"
+        ]
+      },
+      "name": "sample_id_mismatch_report_N6324_N6390",
+      "pass": true
+    },
+    {
+      "details": {
+        "checked": 627,
+        "missing": [],
+        "missing_count": 0
+      },
+      "name": "canonical_manifest_referenced_paths_exist",
+      "pass": true
+    }
+  ],
+  "counts_and_sizes": {
+    "canonical_model_artifacts": {
+      "files": 40,
+      "path": "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/models",
+      "size_bytes": 517623
+    },
+    "canonical_result_artifacts": {
+      "files": 80,
+      "path": "publication_freeze/rheed_afm_single_frame_v1_2026-07-18/results",
+      "size_bytes": 18234945
+    },
+    "extra_five_afm_raw_data": {
+      "files": 25,
+      "path": "data/AFM-extra-five",
+      "size_bytes": 105881600
+    },
+    "historical_processed_afm": {
+      "files": 1302,
+      "path": "data/processed_afm",
+      "size_bytes": 277768038
+    },
+    "historical_raw_data": {
+      "files": 2837,
+      "path": "data/raw",
+      "size_bytes": 3863881467
+    },
+    "historical_rheed_selections": {
+      "files": 82809,
+      "path": "data/rheed_keyframe_selection",
+      "size_bytes": 9228787632
+    },
+    "prospective_keyframes": {
+      "files": 15,
+      "path": "publication_freeze/prospective_unseen_single_frame_v1/keyframes",
+      "size_bytes": 30998902
+    }
+  },
+  "kind": "read_only_validation",
+  "name": "canonical scientific state checks"
+}
+
