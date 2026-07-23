@@ -4,11 +4,16 @@ __pycache__/
 *.egg-info/
 .DS_Store
 *.log
+*.tmp
+*.part
+tmp/
+temp/
 *.npy
 *.pt
 *.pth
 *.ckpt
 *.joblib
+*.crdownload
 
 data/
 data/raw/
@@ -20,6 +25,10 @@ data/rheed_keyframe_selection/**/frames/*.png
 data/plane_corrected_afm/
 outputs/
 checkpoints/
+benchmark_outputs/
+benchmark_runs/
+scratch_checkpoints/
+temporary_checkpoints/
 
 # Local decode/cache files from prospective unseen keyframe selection.
 publication_freeze/prospective_unseen_single_frame_v1/cache/

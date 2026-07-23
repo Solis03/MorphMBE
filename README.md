@@ -9,6 +9,25 @@ This repository is an initial feasibility demo. Any generated model output or
 analysis from the current pipeline should be treated as exploratory, not as a
 final scientific result.
 
+## Current Canonical Baseline
+
+The current publication-oriented baseline is frozen in two immutable packages:
+
+- `publication_freeze/rheed_afm_single_frame_v1_2026-07-18`
+- `publication_freeze/prospective_unseen_single_frame_v1`
+
+The retrospective freeze contains the 23 strict historical growth groups and
+the selected single-frame RHEED-to-AFM result. The prospective package contains
+five unseen RHEED samples, four currently matched AFM truth samples, the N6390
+missing-AFM state, and the N6324 AFM-side mismatch record.
+
+Supporting cleanup and provenance notes:
+
+- `docs/repository_map.md`
+- `docs/data_provenance.md`
+- `docs/current_scientific_baseline.md`
+- `docs/legacy_experiments_index.md`
+
 
 ## AFM Overview Figures
 
