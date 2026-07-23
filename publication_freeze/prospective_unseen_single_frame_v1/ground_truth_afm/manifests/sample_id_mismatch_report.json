@@ -1,0 +1,30 @@
+{
+  "afm_truth_sample_ids": [
+    "N6324",
+    "N6342",
+    "N6358",
+    "N6382",
+    "N6389"
+  ],
+  "afm_truth_without_prediction": [
+    "N6324"
+  ],
+  "note": "AFM-extra-five contains N6324 but the existing prospective prediction manifest contains N6390 instead.",
+  "prediction_sample_ids": [
+    "N6342",
+    "N6358",
+    "N6382",
+    "N6389",
+    "N6390"
+  ],
+  "prediction_without_afm_truth": [
+    "N6390"
+  ],
+  "unseen_keyframe_sample_ids": [
+    "N6342",
+    "N6358",
+    "N6382",
+    "N6389",
+    "N6390"
+  ]
+}

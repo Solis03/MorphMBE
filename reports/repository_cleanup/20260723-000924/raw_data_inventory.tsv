@@ -1,0 +1,19 @@
+path	kind	file_count	total_size_bytes	sha256	notes
+data/raw	directory	2837	3863881467		raw/source keep by default
+data/compressedfile	directory	30	163556873485		raw/source keep by default
+data/AFM-extra-five	directory	25	105881600		raw/source keep by default
+data/manual_selection	directory	707	1092253833		raw/source keep by default
+data/pair	directory	675	1085231992		raw/source keep by default
+data/pair_afm_extra_five	directory	25	1325		derived data keep pending explicit provenance/duplication review
+data/processed_afm	directory	1302	277768038		derived data keep pending explicit provenance/duplication review
+data/plane_corrected_afm	directory	1040	487136677		derived data keep pending explicit provenance/duplication review
+data/afm_second_order	directory	784	451835621		derived data keep pending explicit provenance/duplication review
+data/processed_afm_extra_five	directory	127	59852902		derived data keep pending explicit provenance/duplication review
+data/plane_corrected_afm_extra_five	directory	100	110144001		derived data keep pending explicit provenance/duplication review
+data/afm_second_order_extra_five	directory	79	107929196		derived data keep pending explicit provenance/duplication review
+data/rheed_keyframe_selection	directory	82809	9228787632		raw/source keep by default
+data/compressedfile.zip	archive	1	106995433654		archive KEEP by default; no deletion proposed
+data/extra-five-afm.zip	archive	1	37224451		archive KEEP by default; no deletion proposed
+paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134.zip	archive	1	248358193		archive KEEP by default; no deletion proposed
+paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134_submission_assets.zip	archive	1	79068188		archive KEEP by default; no deletion proposed
+paper_freeze/rheed_to_afm_paper_freeze_v1_20260716_183134.tar.gz	archive	1	248215634		archive KEEP by default; no deletion proposed
