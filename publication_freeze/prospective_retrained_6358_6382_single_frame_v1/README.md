@@ -31,6 +31,7 @@ Run the complete experiment from the repository root:
 ```bash
 uv run python publication_freeze/prospective_retrained_6358_6382_single_frame_v1/code/run_experiment.py
 uv run python publication_freeze/prospective_retrained_6358_6382_single_frame_v1/code/run_leave_one_out.py
+uv run python publication_freeze/prospective_retrained_6358_6382_single_frame_v1/code/run_held_one_out_afm.py
 uv run python publication_freeze/prospective_retrained_6358_6382_single_frame_v1/code/validate_experiment.py
 ```
 
@@ -64,3 +65,7 @@ Every displayed AFM ground-truth or retrieved map includes a height bar in nm
 and its Rq value. The full-cohort retraining fit and its three-sample evaluation
 must not be presented as a replacement for the frozen 23-sample strict OOF
 benchmark.
+
+## Held-one-out AFM atlas
+
+The 28-fold AFM experiment uses the existing leave-one-out Rq prediction for each sample, excludes that sample's entire AFM group from the A3 retrieval bank, and retrieves morphology from the other 27 sample groups. Its primary atlas is `figures/main/Figure3_held_one_out_afm_prediction_atlas.*`; full results are in `predictions/held_one_out_afm_28/` and `report/held_one_out_afm_summary.md`.

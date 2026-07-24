@@ -51,6 +51,17 @@ leave_one_out_evaluation:
   aggregation: median
   analysis_role: post_hoc_all_labeled_samples
   distinct_from_original_three_sample_prospective_test: true
+held_one_out_afm_prediction:
+  samples: all_28_labeled_samples
+  quantitative_training_samples_per_fold: 27
+  afm_retrieval_source_groups_per_fold: 27
+  visual_method: A3_full_cohort_rq_conditioned
+  target_sample_afm_group_excluded: true
+  representative_ground_truth:
+    N6342: ground_truth_5
+    N6389: ground_truth_3
+    N6390: ground_truth_1
+    all_others: minimum_absolute_measured_rq_distance_to_T4_target
 visual_model:
   method: A3_full_cohort_rq_conditioned
   retrieval_bank_groups: 25

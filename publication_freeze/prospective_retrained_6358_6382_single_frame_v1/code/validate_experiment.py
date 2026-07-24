@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import hashlib
+import importlib
 import json
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -351,6 +353,209 @@ def main() -> None:
         "loo_paper_figures_all_formats_exist",
         all(path.is_file() and path.stat().st_size > 0 for path in loo_figure_paths),
         [str(path) for path in loo_figure_paths],
+    )
+
+    hoo_root = PKG / "predictions/held_one_out_afm_28"
+    hoo_results = pd.read_csv(
+        hoo_root / "retrieval_results.csv",
+        dtype={"sample_id": str, "source_sample_id": str},
+    )
+    hoo_selections = pd.read_csv(
+        hoo_root / "ground_truth_selection.csv",
+        dtype={"sample_id": str},
+    )
+    hoo_bank = pd.read_csv(
+        PKG / "models/visual_model/full_labeled_28_afm_bank_manifest.csv",
+        dtype={"sample_id": str},
+    )
+    add_check(
+        checks,
+        "hoo_afm_prediction_ids_exactly_all_28",
+        hoo_results["sample_id"].tolist() == LOO_IDS,
+        hoo_results["sample_id"].tolist(),
+    )
+    add_check(
+        checks,
+        "hoo_ground_truth_selection_ids_exactly_all_28",
+        hoo_selections["sample_id"].tolist() == LOO_IDS,
+        hoo_selections["sample_id"].tolist(),
+    )
+    add_check(
+        checks,
+        "hoo_full_bank_has_28_groups_and_141_maps",
+        hoo_bank["sample_id"].nunique() == 28 and len(hoo_bank) == 141,
+        {
+            "groups": int(hoo_bank["sample_id"].nunique()),
+            "maps": len(hoo_bank),
+        },
+    )
+    expected_forced_scans = {"6342": 5, "6389": 3, "6390": 1}
+    forced_ok = True
+    closest_ok = True
+    selected_rq_ok = True
+    for row in hoo_selections.to_dict("records"):
+        sample_id = row["sample_id"]
+        candidates = hoo_bank[
+            hoo_bank["sample_id"].eq(sample_id)
+            & hoo_bank["quality_pass"].astype(str).eq("True")
+        ].copy()
+        if sample_id in expected_forced_scans:
+            forced_ok &= (
+                int(float(row["selected_scan_number"]))
+                == expected_forced_scans[sample_id]
+            )
+            forced_ok &= (
+                row["selection_method"]
+                == f"user_forced_ground_truth_{expected_forced_scans[sample_id]}"
+            )
+        else:
+            distances = (
+                pd.to_numeric(candidates["rq_nm"], errors="coerce")
+                - float(row["sample_T4_target_rq_nm"])
+            ).abs()
+            closest_ok &= (
+                abs(
+                    float(row["absolute_rq_distance_to_T4_nm"])
+                    - float(distances.min())
+                )
+                < 1e-10
+            )
+            closest_ok &= (
+                row["selection_method"]
+                == "minimum_absolute_rq_distance_to_T4_target"
+            )
+        selected_array = np.load(
+            REPO / row["ground_truth_afm_path"],
+            allow_pickle=False,
+        )
+        selected_rq_ok &= (
+            abs(rq_nm(selected_array) - float(row["ground_truth_rq_nm"])) < 1e-5
+        )
+    add_check(
+        checks,
+        "hoo_forced_ground_truth_scans_exact",
+        forced_ok,
+        expected_forced_scans,
+    )
+    add_check(
+        checks,
+        "hoo_all_other_ground_truth_maps_are_closest_to_T4",
+        closest_ok,
+        "minimum absolute measured-Rq distance checked",
+    )
+    add_check(
+        checks,
+        "hoo_selected_ground_truth_rq_values_recompute",
+        selected_rq_ok,
+        "tolerance 1e-5 nm",
+    )
+
+    loo_index = loo.set_index("sample_id")
+    fold_membership_ok = True
+    map_rq_ok = True
+    prediction_link_ok = True
+    source_exclusion_ok = True
+    for row in hoo_results.to_dict("records"):
+        sample_id = row["sample_id"]
+        fold_ids = json.loads(row["fold_source_group_ids"])
+        fold_membership_ok &= fold_ids == [
+            value for value in LOO_IDS if value != sample_id
+        ]
+        source_exclusion_ok &= row["source_sample_id"] != sample_id
+        source_exclusion_ok &= bool(row["held_out_sample_absent_from_afm_bank"])
+        prediction_link_ok &= (
+            abs(
+                float(row["raw_leave_one_out_predicted_rq_nm"])
+                - float(
+                    loo_index.loc[
+                        sample_id, "leave_one_out_predicted_rq_nm"
+                    ]
+                )
+            )
+            < 1e-12
+        )
+        retrieved_array = np.load(
+            REPO / row["retrieved_q50_map_path"],
+            allow_pickle=False,
+        )
+        map_rq_ok &= (
+            abs(rq_nm(retrieved_array) - float(row["rendered_physical_rq_nm"]))
+            < 1e-5
+        )
+    add_check(
+        checks,
+        "hoo_each_afm_fold_uses_exact_other_27_groups",
+        fold_membership_ok
+        and hoo_results["fold_source_group_count"].eq(27).all(),
+        "ordered fold group IDs and counts checked",
+    )
+    add_check(
+        checks,
+        "hoo_target_and_retrieved_source_never_match",
+        source_exclusion_ok,
+        "28 retrieval sources checked",
+    )
+    add_check(
+        checks,
+        "hoo_uses_exact_28_fold_loo_rq_predictions",
+        prediction_link_ok,
+        "tolerance 1e-12 nm",
+    )
+    add_check(
+        checks,
+        "hoo_retrieved_map_rq_values_recompute",
+        map_rq_ok,
+        "tolerance 1e-5 nm",
+    )
+
+    retrieval_source = (
+        REPO
+        / "publication_freeze/prospective_unseen_single_frame_v1/code"
+    )
+    sys.path.insert(0, str(retrieval_source))
+    retrieval_module = importlib.import_module(
+        "generate_full_cohort_retrieval_images"
+    )
+    ranking_ok = True
+    for row in hoo_results.to_dict("records"):
+        fold_bank = hoo_bank[
+            ~hoo_bank["sample_id"].eq(row["sample_id"])
+        ].copy()
+        ranked = retrieval_module.rank_bank(
+            fold_bank,
+            float(row["rendered_physical_rq_nm"]),
+        )
+        top = ranked.iloc[0]
+        ranking_ok &= str(top["sample_id"]) == row["source_sample_id"]
+        ranking_ok &= str(top["afm_file_id"]) == row["source_afm_file_id"]
+    add_check(
+        checks,
+        "hoo_retrieval_sources_recompute_from_unchanged_A3_ranking",
+        ranking_ok,
+        "28 top-ranked sources checked",
+    )
+
+    hoo_atlas_stem = (
+        PKG / "figures/main/Figure3_held_one_out_afm_prediction_atlas"
+    )
+    hoo_atlas_paths = [
+        hoo_atlas_stem.with_suffix(suffix)
+        for suffix in [".png", ".pdf", ".svg"]
+    ]
+    add_check(
+        checks,
+        "hoo_primary_atlas_all_formats_exist",
+        all(path.is_file() and path.stat().st_size > 0 for path in hoo_atlas_paths),
+        [str(path) for path in hoo_atlas_paths],
+    )
+    hoo_per_sample = list(
+        (PKG / "figures/held_one_out_afm/per_sample").glob("*.png")
+    )
+    add_check(
+        checks,
+        "hoo_has_28_per_sample_pair_figures",
+        len(hoo_per_sample) == 28,
+        len(hoo_per_sample),
     )
 
     source_files = [

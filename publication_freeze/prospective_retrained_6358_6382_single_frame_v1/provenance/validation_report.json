@@ -1,9 +1,9 @@
 {
-  "check_count": 36,
+  "check_count": 49,
   "checks": [
     {
       "check": "existing_manifest_entries_match",
-      "detail": "239/239",
+      "detail": "333/333",
       "passed": true
     },
     {
@@ -458,11 +458,145 @@
       "passed": true
     },
     {
+      "check": "hoo_afm_prediction_ids_exactly_all_28",
+      "detail": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101",
+        "6342",
+        "6358",
+        "6382",
+        "6389",
+        "6390"
+      ],
+      "passed": true
+    },
+    {
+      "check": "hoo_ground_truth_selection_ids_exactly_all_28",
+      "detail": [
+        "6022",
+        "6028",
+        "6029",
+        "6033",
+        "6047",
+        "6048",
+        "6056",
+        "6057",
+        "6062",
+        "6063",
+        "6070",
+        "6072",
+        "6078",
+        "6080",
+        "6081",
+        "6082",
+        "6084",
+        "6085",
+        "6090",
+        "6094",
+        "6095",
+        "6099",
+        "6101",
+        "6342",
+        "6358",
+        "6382",
+        "6389",
+        "6390"
+      ],
+      "passed": true
+    },
+    {
+      "check": "hoo_full_bank_has_28_groups_and_141_maps",
+      "detail": {
+        "groups": 28,
+        "maps": 141
+      },
+      "passed": true
+    },
+    {
+      "check": "hoo_forced_ground_truth_scans_exact",
+      "detail": {
+        "6342": 5,
+        "6389": 3,
+        "6390": 1
+      },
+      "passed": true
+    },
+    {
+      "check": "hoo_all_other_ground_truth_maps_are_closest_to_T4",
+      "detail": "minimum absolute measured-Rq distance checked",
+      "passed": true
+    },
+    {
+      "check": "hoo_selected_ground_truth_rq_values_recompute",
+      "detail": "tolerance 1e-5 nm",
+      "passed": true
+    },
+    {
+      "check": "hoo_each_afm_fold_uses_exact_other_27_groups",
+      "detail": "ordered fold group IDs and counts checked",
+      "passed": true
+    },
+    {
+      "check": "hoo_target_and_retrieved_source_never_match",
+      "detail": "28 retrieval sources checked",
+      "passed": true
+    },
+    {
+      "check": "hoo_uses_exact_28_fold_loo_rq_predictions",
+      "detail": "tolerance 1e-12 nm",
+      "passed": true
+    },
+    {
+      "check": "hoo_retrieved_map_rq_values_recompute",
+      "detail": "tolerance 1e-5 nm",
+      "passed": true
+    },
+    {
+      "check": "hoo_retrieval_sources_recompute_from_unchanged_A3_ranking",
+      "detail": "28 top-ranked sources checked",
+      "passed": true
+    },
+    {
+      "check": "hoo_primary_atlas_all_formats_exist",
+      "detail": [
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/main/Figure3_held_one_out_afm_prediction_atlas.png",
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/main/Figure3_held_one_out_afm_prediction_atlas.pdf",
+        "/Users/ziyi/Desktop/LAB/code/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/main/Figure3_held_one_out_afm_prediction_atlas.svg"
+      ],
+      "passed": true
+    },
+    {
+      "check": "hoo_has_28_per_sample_pair_figures",
+      "detail": 28,
+      "passed": true
+    },
+    {
       "check": "algorithm_source_files_still_unmodified",
       "detail": [],
       "passed": true
     }
   ],
-  "created_at": "2026-07-23T23:27:32Z",
+  "created_at": "2026-07-24T00:02:09Z",
   "status": "pass"
 }

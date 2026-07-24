@@ -56,3 +56,11 @@ Largest absolute LOO errors:
 Paper figures: `figures/main/Figure2_leave_one_out_prediction_scatter.*` and `figures/supplementary/SuppFigure10_leave_one_out_diagnostics.*`.
 
 The complete per-sample table is `predictions/leave_one_out_28/predictions.csv`.
+
+## Held-one-out AFM prediction atlas
+
+A separate 28-fold visual experiment excludes the target sample from both the 27-sample quantitative fit and the 27-group A3 AFM retrieval bank. N6342/N6389/N6390 use ground truth 5/3/1, respectively; all other representative AFMs minimize absolute measured-Rq distance to the sample T4 target.
+
+Rendered AFM Rq versus the selected displayed ground truths: MAE 1.6339 nm, RMSE 2.2851 nm.
+
+Primary atlas: `figures/main/Figure3_held_one_out_afm_prediction_atlas.*`. Full selections and retrieved sources are documented in `report/held_one_out_afm_summary.md`.

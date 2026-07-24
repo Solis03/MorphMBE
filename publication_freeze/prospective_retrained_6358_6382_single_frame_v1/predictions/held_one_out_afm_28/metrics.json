@@ -1,0 +1,19 @@
+{
+  "T4_target_vs_raw_leave_one_out_rq": {
+    "MAE_nm": 1.5599663255723066,
+    "R2": -0.06487757667027116,
+    "RMSE_nm": 2.166518740098196
+  },
+  "created_at": "2026-07-24T00:01:57Z",
+  "evaluation_design": "28-fold held-one-out quantitative fit and AFM retrieval bank; 27 other sample groups per fold",
+  "morphology_source_is_always_another_sample": true,
+  "negative_raw_prediction_count": 1,
+  "negative_raw_predictions_rendered_at_rq_nm": 0.001,
+  "sample_count": 28,
+  "selected_display_ground_truth_rq": {
+    "MAE_nm": 1.633910765167056,
+    "R2": -0.07476272864156619,
+    "RMSE_nm": 2.2851160003753415
+  },
+  "visual_method": "unchanged A3_full_cohort_rq_conditioned"
+}
