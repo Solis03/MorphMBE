@@ -15,6 +15,7 @@ from sklearn.preprocessing import StandardScaler
 import torch
 from torch.utils.data import Dataset
 
+from analysis.rheed_single_frame.removelist import assert_no_removed_samples
 from analysis.rheed_video_afm_story.common import repo_path
 
 
@@ -157,6 +158,7 @@ class RheedDescriptorPredictor:
     condition_scaler: ConditionScaler
     alpha: float
     train_groups: list[str]
+    excluded_sample_ids: list[str]
 
     def transform_features(
         self, embeddings: np.ndarray, physics: np.ndarray
@@ -187,12 +189,24 @@ def load_rheed_feature_table(
     embedding_id: str,
     embedding_registry: pd.DataFrame,
     physics_table: pd.DataFrame,
+    excluded_sample_ids: set[str] | None = None,
 ) -> tuple[list[str], np.ndarray, np.ndarray, str]:
     row = embedding_registry.loc[embedding_registry["embedding_id"] == embedding_id]
     if len(row) != 1:
         raise ValueError(f"embedding id not uniquely available: {embedding_id}")
     path = str(row.iloc[0]["path"])
     sample_ids, embeddings = _load_embedding(path)
+    excluded = set(map(str, excluded_sample_ids or set()))
+    keep = np.asarray(
+        [sample_id not in excluded for sample_id in sample_ids], dtype=bool
+    )
+    sample_ids = [
+        sample_id for sample_id, keep_sample in zip(sample_ids, keep) if keep_sample
+    ]
+    embeddings = embeddings[keep]
+    assert_no_removed_samples(
+        sample_ids, excluded, context=f"RHEED embedding {embedding_id}"
+    )
     physics = physics_table.copy()
     physics["sample_id"] = physics["sample_id"].astype(str)
     physics = _finite_frame(physics, PHYSICS_COLUMNS).set_index("sample_id")
@@ -240,9 +254,17 @@ def fit_rheed_descriptor_predictor(
     train_groups: set[str],
     pca_dim: int,
     alphas: list[float],
+    excluded_sample_ids: set[str] | None = None,
 ) -> tuple[RheedDescriptorPredictor, pd.DataFrame, dict[str, Any]]:
+    excluded = set(map(str, excluded_sample_ids or set()))
+    assert_no_removed_samples(
+        train_groups, excluded, context="RHEED descriptor predictor training groups"
+    )
     sample_ids, embeddings, physics, path = load_rheed_feature_table(
-        embedding_id, embedding_registry, physics_table
+        embedding_id,
+        embedding_registry,
+        physics_table,
+        excluded_sample_ids=excluded,
     )
     index = {sample_id: position for position, sample_id in enumerate(sample_ids)}
     ordered_groups = sorted(train_groups)
@@ -279,6 +301,7 @@ def fit_rheed_descriptor_predictor(
         condition_scaler=condition_scaler,
         alpha=alpha,
         train_groups=ordered_groups,
+        excluded_sample_ids=sorted(excluded),
     )
     metadata = {
         "embedding_id": embedding_id,
@@ -290,6 +313,7 @@ def fit_rheed_descriptor_predictor(
         "physics_columns": PHYSICS_COLUMNS,
         "ridge_alpha": alpha,
         "train_groups": ordered_groups,
+        "excluded_sample_ids": sorted(excluded),
         "feature_dim": int(features.shape[1]),
     }
     return predictor, cv_table, metadata
@@ -301,8 +325,21 @@ def predict_groups(
     embedding_registry: pd.DataFrame,
     physics_table: pd.DataFrame,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    custom_predict = getattr(predictor, "predict_from_tables", None)
+    if custom_predict is not None:
+        return custom_predict(groups, embedding_registry, physics_table)
     sample_ids, embeddings, physics, _ = load_rheed_feature_table(
-        predictor.embedding_id, embedding_registry, physics_table
+        predictor.embedding_id,
+        embedding_registry,
+        physics_table,
+        excluded_sample_ids=set(
+            map(str, getattr(predictor, "excluded_sample_ids", []))
+        ),
+    )
+    assert_no_removed_samples(
+        groups,
+        getattr(predictor, "excluded_sample_ids", []),
+        context="RHEED descriptor prediction groups",
     )
     index = {sample_id: position for position, sample_id in enumerate(sample_ids)}
     missing = sorted(set(groups) - set(index))

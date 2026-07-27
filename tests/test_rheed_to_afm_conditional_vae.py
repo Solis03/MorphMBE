@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 import unittest
+import json
+from pathlib import Path
 
+import pandas as pd
 import torch
 
+from analysis.rheed_single_frame.removelist import load_removelist_audit
+from analysis.rheed_to_afm_generation.data import load_rheed_feature_table
 from analysis.rheed_to_afm_generation.model import ConditionalAFMVAE, gaussian_kl
+from analysis.rheed_to_afm_generation.run import _load_tables
 
 
 class ConditionalAFMVAETest(unittest.TestCase):
@@ -54,6 +60,49 @@ class ConditionalAFMVAETest(unittest.TestCase):
         source = inspect.getsource(ConditionalAFMVAE).lower()
         self.assertNotIn("nearestneighbor", source)
         self.assertNotIn("retriev", source)
+
+    def test_canonical_removelist_is_applied_before_all_model_tables(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        config = json.loads(
+            (root / "configs/rheed_to_afm_generation.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        tables = _load_tables(config)
+        removed = set(tables["removelist"].sample_ids)
+        self.assertEqual(
+            tables["removelist"].sha256,
+            "8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b",
+        )
+        for name in ("descriptors", "folds", "physics", "phase1"):
+            frame = tables[name]
+            for column in ("sample_id", "growth_run_id"):
+                if column in frame:
+                    self.assertFalse(
+                        set(frame[column].dropna().astype(str)) & removed,
+                        f"{name}.{column} contains removelist samples",
+                    )
+        self.assertEqual(
+            set(tables["removelist_excluded_rows"]["sample_id"]),
+            {"6023", "6087"},
+        )
+
+    def test_removelist_samples_are_removed_from_embedding_payload(self) -> None:
+        root = Path(__file__).resolve().parents[1]
+        config = json.loads(
+            (root / "configs/rheed_to_afm_generation.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        tables = _load_tables(config)
+        audit = load_removelist_audit(root, "removelist.txt")
+        sample_ids, _, _, _ = load_rheed_feature_table(
+            "dino_vits14__centered_8__raw_luminance",
+            pd.read_csv(root / config["embedding_registry"]),
+            tables["physics"],
+            excluded_sample_ids=set(audit.sample_ids),
+        )
+        self.assertFalse(set(sample_ids) & set(audit.sample_ids))
 
 
 if __name__ == "__main__":

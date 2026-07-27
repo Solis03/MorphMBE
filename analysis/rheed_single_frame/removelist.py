@@ -41,6 +41,7 @@ def resolve_path(repo_root: Path, raw: str | Path) -> Path:
 
 def discover_removelist(repo_root: Path, configured_path: str | Path | None) -> Path:
     """Return the single active canonical removelist path or fail closed."""
+    repo_root = repo_root.resolve()
     if configured_path:
         path = resolve_path(repo_root, configured_path).resolve()
         if not path.is_file():
@@ -174,4 +175,3 @@ def excluded_rows_for_present_samples(
                 }
             )
     return rows
-

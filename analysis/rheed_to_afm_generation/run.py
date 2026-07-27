@@ -12,6 +12,11 @@ import numpy as np
 import pandas as pd
 import torch
 
+from analysis.rheed_single_frame.removelist import (
+    assert_no_removed_samples,
+    excluded_rows_for_present_samples,
+    load_removelist_audit,
+)
 from analysis.rheed_video_afm_story.common import (
     repo_path,
     sha256_file,
@@ -40,15 +45,30 @@ def load_config(path: str | Path) -> dict[str, Any]:
 
 
 def _load_tables(config: dict[str, Any]) -> dict[str, pd.DataFrame]:
+    removelist = load_removelist_audit(
+        repo_path("."), config.get("removelist_path", "removelist.txt")
+    )
+    expected_hash = config.get("removelist_sha256")
+    if expected_hash is not None and removelist.sha256 != str(expected_hash):
+        raise RuntimeError(
+            "canonical removelist hash mismatch: "
+            f"expected {expected_hash}, found {removelist.sha256}"
+        )
+    excluded = set(removelist.sample_ids)
     descriptors = derive_condition_table(
         pd.read_csv(
             repo_path(config["afm_descriptors"]),
             dtype={"sample_id": str, "growth_run_id": str},
         )
     )
+    descriptors = descriptors.loc[
+        ~descriptors["sample_id"].isin(excluded)
+        & ~descriptors["growth_run_id"].isin(excluded)
+    ].copy()
     folds = pd.read_csv(
         repo_path(config["group_folds"]), dtype={"growth_run_id": str}
     )
+    folds = folds.loc[~folds["growth_run_id"].isin(excluded)].copy()
     split_descriptors, groups = build_fixed_split(
         descriptors,
         folds,
@@ -60,10 +80,30 @@ def _load_tables(config: dict[str, Any]) -> dict[str, pd.DataFrame]:
         repo_path(config["rheed_physics_features"]),
         dtype={"sample_id": str, "growth_run_id": str},
     )
+    physics = physics.loc[
+        ~physics["sample_id"].isin(excluded)
+        & ~physics["growth_run_id"].isin(excluded)
+    ].copy()
     phase1 = pd.read_csv(
         repo_path(config["phase1_manifest"]),
         dtype={"sample_id": str, "growth_run_id": str},
     )
+    phase1_all = phase1.copy()
+    phase1 = phase1.loc[
+        ~phase1["sample_id"].isin(excluded)
+        & ~phase1["growth_run_id"].isin(excluded)
+    ].copy()
+    for name, frame in {
+        "AFM descriptors": split_descriptors,
+        "fold table": folds,
+        "RHEED physics": physics,
+        "phase-1 manifest": phase1,
+    }.items():
+        identifiers: list[str] = []
+        for column in ("sample_id", "growth_run_id"):
+            if column in frame:
+                identifiers.extend(frame[column].dropna().astype(str))
+        assert_no_removed_samples(identifiers, excluded, context=name)
     return {
         "descriptors": split_descriptors,
         "folds": folds,
@@ -71,6 +111,13 @@ def _load_tables(config: dict[str, Any]) -> dict[str, pd.DataFrame]:
         "physics": physics,
         "phase1": phase1,
         "groups": groups,
+        "removelist": removelist,
+        "removelist_excluded_rows": pd.DataFrame(
+            excluded_rows_for_present_samples(
+                removelist.records,
+                phase1_all["sample_id"].dropna().astype(str),
+            )
+        ),
     }
 
 
@@ -89,6 +136,9 @@ def _split_manifest(
     ]
     manifest = descriptors[columns].sort_values(
         ["split", "growth_run_id", "afm_file_id"]
+    )
+    removelist = load_removelist_audit(
+        repo_path("."), config.get("removelist_path", "removelist.txt")
     )
     write_csv(manifest, report_root / "split_manifest.csv")
     group_table = (
@@ -117,6 +167,13 @@ def _split_manifest(
         },
         "leakage": leakage,
         "leakage_check_passed": not any(leakage.values()),
+        "removelist_path": str(removelist.path.relative_to(repo_path("."))),
+        "removelist_sha256": removelist.sha256,
+        "removelist_sample_ids": list(removelist.sample_ids),
+        "removelist_overlap_after_filtering": sorted(
+            set(manifest["sample_id"].astype(str))
+            & set(removelist.sample_ids)
+        ),
         "selection_policy": (
             "RHEED embedding family, ridge alpha, and CVAE epoch are selected "
             "with train/validation data only. Test fold 1 is evaluated only "
@@ -125,6 +182,11 @@ def _split_manifest(
     }
     if not result["leakage_check_passed"]:
         raise RuntimeError(f"growth-group leakage: {leakage}")
+    if result["removelist_overlap_after_filtering"]:
+        raise RuntimeError(
+            "removelist samples survived filtering: "
+            f"{result['removelist_overlap_after_filtering']}"
+        )
     write_json(result, report_root / "split_integrity_audit.json")
     return result
 
@@ -176,6 +238,7 @@ def select_rheed_predictor(
     report_root: Path,
 ) -> tuple[Any, pd.DataFrame, dict[str, Any]]:
     descriptors = tables["descriptors"]
+    removelist_ids = set(tables["removelist"].sample_ids)
     group_targets = descriptors.groupby("growth_run_id")[
         condition_scaler.columns
     ].median()
@@ -202,6 +265,7 @@ def select_rheed_predictor(
             train_groups=train_groups,
             pca_dim=int(config["pca_dim"]),
             alphas=[float(value) for value in config["descriptor_ridge_alphas"]],
+            excluded_sample_ids=removelist_ids,
         )
         metrics, _, _, _ = _evaluate_predictor_candidate(
             predictor=predictor,
@@ -290,6 +354,10 @@ def run_development(
     figure_dir.mkdir(parents=True, exist_ok=True)
 
     split_audit = _split_manifest(descriptors, report_root, config)
+    write_csv(
+        tables["removelist_excluded_rows"],
+        report_root / "excluded_by_removelist.csv",
+    )
     train_groups = set(split_audit["groups"]["train"])
     condition_scaler = ConditionScaler.fit(
         descriptors, list(config["condition_columns"]), train_groups
