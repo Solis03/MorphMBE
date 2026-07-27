@@ -1,0 +1,10 @@
+{
+  "group_count": 1,
+  "methods": [
+    "M2_spectral_rheed_condition",
+    "M2b_calibrated_spectral_rheed_condition",
+    "M0_mean_condition_calibrated_spectral"
+  ],
+  "scan_count": 2,
+  "selection_policy": "AFM texture gate first; among passing methods use morphology composite and condition-control evidence. No old test reuse."
+}

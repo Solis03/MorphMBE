@@ -2,6 +2,69 @@
 
 Last updated: 2026-07-27 (America/Detroit)
 
+## Sharp-generation continuation (started 2026-07-27 15:14 -0400)
+
+- Working branch: `codex/rheed-afm-sharp-generation-20260727`
+- Starting commit: `ee56f8e67d60d8447c3b3d4a262651862ab50ac9`
+- New objective: replace the visibly blurred CVAE with a generator that first
+  passes AFM-only texture/edge/border-artifact gates, then demonstrate that
+  RHEED conditioning changes scientifically meaningful morphology.
+- Canonical exclusion source: `removelist.txt`, SHA-256
+  `8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b`.
+  All 11 listed sample IDs must be excluded before AFM, RHEED, split, training,
+  evaluation, or figure construction.
+- The prior held-out test cohort is consumed and will not be reused for model
+  selection. New development is validation-only; any final claim must use
+  group-aware cross-validation or genuinely prospective groups.
+- Candidate families are organized separately:
+  1. learned conditional spectral random field (no retrieval);
+  2. physics-seeded conditional adversarial refiner;
+  3. prior CVAE retained only as a blur baseline.
+- Mandatory-paper design elements adopted: stochastic conditional input,
+  projection discriminator, conditional normalization, spectral
+  normalization, hinge loss, differentiable translation/cutout augmentation,
+  random-crop expansion, and FFT-domain early stopping/evaluation.
+- [x] Enforce the canonical removelist in AFM tables, fold tables, physics
+  tables, phase-1 manifests, and embedding payloads (zero surviving overlap).
+- [x] Implement and evaluate M2 conditional spectral random fields.
+- [x] Implement and evaluate M2b RHEED-descriptor-calibrated random fields.
+- [x] Implement and evaluate M3/M3b circular adversarial residual refinement.
+- [x] Replace the single PLS condition path with a hybrid Rq/morphology model.
+- [x] Add an otherwise identical mean-condition stochastic baseline.
+- [x] Complete 15-group leave-one-growth-group-out cross-fitted generation.
+- [x] Complete fixed-seed qualitative review and automatic failure analysis.
+- [x] Produce PNG/PDF paper figures, registry, best-model manifest, report,
+  and reproducibility runbook.
+
+## Sharp-generation final evidence
+
+- Selected development method: hybrid RHEED condition -> conditional spectral
+  random field -> 50-step descriptor calibration (M2b).
+- This is genuine stochastic generation: no AFM retrieval at inference, zero
+  exact training matches, cross-fitted max training SSIM median 0.037.
+- Prior CVAE sharpness ratio: 0.441; selected cross-fitted sharpness ratio:
+  1.174; selected texture gate: 14/15 growth groups.
+- Cross-fitted RHEED-conditioned versus mean condition:
+  descriptor MAE 0.826 versus 0.849 z; Rq MAE 1.098 versus 1.392 nm.
+- Separate validation: M2b descriptor MAE 0.659 z, sharpness 1.284, texture
+  gate 2/3, cyclic condition wins 3/3. The mean condition is slightly better
+  on descriptor MAE (0.631 z), so strong conditional generalization is not
+  claimed.
+- Optional M3b adversarial refiner: validation descriptor MAE 0.628 z,
+  sharpness 1.231, texture gate 3/3, condition wins 2/3.
+- Primary residual failure: 6022 large connected islands are under-resolved;
+  15-group cyclic condition wins are 53%; raw cross-fold Rq rank remains
+  negative because predictions strongly shrink toward the training mean.
+- The old five-group test cohort was not reused.
+- Full GAN runtime: 395 seconds on MPS. CUDA handoff not recommended.
+- Final focused verification: 11/11 tests pass and package compilation passes.
+  The wider active suite has 316 passes and 23 unrelated failures caused by
+  absent historical checkpoint artifacts or an unavailable parquet engine.
+- Final PDF figures open successfully; Fig. 8 was rendered from PDF and
+  visually checked. No data file changed after branch creation, and
+  `git diff -- data` is empty.
+- Final report: `reports/rheed_to_afm_sharp_generation_report.md`.
+
 ## Objective
 
 Build and rigorously validate a genuine RHEED-conditioned AFM morphology

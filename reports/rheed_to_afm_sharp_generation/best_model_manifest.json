@@ -1,0 +1,70 @@
+{
+  "status": "best_development_model_not_an_unseen_test_claim",
+  "selected_method": "M2b_calibrated_spectral_rheed_condition",
+  "selection_reason": "Only candidate with complete 15-growth-group cross-fitted generation evidence; removes CVAE blur, passes the AFM texture gate for 14/15 groups, beats the otherwise identical mean-condition generator on cross-fitted descriptor and Rq errors, and passes 3/3 cyclic condition controls on the separate validation cohort.",
+  "inference_is_retrieval": false,
+  "inference_inputs": [
+    "manually selected RHEED key frame",
+    "selected 16-frame temporal RHEED window",
+    "five RHEED physics summaries"
+  ],
+  "rheed_predictor": {
+    "family": "hybrid SVR roughness head plus PLS normalized-morphology head",
+    "path": "outputs/rheed_to_afm_sharp_generation/20260727_sharp_v4_hybrid/development/rheed_descriptor_predictor.joblib",
+    "sha256": "ec9f3cb2b22636b0626260d5f8505c089a7f36c1dc592e590915157acdfbad21"
+  },
+  "spectral_generator": {
+    "family": "conditional IAAFT spectral random field",
+    "path": "outputs/rheed_to_afm_sharp_generation/20260727_sharp_v4_hybrid/development/M2_learned_spectral_field/model.joblib",
+    "sha256": "6096f9fceaa059704286067759bf0fd94411b3be38e5787144716d20e042c718",
+    "retrieval_at_inference": false
+  },
+  "descriptor_calibration": {
+    "steps": 50,
+    "learning_rate": 0.03,
+    "seed_content_weight": 0.05,
+    "measured_afm_target_at_inference": false
+  },
+  "optional_visual_refiner": {
+    "family": "physics-seeded circular projection GAN",
+    "path": "outputs/rheed_to_afm_sharp_generation/20260727_sharp_v4_hybrid/development/M3_adversarial_spectral_refiner/best_refiner.pt",
+    "sha256": "d67c32ef5fbcf8fbcf5e01aba8d8b5bb996f971f1cfc32678d0fc8fa01c7eed7",
+    "best_step": 200,
+    "validation_selection_score": 0.6326987792298898,
+    "retrieval_at_inference": false
+  },
+  "config": {
+    "path": "configs/rheed_to_afm_sharp_generation.json",
+    "sha256": "ff2fef5d43c7ed94b058b7fff9137d70da7468bc9f909a2f331bcf53ca68a985"
+  },
+  "data_protocol": {
+    "training_growth_groups": 15,
+    "validation_growth_groups": 3,
+    "old_test_partition_reused": false,
+    "growth_group_leakage": false,
+    "removelist_path": "removelist.txt",
+    "removelist_sha256": "8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b",
+    "removelist_overlap": []
+  },
+  "cross_fitted_results_15_growth_groups": {
+    "median_rq_absolute_error_nm": 1.0980368112177281,
+    "median_condition_descriptor_mae_z": 0.8261311650276184,
+    "median_psd_log_distance": 0.9566525042838144,
+    "median_sharpness_ratio": 1.1737113639238252,
+    "texture_gate_pass_fraction": 0.9333333333333333,
+    "median_max_training_ssim": 0.03672610383021768,
+    "mean_condition_descriptor_mae_z": 0.8486547470092773,
+    "mean_condition_rq_absolute_error_nm": 1.3920774544796854,
+    "cyclic_condition_win_fraction": 0.5333333333333333
+  },
+  "separate_validation_results_3_growth_groups": {
+    "median_rq_absolute_error_nm": 1.2050163898277175,
+    "median_condition_descriptor_mae_z": 0.659157931804657,
+    "median_psd_log_distance": 0.8596522459776738,
+    "median_sharpness_ratio": 1.2843095980508406,
+    "texture_gate_pass_fraction": 0.6666666666666666,
+    "correct_condition_wins": "3/3",
+    "mean_condition_descriptor_mae_z": 0.6308841109275818
+  },
+  "claim_boundary": "The blur/flat-surface failure is solved and the generator is demonstrably non-retrieval. RHEED conditioning gives a small cross-fitted improvement over the mean-condition generator, but it does not consistently beat that baseline on the three-group validation cohort and the 15-group cyclic condition control is near chance. Strong conditional generalization is not yet established."
+}

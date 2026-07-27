@@ -1,0 +1,4 @@
+growth_run_id,method,wrong_condition_source_group,correct_condition_error_z,wrong_condition_error_z,wrong_minus_correct,correct_condition_wins
+6022,M2_spectral_rheed_condition,6056,2.078920364379883,2.041159152984619,-0.03776121139526367,False
+6056,M2_spectral_rheed_condition,6080,1.1241122484207153,0.9866188764572144,-0.13749337196350098,False
+6080,M2_spectral_rheed_condition,6022,1.1900655031204224,1.40113365650177,0.21106815338134766,True
