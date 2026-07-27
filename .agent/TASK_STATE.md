@@ -47,7 +47,8 @@ scientific figures, manifests, and a final report.
 - [x] Run the full test suite and classify all non-passing checks.
 - [x] Inspect logs/diff, review independently, and verify raw-data immutability.
 - [x] Commit implementation locally (`9292da2`).
-- [ ] Commit reports, figures, artifacts, and final task state locally.
+- [x] Commit reports, figures, artifacts, and final task state locally
+  (`f9c72a1`).
 
 ## Final scientific status
 
