@@ -323,7 +323,7 @@ test conditioning control failed.
 - complete repository test suite: 285 tests ran; 264 passed, 1 failed, and 20
   errored. The four new generative-pipeline tests passed. All non-passing checks
   are outside this work: `test_rheed_peak_saddle.py` expects missing ignored
-  `outputs/rheed_peak_saddle/...` artifacts (20 errors and the single failure),
+  `outputs/rheed_peak_saddle/...` artifacts (19 errors and the single failure),
   while `test_rheed_single_frame_manual.py` has a pre-existing macOS
   `/private/var` versus `/var` temporary-path mismatch;
 - split-integrity audit: passed;
