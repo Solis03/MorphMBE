@@ -1,0 +1,35 @@
+{
+  "frozen_model_manifest": "reports/rheed_to_afm_generation/20260727_cvae_film_tradeoff/best_model_manifest.json",
+  "frozen_model_manifest_sha256": "d04e284af5e350935cc5a1f14c090f720b26c1a8b786b0af6e02e15ae3ae2d39",
+  "selection_changed_after_test": false,
+  "status": "held_out_test_evaluated_once",
+  "test_figure_dir": "reports/rheed_to_afm_generation/20260727_cvae_film_tradeoff/test_figures",
+  "test_groups": [
+    "6033",
+    "6081",
+    "6094",
+    "6099",
+    "6101"
+  ],
+  "test_output_dir": "outputs/rheed_to_afm_generation/20260727_cvae_film_tradeoff/test_evaluation",
+  "test_scan_count": 24,
+  "test_summary": {
+    "condition_permutation_correct_win_fraction": 0.2,
+    "condition_permutation_median_error_increase": -0.011398792266845703,
+    "cvae_exact_training_identity_count": 0,
+    "cvae_median_condition_descriptor_mae_z": 2.7125399112701416,
+    "cvae_median_diversity_ratio": 0.6763704448776158,
+    "cvae_median_psd_log_distance": 0.39613618952255064,
+    "cvae_median_rq_mae_nm": 0.8224108219146729,
+    "cvae_median_ssim": 0.006721525562988963,
+    "group_count": 5,
+    "log_rq_spearman": -0.39999999999999997,
+    "methods": [
+      "nearest_rheed_retrieval",
+      "rheed_conditional_cvae",
+      "unconditional_train_mean"
+    ],
+    "scan_count": 24,
+    "split": "test"
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "groups": {
+    "test": [
+      "6033",
+      "6081",
+      "6094",
+      "6099",
+      "6101"
+    ],
+    "train": [
+      "6028",
+      "6029",
+      "6047",
+      "6048",
+      "6057",
+      "6062",
+      "6063",
+      "6070",
+      "6072",
+      "6078",
+      "6082",
+      "6084",
+      "6085",
+      "6090",
+      "6095"
+    ],
+    "val": [
+      "6022",
+      "6056",
+      "6080"
+    ]
+  },
+  "leakage": {
+    "train_test_overlap": [],
+    "train_val_overlap": [],
+    "val_test_overlap": []
+  },
+  "leakage_check_passed": true,
+  "selection_policy": "RHEED embedding family, ridge alpha, and CVAE epoch are selected with train/validation data only. Test fold 1 is evaluated only after best_model_manifest.json is frozen.",
+  "split_counts_groups": {
+    "test": 5,
+    "train": 15,
+    "val": 3
+  },
+  "split_counts_scans": {
+    "test": 24,
+    "train": 68,
+    "val": 24
+  },
+  "test_fold": 1,
+  "validation_fold": 0
+}

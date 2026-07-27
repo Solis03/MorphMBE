@@ -1,0 +1,46 @@
+{
+  "checkpoint_path": "outputs/rheed_to_afm_generation/20260727_cvae_film_diverse/conditional_vae/checkpoints/best.pt",
+  "checkpoint_sha256": "f7ca134d37af3292b5e157de1ae82781fbe5e8cff8b0a8de6f1918b5f2758504",
+  "config_path": "configs/rheed_to_afm_generation.json",
+  "config_sha256": "f715cc1c296066cd6705f25cdbaeb22bb948bb972d93281aa66f74cde073d471",
+  "is_true_generator": true,
+  "method": "two-stage RHEED descriptor predictor + conditional AFM VAE",
+  "predictor_path": "outputs/rheed_to_afm_generation/20260727_cvae_film_diverse/rheed_descriptor_predictor.joblib",
+  "predictor_sha256": "5037364e93c2792da414405f71362c709ea9fcfeaf8e984a50e2963b182b7800",
+  "selected_embedding_id": "dino_vits14__centered_8__raw_luminance",
+  "selection_basis": "RHEED embedding family and ridge regularization selected on validation descriptors; CVAE checkpoint selected on validation prior-generation composite plus Rq error.",
+  "split_manifest_path": "reports/rheed_to_afm_generation/20260727_cvae_film_diverse/split_manifest.csv",
+  "split_manifest_sha256": "5a3954e002544ae0b981f518505859863ab656a994b506b7629436396243e9ae",
+  "status": "frozen_before_test",
+  "test_groups": [
+    "6033",
+    "6081",
+    "6094",
+    "6099",
+    "6101"
+  ],
+  "test_targets_accessed_for_selection": false,
+  "train_groups": [
+    "6028",
+    "6029",
+    "6047",
+    "6048",
+    "6057",
+    "6062",
+    "6063",
+    "6070",
+    "6072",
+    "6078",
+    "6082",
+    "6084",
+    "6085",
+    "6090",
+    "6095"
+  ],
+  "uses_retrieval_at_inference": false,
+  "validation_groups": [
+    "6022",
+    "6056",
+    "6080"
+  ]
+}

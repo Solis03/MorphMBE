@@ -1,0 +1,35 @@
+{
+  "embedding_id": "dino_vits14__keyframe_1__raw_luminance",
+  "embedding_path": "outputs/rheed_video_afm_story/phase2a/embeddings/dino_vits14__keyframe_1__raw_luminance.npz",
+  "embedding_pca_components": 8,
+  "embedding_pca_explained_variance": 0.8640469312667847,
+  "feature_dim": 13,
+  "physics_columns": [
+    "spot_summary_raw",
+    "streak_summary_raw",
+    "connection_summary_raw",
+    "diffuse_summary_raw",
+    "temporal_brightness_drift"
+  ],
+  "ridge_alpha": 100.0,
+  "train_groups": [
+    "6028",
+    "6029",
+    "6047",
+    "6048",
+    "6057",
+    "6062",
+    "6063",
+    "6070",
+    "6072",
+    "6078",
+    "6082",
+    "6084",
+    "6085",
+    "6090",
+    "6095"
+  ],
+  "val_condition_mae_z": 0.9347801208496094,
+  "val_rq_mae_nm": 1.9427822687877454,
+  "val_selection_score": 0.8594676746707401
+}
