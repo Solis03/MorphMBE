@@ -5,7 +5,7 @@ Last updated: 2026-07-27 (America/Detroit)
 ## Sharp-generation continuation (started 2026-07-27 15:14 -0400)
 
 - Working branch: `codex/rheed-afm-sharp-generation-20260727`
-- Starting commit: `ee56f8e67d60d8447c3b3d4a262651862ab50ac9`
+- Starting commit: `ee56f8e0e6fe4a4a8bddb2a1c805bc4cb7bdf7d1`
 - New objective: replace the visibly blurred CVAE with a generator that first
   passes AFM-only texture/edge/border-artifact gates, then demonstrate that
   RHEED conditioning changes scientifically meaningful morphology.
