@@ -1,0 +1,4 @@
+sample_id,original_source_sample_id,original_source_afm_file_id,excluded_source_sample_id,excluded_source_afm_file_id,source_changed
+N6342,6048,N6048_1um_027,6028,N6028_500_nm_006,True
+N6389,6028,N6028_500_nm_006,6028,N6028_500_nm_006,False
+N6390,6057,GdSb_N6057_ctr_015,6028,N6028_500_nm_006,True

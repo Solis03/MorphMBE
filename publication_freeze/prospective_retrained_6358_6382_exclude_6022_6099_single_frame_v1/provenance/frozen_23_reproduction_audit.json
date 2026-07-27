@@ -1,0 +1,57 @@
+{
+  "algorithm": "StandardScaler().fit(X); Ridge(alpha=1.0).fit(scaler.transform(X), y)",
+  "historical_training_sample_count": 23,
+  "max_abs_coef_difference": 0.0,
+  "max_abs_feature_mean_difference": 0.0,
+  "max_abs_feature_scale_difference": 0.0,
+  "max_abs_intercept_difference": 0.0,
+  "members": [
+    {
+      "abs_intercept_difference": 0.0,
+      "max_abs_coef_difference": 0.0,
+      "max_abs_feature_mean_difference": 0.0,
+      "max_abs_feature_scale_difference": 0.0,
+      "member_name": "model_01_trial_0004",
+      "target_variant": "T4_second_order_trimmed_mean",
+      "trial_id": "trial_0004"
+    },
+    {
+      "abs_intercept_difference": 0.0,
+      "max_abs_coef_difference": 0.0,
+      "max_abs_feature_mean_difference": 0.0,
+      "max_abs_feature_scale_difference": 0.0,
+      "member_name": "model_02_trial_0012",
+      "target_variant": "T4_second_order_trimmed_mean",
+      "trial_id": "trial_0012"
+    },
+    {
+      "abs_intercept_difference": 0.0,
+      "max_abs_coef_difference": 0.0,
+      "max_abs_feature_mean_difference": 0.0,
+      "max_abs_feature_scale_difference": 0.0,
+      "member_name": "model_03_trial_0006",
+      "target_variant": "T6_quality_weighted_second_order",
+      "trial_id": "trial_0006"
+    },
+    {
+      "abs_intercept_difference": 0.0,
+      "max_abs_coef_difference": 0.0,
+      "max_abs_feature_mean_difference": 0.0,
+      "max_abs_feature_scale_difference": 0.0,
+      "member_name": "model_04_trial_0014",
+      "target_variant": "T6_quality_weighted_second_order",
+      "trial_id": "trial_0014"
+    },
+    {
+      "abs_intercept_difference": 0.0,
+      "max_abs_coef_difference": 0.0,
+      "max_abs_feature_mean_difference": 0.0,
+      "max_abs_feature_scale_difference": 0.0,
+      "member_name": "model_05_trial_0028",
+      "target_variant": "T4_second_order_trimmed_mean",
+      "trial_id": "trial_0028"
+    }
+  ],
+  "status": "pass",
+  "tolerance": 1e-05
+}

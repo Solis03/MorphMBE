@@ -1,0 +1,33 @@
+{
+  "algorithm_source": "publication_freeze/prospective_unseen_single_frame_v1/code/generate_full_cohort_retrieval_images.py",
+  "created_at": "2026-07-24T01:45:09Z",
+  "excluded_source_groups": [
+    "6022",
+    "6099"
+  ],
+  "method": "A3_full_cohort_rq_conditioned",
+  "training_source_group_count": 21,
+  "training_source_group_ids": [
+    "6028",
+    "6029",
+    "6033",
+    "6047",
+    "6048",
+    "6056",
+    "6057",
+    "6062",
+    "6063",
+    "6070",
+    "6072",
+    "6078",
+    "6080",
+    "6081",
+    "6082",
+    "6084",
+    "6085",
+    "6090",
+    "6094",
+    "6095",
+    "6101"
+  ]
+}

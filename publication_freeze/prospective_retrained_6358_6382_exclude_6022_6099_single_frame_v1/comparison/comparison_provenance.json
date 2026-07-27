@@ -1,0 +1,21 @@
+{
+  "algorithm_changed": false,
+  "comparison_outputs": [
+    "comparison/aggregate_metric_changes.csv",
+    "comparison/baseline_prediction_changes.csv",
+    "comparison/baseline_retrieval_source_changes.csv",
+    "comparison/full_cohort_metric_changes.csv",
+    "comparison/held_one_out_afm_common26_changes.csv",
+    "comparison/leave_one_out_common26_changes.csv",
+    "comparison/model_parameter_changes.csv",
+    "comparison/prospective_prediction_changes.csv",
+    "comparison/prospective_retrieval_source_changes.csv"
+  ],
+  "created_at": "2026-07-24T01:56:01Z",
+  "excluded_sample_ids": [
+    "6022",
+    "6099"
+  ],
+  "exclusion_experiment": "publication_freeze/prospective_retrained_6358_6382_exclude_6022_6099_single_frame_v1",
+  "original_experiment": "publication_freeze/prospective_retrained_6358_6382_single_frame_v1"
+}

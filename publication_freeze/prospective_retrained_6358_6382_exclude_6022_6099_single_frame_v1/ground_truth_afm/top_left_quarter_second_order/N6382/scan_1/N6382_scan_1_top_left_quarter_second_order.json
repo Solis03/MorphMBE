@@ -1,0 +1,48 @@
+{
+  "background_path": "publication_freeze/prospective_retrained_6358_6382_exclude_6022_6099_single_frame_v1/ground_truth_afm/top_left_quarter_second_order/N6382/scan_1/N6382_scan_1_top_left_quarter_y2_background.npy",
+  "crop_bounds_xyxy": [
+    0,
+    0,
+    256,
+    256
+  ],
+  "crop_quarter": "top_left",
+  "effective_scan_size_um": [
+    1.0,
+    1.0
+  ],
+  "height_unit": "nm",
+  "output_path": "publication_freeze/prospective_retrained_6358_6382_exclude_6022_6099_single_frame_v1/ground_truth_afm/top_left_quarter_second_order/N6382/scan_1/N6382_scan_1_top_left_quarter_second_order.npy",
+  "output_sha256": "d17f1766d245794eaf74a105496fb0cf598cd7089d2f40cdf6594dbf5d252328",
+  "output_shape": [
+    256,
+    256
+  ],
+  "processing_order": "physical ZSensor height -> top-left quarter crop -> robust second-order y2 subtraction",
+  "ra_nm": 1.0632038150785454,
+  "rq_nm": 1.36555649602028,
+  "sample_id": "N6382",
+  "scan_number": 1,
+  "second_order_coefficients": {
+    "constant": 105.2122341092051,
+    "x": 0.026851243318183924,
+    "y": 5.4284817637754825,
+    "y2": 0.4663542933877565
+  },
+  "second_order_condition_number": 3.73988387148045,
+  "second_order_fit_fraction": 0.988983154296875,
+  "second_order_iterations": 5,
+  "second_order_model": "y2",
+  "second_order_rank": 4,
+  "second_order_robust": true,
+  "source_path": "data/processed_afm_extra_five/N6382/N6382_2um_1_000/N6382_2um_1_000_height.npy",
+  "source_scan_size_um": [
+    2.0,
+    2.0
+  ],
+  "source_sha256": "c89f84b1cc99b06055d7e07e69fbbc33cddb245ba912b71c073528848c3c59a9",
+  "source_shape": [
+    512,
+    512
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "freeze_reference": {
+    "freeze_id": "rheed_afm_single_frame_v1_2026-07-18",
+    "freeze_path": "publication_freeze/rheed_afm_single_frame_v1_2026-07-18"
+  },
+  "hash_mode": "fast",
+  "operator": {
+    "git_commit": "a74e04745d4b7bdf9491e2e6b969b0c20c4634e7",
+    "hostname": "MacBook-Pro-Ethan.local",
+    "selected_at_utc": "2026-07-20T22:27:43.978508Z",
+    "tool_version": "prospective-unseen-keyframe-selector-v1"
+  },
+  "sample": {
+    "sample_id": "N6342",
+    "sample_id_numeric": 6342,
+    "selection_status": "completed"
+  },
+  "schema_version": "unseen-keyframe-selection-v1",
+  "selection": {
+    "context_end_frame_0based": 1509,
+    "context_start_frame_0based": 1493,
+    "context_total_frames": 17,
+    "effective_frames_after": 8,
+    "effective_frames_before": 8,
+    "frame_stride": 1,
+    "model_ready_keyframe": null,
+    "notes": "",
+    "raw_keyframe_png": "publication_freeze/prospective_unseen_single_frame_v1/keyframes/raw/N6342_frame_001501.png",
+    "requested_frames_after": 8,
+    "requested_frames_before": 8,
+    "roi": {
+      "coordinate_space": "source_frame_pixels",
+      "height": 890,
+      "height_normalized": 0.8090909090909091,
+      "reference_frame_index": 1501,
+      "source_height": 1100,
+      "source_width": 1376,
+      "width": 620,
+      "width_normalized": 0.45058139534883723,
+      "x": 254,
+      "x_normalized": 0.18459302325581395,
+      "y": 137,
+      "y_normalized": 0.12454545454545454
+    },
+    "roi_keyframe_png": "publication_freeze/prospective_unseen_single_frame_v1/keyframes/roi/N6342_frame_001501_roi.png",
+    "roi_xyxy": [
+      254,
+      137,
+      874,
+      1027
+    ],
+    "selected_frame_index_0based": 1501,
+    "selected_frame_number_1based": 1502,
+    "selected_pts": null,
+    "selected_timestamp_sec": 150.1
+  },
+  "source_video": {
+    "codec": "mjpeg",
+    "decode_test_pass": true,
+    "display_height": 1100,
+    "display_transform": "none",
+    "display_width": 1376,
+    "duration_sec": 220.1,
+    "extension": ".mpg",
+    "filename": "Ramp down to 200C.mpg",
+    "fps": 10.0,
+    "frame_count": 2201,
+    "frame_count_method": "ffprobe -count_frames nb_read_frames",
+    "height": 1100,
+    "mtime_ns": 1784131356000000000,
+    "mtime_utc": "2026-07-15T16:02:36Z",
+    "notes": "decoded frame 0 with ffmpeg",
+    "repo_relative_path": "data/compressedfile/N6342/Ramp down to 200C.mpg",
+    "sha256": "c26009c4e14ba042be4dc0d0924d6f6321e3222b3cf8fcd6c4d36ac12fd6e106",
+    "sha256_note": "fast fingerprint: size, mtime, first chunk, last chunk",
+    "size_bytes": 59848230,
+    "width": 1376
+  },
+  "source_video_candidates": [
+    {
+      "codec": "mjpeg",
+      "decode_test_pass": true,
+      "display_height": 1100,
+      "display_transform": "none",
+      "display_width": 1376,
+      "duration_sec": 220.1,
+      "extension": ".mpg",
+      "filename": "Ramp down to 200C.mpg",
+      "fps": 10.0,
+      "frame_count": 2201,
+      "frame_count_method": "ffprobe -count_frames nb_read_frames",
+      "height": 1100,
+      "mtime_ns": 1784131356000000000,
+      "mtime_utc": "2026-07-15T16:02:36Z",
+      "notes": "decoded frame 0 with ffmpeg",
+      "repo_relative_path": "data/compressedfile/N6342/Ramp down to 200C.mpg",
+      "sha256": "c26009c4e14ba042be4dc0d0924d6f6321e3222b3cf8fcd6c4d36ac12fd6e106",
+      "sha256_note": "fast fingerprint: size, mtime, first chunk, last chunk",
+      "size_bytes": 59848230,
+      "width": 1376
+    }
+  ],
+  "validation": {
+    "deterministic_reextract_equals_saved_frame": true,
+    "displayed_frame_equals_saved_frame": true,
+    "model_ready_transform_verified": false,
+    "raw_keyframe_sha256": "fe9692aeaa63b818c3d9c167422f7e42e2f41f972310461994c6759530fbd5fe",
+    "roi_inside_source_frame": true,
+    "roi_keyframe_sha256": "e8be8c57a7c92f9c89ec90ec4bf0dd5db3b352fdeb72261063edaaeb1f5afe66",
+    "source_video_untouched": true
+  }
+}

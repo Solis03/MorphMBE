@@ -1,0 +1,104 @@
+{
+  "check_count": 5,
+  "checks": [
+    {
+      "check": "all_prompt_file_references_exist",
+      "detail": {
+        "missing": [],
+        "reference_count": 43
+      },
+      "passed": true
+    },
+    {
+      "check": "asset_counts_exact",
+      "detail": {
+        "actual": {
+          "candidate_bank_png": 6,
+          "model_ready_npz": 5,
+          "model_ready_png": 6,
+          "raw_rheed_png": 5,
+          "reference_only_png": 2,
+          "retrieved_afm_png": 3,
+          "roi_rheed_png": 5,
+          "selected_gt_afm_png": 5
+        },
+        "expected": {
+          "candidate_bank_png": 6,
+          "model_ready_npz": 5,
+          "model_ready_png": 6,
+          "raw_rheed_png": 5,
+          "reference_only_png": 2,
+          "retrieved_afm_png": 3,
+          "roi_rheed_png": 5,
+          "selected_gt_afm_png": 5
+        }
+      },
+      "passed": true
+    },
+    {
+      "check": "model_ready_tensors_are_exact_single_224_frames",
+      "detail": {
+        "N6342_keyframe_1_raw_luminance.npz": {
+          "dtype": "uint8",
+          "shape": [
+            1,
+            224,
+            224
+          ]
+        },
+        "N6358_keyframe_1_raw_luminance.npz": {
+          "dtype": "uint8",
+          "shape": [
+            1,
+            224,
+            224
+          ]
+        },
+        "N6382_keyframe_1_raw_luminance.npz": {
+          "dtype": "uint8",
+          "shape": [
+            1,
+            224,
+            224
+          ]
+        },
+        "N6389_keyframe_1_raw_luminance.npz": {
+          "dtype": "uint8",
+          "shape": [
+            1,
+            224,
+            224
+          ]
+        },
+        "N6390_keyframe_1_raw_luminance.npz": {
+          "dtype": "uint8",
+          "shape": [
+            1,
+            224,
+            224
+          ]
+        }
+      },
+      "passed": true
+    },
+    {
+      "check": "all_png_assets_decode",
+      "detail": {
+        "image_count": 32
+      },
+      "passed": true
+    },
+    {
+      "check": "parameter_arithmetic_exact",
+      "detail": {
+        "encoder_plus_ridge": 22064261,
+        "state_including_scalers": 22079621,
+        "summed_dino_parameters": 22056576
+      },
+      "passed": true
+    }
+  ],
+  "created_at": "2026-07-24T03:46:22.671139+00:00",
+  "manifest_entry_count": 47,
+  "status": "pass"
+}

@@ -1,0 +1,95 @@
+{
+  "experiment": "prospective_retrained_6358_6382_exclude_6022_6099_single_frame_v1",
+  "encoder": {
+    "identifier": "facebookresearch/dinov2:dinov2_vits14",
+    "architecture": "DINOv2 ViT-S/14 without register tokens",
+    "pretrained_input_grid": "518/14 = 37 by 37 patch positions; positional embedding shape [1,1370,384]",
+    "runtime_input": "[1,3,224,224]",
+    "runtime_patch_tokens": "[1,256,384]",
+    "runtime_token_sequence": "[1,257,384]",
+    "output_cls": "[1,384]",
+    "patch_size": 14,
+    "patch_embedding": "Conv2d(3,384,kernel_size=14,stride=14,bias=True)",
+    "depth": 12,
+    "hidden_dimension": 384,
+    "attention_heads": 6,
+    "attention_head_dimension": 64,
+    "qkv_projection": "384 -> 1152, bias=True",
+    "attention_output_projection": "384 -> 384, bias=True",
+    "mlp": "384 -> 1536 -> 384 with GELU and biases",
+    "mlp_ratio": 4.0,
+    "normalization": "pre-LayerNorm, eps=1e-6; final LayerNorm",
+    "layer_scale_initial_value": 1.0,
+    "dropout": 0.0,
+    "stochastic_depth": 0.0,
+    "register_tokens": 0,
+    "head": "Identity",
+    "parameter_counts": {
+      "patch_embedding": 226176,
+      "class_token": 384,
+      "pretrained_positional_embedding": 526080,
+      "mask_token_present_but_unused_for_inference": 384,
+      "one_transformer_block": 1775232,
+      "twelve_transformer_blocks": 21302784,
+      "final_layer_norm": 768,
+      "total": 22056576,
+      "frozen_during_this_experiment": 22056576,
+      "gradient_trained_during_this_experiment": 0
+    }
+  },
+  "single_frame_feature_assembly": {
+    "frame_embedding": 384,
+    "operation": "concatenate temporal mean, temporal standard deviation, first-last delta, and linear temporal slope",
+    "output_dimension": 1536,
+    "single_frame_special_case": "[CLS_384, zeros_384, zeros_384, zeros_384]"
+  },
+  "quantitative_ensemble": {
+    "training_rows": 23,
+    "training_composition": "21 retained historical samples plus N6358 and N6382",
+    "excluded_samples": [
+      "N6022",
+      "N6099"
+    ],
+    "prediction_samples": [
+      "N6342",
+      "N6389",
+      "N6390"
+    ],
+    "member_count": 5,
+    "per_member_pipeline": "StandardScaler -> Ridge(alpha=1.0, fit_intercept=True)",
+    "per_member_input_dimension": 1536,
+    "per_member_ridge_fitted_parameters": 1537,
+    "five_member_ridge_fitted_parameters": 7685,
+    "per_member_scaler_fitted_statistics": 3072,
+    "five_member_scaler_fitted_statistics": 15360,
+    "member_targets": {
+      "model_01_trial_0004": "T4_second_order_trimmed_mean",
+      "model_02_trial_0012": "T4_second_order_trimmed_mean",
+      "model_03_trial_0006": "T6_quality_weighted_second_order",
+      "model_04_trial_0014": "T6_quality_weighted_second_order",
+      "model_05_trial_0028": "T4_second_order_trimmed_mean"
+    },
+    "aggregation": "median of five scalar Rq predictions in nm",
+    "member_q10_q90_note": "descriptive quantiles of the five member predictions, not a calibrated prediction interval"
+  },
+  "parameter_count_interpretation": {
+    "frozen_pretrained_encoder_parameters": 22056576,
+    "closed_form_fitted_ridge_coefficients_and_intercepts": 7685,
+    "encoder_plus_ridge_parameter_values": 22064261,
+    "additional_fitted_scaler_mean_and_scale_values": 15360,
+    "complete_serialized_numeric_state_including_scalers": 22079621,
+    "end_to_end_gradient_optimization_performed": false
+  },
+  "visual_retrieval": {
+    "name": "A3_full_cohort_rq_conditioned",
+    "learned_neural_parameters": 0,
+    "prospective_bank_groups": 23,
+    "prospective_bank_afm_maps": 118,
+    "descriptor_dimension": 11,
+    "non_rq_condition": "median of each descriptor coordinate across the quality-passing AFM bank",
+    "rq_condition": "predicted ensemble-median Rq",
+    "ranking": "sqrt(sum_j(((x_ij-c_j)/max(std_j,1e-6))^2)) + 0.05*abs(Rq_i-Rq_pred)",
+    "output": "top-ranked source AFM is centered, normalized to unit Rq, then amplitude-scaled to predicted Rq",
+    "interpretation": "representative historical morphology retrieval, not pixel-wise AFM reconstruction"
+  }
+}
