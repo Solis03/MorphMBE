@@ -1,0 +1,14 @@
+{
+  "group_count": 1,
+  "methods": [
+    "M6c_island_structure_plus_spectral_prior",
+    "M9a_edge_gain_0.25",
+    "M9b_quantized_9_levels",
+    "M9a_edge_gain_0.50",
+    "M9b_quantized_5_levels",
+    "M9a_edge_gain_0.75",
+    "M9b_quantized_7_levels"
+  ],
+  "scan_count": 4,
+  "selection_policy": "AFM texture gate first; among passing methods use morphology composite and condition-control evidence. No old test reuse."
+}

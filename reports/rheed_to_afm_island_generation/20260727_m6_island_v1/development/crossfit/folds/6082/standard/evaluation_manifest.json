@@ -1,0 +1,11 @@
+{
+  "group_count": 1,
+  "methods": [
+    "M5_cloudlike_spectral_hybrid",
+    "M6a_superellipse_island_primitives",
+    "M6b_multiscale_laguerre_terraces",
+    "M6c_island_structure_plus_spectral_prior"
+  ],
+  "scan_count": 3,
+  "selection_policy": "AFM texture gate first; among passing methods use morphology composite and condition-control evidence. No old test reuse."
+}

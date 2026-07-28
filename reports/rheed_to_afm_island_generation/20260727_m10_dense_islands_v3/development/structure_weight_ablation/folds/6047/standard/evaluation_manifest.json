@@ -1,0 +1,14 @@
+{
+  "group_count": 1,
+  "methods": [
+    "M10_structure_weight_0.85",
+    "M10_structure_weight_0.75",
+    "M10_structure_weight_0.65",
+    "M10_structure_weight_0.55",
+    "M6c_island_structure_plus_spectral_prior",
+    "M9b_quantized_7_levels",
+    "M9a_edge_gain_0.50"
+  ],
+  "scan_count": 6,
+  "selection_policy": "AFM texture gate first; among passing methods use morphology composite and condition-control evidence. No old test reuse."
+}

@@ -1,0 +1,33 @@
+{
+  "branch": "codex/rheed-afm-island-generation-20260727",
+  "compileall_passed": true,
+  "focused_tests": {
+    "command": "PYTHONPATH=. uv run pytest -q tests/test_rheed_to_afm_island_generation.py tests/test_rheed_to_afm_island_diffusion.py tests/test_rheed_to_afm_distinct_confidence.py",
+    "passed": 9,
+    "failed": 0
+  },
+  "all_rheed_to_afm_tests": {
+    "passed": 19,
+    "failed": 0
+  },
+  "main_test_suite": {
+    "command": "PYTHONPATH=. uv run pytest -q tests",
+    "passed": 326,
+    "failed": 22,
+    "failure_scope": "20 absent rheed_peak_saddle checkpoint artifacts; 2 unavailable parquet engine; unrelated to island-generation package"
+  },
+  "root_pytest_collection_issue": "Archived paper-freeze snapshots contain three duplicate test-module basenames.",
+  "removelist_count": 11,
+  "removelist_sha256": "8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b",
+  "retained_table_removelist_overlap_count": 0,
+  "historical_test_used": false,
+  "retrieval_at_inference": false,
+  "measured_afm_patch_used_at_inference": false,
+  "raw_data_git_diff_empty": true,
+  "figure_png_count": 10,
+  "figure_pdf_count": 10,
+  "pdfs_rendered_and_visually_checked": [
+    "Fig1_validation_rheed_m5_m10_real.pdf",
+    "Fig7_confidence_aware_successes_and_failures.pdf"
+  ]
+}

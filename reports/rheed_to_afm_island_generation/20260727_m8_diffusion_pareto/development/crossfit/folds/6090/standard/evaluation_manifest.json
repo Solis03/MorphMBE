@@ -1,0 +1,11 @@
+{
+  "group_count": 1,
+  "methods": [
+    "M8_island_diffusion_spectral_pareto",
+    "M6c_island_structure_plus_spectral_prior",
+    "M7_structure_guided_residual_diffusion",
+    "M5_cloudlike_spectral_hybrid"
+  ],
+  "scan_count": 3,
+  "selection_policy": "AFM texture gate first; among passing methods use morphology composite and condition-control evidence. No old test reuse."
+}

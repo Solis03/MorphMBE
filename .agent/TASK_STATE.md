@@ -2,6 +2,99 @@
 
 Last updated: 2026-07-27 (America/Detroit)
 
+## Island-realism continuation (started 2026-07-27)
+
+- Working branch:
+  `codex/rheed-afm-island-generation-20260727`.
+- Immutable parent milestone: M5 distinct morphology/confidence remains
+  preserved at commit
+  `d358781ffafccfcd77f7ab1f305081b432b0e5a7`; its reports and outputs must
+  not be overwritten.
+- New user-identified failure: M5 improves Rq/PSD/condition separation, but
+  its Gaussian/Matérn height fields look cloud-like or fibrous rather than
+  like measured AFM island, hillock, valley, terrace and coalescence
+  topography.
+- New scientific hypothesis: the missing inductive bias is object topology.
+  RHEED should predict a low-dimensional distribution over nucleation/island
+  density, size, aspect ratio, prominence, coalescence, valley fraction and
+  multiscale residual texture. A stochastic compositor or
+  structure-conditioned refiner should then generate a novel AFM field from
+  these quantities.
+- Candidate families:
+  1. learned AFM island primitive extraction plus marked-point-process
+     composition;
+  2. nucleation/coalescence-aware procedural growth fields;
+  3. structure-conditioned patch diffusion/refinement if the local MPS smoke
+     run is scientifically and computationally viable.
+- Selection must add island-level distribution metrics and an AFM-realism
+  discriminator/embedding audit to the existing Rq, PSD, sharpness,
+  condition-sensitivity, diversity and non-copying checks.
+- The canonical removelist and growth-group leakage boundary remain
+  mandatory. The consumed historical test partition remains closed; new
+  method selection uses strict training-group LOO plus the pre-existing
+  validation split.
+- [x] Preserve and locally commit the M5 parent milestone.
+- [x] Complete targeted GaSb/MBE island-growth and structure-conditioned
+  generation literature review.
+- [x] Build leakage-safe AFM island extraction, statistics and realism
+  evaluation.
+- [x] Implement and smoke-test multiple island-aware generators.
+- [x] Run strict grouped experiments and select the best defensible method.
+- [x] Produce figures, confidence audit and final report.
+- [ ] Complete the final verification and local commit.
+
+## Island-realism final development evidence
+
+- Literature synthesis:
+  `reports/rheed_to_afm_island_generation_literature_review.md`. The mandatory
+  Na et al. PDF was read in full and pages 3-8 were rendered/visually checked.
+- Added 16 object/topology descriptors from q55/q70/q82 island level sets,
+  valley level sets, boundary gradients, high-gradient/laplacian texture, and
+  flat-pixel fraction. Every scaler and AFM support model is fit inside the
+  applicable growth-group fold.
+- M6-v1 was retained as a partially negative experiment: its islands were too
+  large and sparse. M6-v2 derives capture-zone seed counts from threshold
+  coverage, with approximately three times the q70 component count.
+- Pre-existing validation, M6c versus M5: condition-descriptor MAE
+  0.754 vs 0.940 z; composite error 7.922 vs 8.513; island-feature MAE
+  1.596 vs 1.726 z; AFM-prior distance 6.708 vs 7.991; texture gate 3/3
+  for both. M6c has explicit islands but still inherits some M5 cloud texture.
+- M7 is a true image-space residual DDPM trained on random, growth-group-safe
+  real-AFM crops. Full-noise sampling is retained as a failed result because
+  it adds excessive granular high-frequency noise. Weak SDEdit-like strength
+  0.25 preserves the predicted island map and adds learned edge/terrace
+  texture, with validation texture gate 3/3.
+- M8 is the fixed 50:50 Pareto combination of weak M7 refinement and M6c.
+  It looked promising on the three pre-existing validation groups, but strict
+  15-growth LOO did not preserve the object-metric gain. It is retained as an
+  important negative experiment rather than selected.
+- M9 edge enhancement improved PSD/texture statistics but made too little
+  visible topology change; terrace quantization worsened aggregate metrics.
+- Selected M10 uses sixfold dense multiscale Laguerre capture-zone
+  populations and a 65:35 island/spectral blend. It uses no retrieved or
+  measured AFM at inference.
+- Strict 15-growth LOO, M10 versus M5: AFM-support distance 6.438 versus
+  7.985 (19.4% lower); q70 median-area log error 0.811 versus 1.112 (27.1%
+  lower); q70 count log error 0.540 versus 0.611 (11.5% lower);
+  RHEED-condition MAE 0.876 versus 0.986 z; PSD distance 0.860 versus 0.925;
+  composite 8.106 versus 8.545. Aggregate island MAE is slightly worse
+  (1.514 versus 1.492 z) and is reported as a trade-off.
+- Pre-existing validation, M10 versus M5: island MAE 1.423 versus 1.726 z;
+  AFM-support distance 5.951 versus 7.991; q70 median-area error 0.765 versus
+  1.138; composite 7.910 versus 8.513. PSD distance is worse (0.879 versus
+  0.627) and is reported explicitly.
+- Nested morphology confidence predicts held-group island error from
+  inference-time support diagnostics. Confidence versus realized error has
+  Spearman rho -0.589 (p=0.0208); the 90% upper error bound covers 14/15
+  held groups. The index is not a correctness probability.
+- Final report:
+  `reports/rheed_to_afm_island_generation_report.md`.
+- Selected artifacts:
+  `reports/rheed_to_afm_island_generation/20260727_m10_dense_islands_v3/development/selected`.
+- Local MPS timing is approximately 55 seconds per 900-step diffusion fold,
+  about 14 minutes total; M10 is approximately two minutes. The CUDA handoff
+  condition is not met.
+
 ## Distinct-morphology and confidence continuation (started 2026-07-27)
 
 - Working branch: `codex/rheed-afm-distinct-confidence-20260727`.
