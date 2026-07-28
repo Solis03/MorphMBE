@@ -143,6 +143,54 @@ def _target_series(
     return log_rq.sort_index(), log_fsmi.sort_index()
 
 
+def _load_external_predictions(
+    *,
+    path: str | Path,
+    groups: list[str],
+    log_target: pd.Series,
+) -> pd.DataFrame:
+    frame = pd.read_csv(
+        repo_path(path), dtype={"growth_run_id": str}
+    )
+    required = {
+        "growth_run_id",
+        "true_target",
+        "predicted_target",
+        "absolute_error",
+        "predicted_absolute_error",
+        "interval_lower",
+        "interval_upper",
+        "interval_covered",
+        "outer_target_used_for_training",
+    }
+    missing = sorted(required - set(frame.columns))
+    if missing:
+        raise RuntimeError(
+            f"external prediction columns missing from {path}: {missing}"
+        )
+    if set(frame["growth_run_id"]) != set(groups) or len(frame) != len(
+        groups
+    ):
+        raise RuntimeError(
+            f"external predictions do not match full cohort: {path}"
+        )
+    expected = np.exp(log_target.loc[groups].to_numpy(float))
+    actual = (
+        frame.set_index("growth_run_id")
+        .loc[groups, "true_target"]
+        .to_numpy(float)
+    )
+    if not np.allclose(expected, actual, rtol=1e-7, atol=1e-7):
+        raise RuntimeError(
+            f"external prediction truth values do not match: {path}"
+        )
+    if frame["outer_target_used_for_training"].astype(bool).any():
+        raise RuntimeError(
+            f"external predictions report outer target leakage: {path}"
+        )
+    return frame.sort_values("growth_run_id").reset_index(drop=True)
+
+
 def _condition_with_amplitude(
     selected_z: np.ndarray,
     scaler: ConditionScaler,
@@ -274,20 +322,35 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     write_csv(group_metrics, report / "surface_metrics_per_group.csv")
     log_rq, log_fsmi = _target_series(descriptors, group_metrics)
     physics = _physics_table(tables["physics"])
-    cross_rq_all, inner_rq = crossfit_target(
-        physics=physics,
-        log_target=log_rq,
-        alpha=float(config["ridge_alpha"]),
-        morphology_weight=float(config["morphology_head_weight"]),
-        confidence_alpha=float(config["confidence_alpha"]),
-    )
-    cross_fsmi_all, inner_fsmi = crossfit_target(
-        physics=physics,
-        log_target=log_fsmi,
-        alpha=float(config["ridge_alpha"]),
-        morphology_weight=float(config["morphology_head_weight"]),
-        confidence_alpha=float(config["confidence_alpha"]),
-    )
+    external = config.get("external_target_predictions")
+    if external:
+        cross_rq_all = _load_external_predictions(
+            path=external["Rq_nm"],
+            groups=groups_all,
+            log_target=log_rq,
+        )
+        cross_fsmi_all = _load_external_predictions(
+            path=external["FSMI_nm"],
+            groups=groups_all,
+            log_target=log_fsmi,
+        )
+        inner_rq = pd.DataFrame()
+        inner_fsmi = pd.DataFrame()
+    else:
+        cross_rq_all, inner_rq = crossfit_target(
+            physics=physics,
+            log_target=log_rq,
+            alpha=float(config["ridge_alpha"]),
+            morphology_weight=float(config["morphology_head_weight"]),
+            confidence_alpha=float(config["confidence_alpha"]),
+        )
+        cross_fsmi_all, inner_fsmi = crossfit_target(
+            physics=physics,
+            log_target=log_fsmi,
+            alpha=float(config["ridge_alpha"]),
+            morphology_weight=float(config["morphology_head_weight"]),
+            confidence_alpha=float(config["confidence_alpha"]),
+        )
     groups = groups_all[
         : int(config["smoke_growth_count"])
     ] if smoke else groups_all
@@ -644,6 +707,20 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             map(str, config["explicitly_excluded_growths"])
         ),
         "selected_method": selected_method,
+        "target_prediction_method": config.get(
+            "target_prediction_method", "M12a_frozen_alpha_head"
+        ),
+        "external_target_prediction_files": (
+            {
+                target: {
+                    "path": str(path),
+                    "sha256": sha256_file(repo_path(path)),
+                }
+                for target, path in external.items()
+            }
+            if external
+            else None
+        ),
         "selected_method_frozen_before_full23_run": True,
         "retrieval_at_inference": False,
         "measured_afm_patch_used_at_inference": False,

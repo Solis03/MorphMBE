@@ -46,6 +46,72 @@ def _read(path: Path) -> pd.DataFrame:
     return pd.read_csv(path, dtype={"growth_run_id": str})
 
 
+def _external_target_confidence(
+    *,
+    path: str | Path,
+    fallback: pd.DataFrame,
+) -> pd.DataFrame:
+    predictions = pd.read_csv(
+        repo_path(path), dtype={"growth_run_id": str}
+    )
+    required = {
+        "growth_run_id",
+        "target",
+        "method",
+        "confidence",
+        "absolute_error",
+        "predicted_absolute_error",
+        "interval_covered",
+        "outer_target_used_for_training",
+    }
+    missing = sorted(required - set(predictions.columns))
+    if missing:
+        raise RuntimeError(
+            f"external confidence columns missing from {path}: {missing}"
+        )
+    if predictions["outer_target_used_for_training"].astype(bool).any():
+        raise RuntimeError(
+            f"external confidence reports outer target leakage: {path}"
+        )
+    selected = predictions.loc[
+        predictions["method"] == "M14i_target_specific_robust"
+    ]
+    rq = selected.loc[selected["target"] == "Rq_nm"].set_index(
+        "growth_run_id"
+    )
+    fsmi = selected.loc[selected["target"] == "FSMI_nm"].set_index(
+        "growth_run_id"
+    )
+    if set(rq.index) != set(fsmi.index) or len(rq) != 23:
+        raise RuntimeError(
+            "external target confidence does not cover all 23 growths"
+        )
+    result = fallback.set_index("growth_run_id").loc[rq.index].copy()
+    result["joint_confidence_index"] = (
+        100.0 * np.sqrt(rq["confidence"] * fsmi["confidence"])
+    )
+    result["realized_rq_absolute_error_nm"] = rq["absolute_error"]
+    result["predicted_rq_absolute_error_nm"] = rq[
+        "predicted_absolute_error"
+    ]
+    result["realized_fsmi_absolute_error_nm"] = fsmi["absolute_error"]
+    result["predicted_fsmi_absolute_error_nm"] = fsmi[
+        "predicted_absolute_error"
+    ]
+    result["rq_interval_covered"] = rq["interval_covered"].astype(bool)
+    result["fsmi_interval_covered"] = fsmi[
+        "interval_covered"
+    ].astype(bool)
+    result["realized_joint_error_index"] = 0.5 * (
+        rq["absolute_error"].rank(pct=True)
+        + fsmi["absolute_error"].rank(pct=True)
+    )
+    result["confidence_basis"] = (
+        "geometric mean of strict-LOO Rq and FSMI confidence"
+    )
+    return result.reset_index()
+
+
 def _source_scatter(
     axis: plt.Axes,
     table: pd.DataFrame,
@@ -100,7 +166,7 @@ def plot_full_atlas(
             method=method,
             title=(
                 "Full 23-growth retrospective LOO: RHEED → generated AFM "
-                f"→ measured AFM ({page}/{pages}; C is exploratory)"
+                f"→ measured AFM ({page}/{pages}; C is relative, not a probability)"
             ),
         )
         stem = f"Fig1{chr(96 + page)}_full23_loo_atlas"
@@ -188,14 +254,19 @@ def plot_target_scatter(
 
 
 def plot_protocol_comparison(
-    *, figure_dir: Path, comparison: pd.DataFrame
+    *,
+    figure_dir: Path,
+    comparison: pd.DataFrame,
+    current_method_label: str = "M13",
 ) -> None:
     labels = {
         "prior_M12_strict15_train14": "M12: 15-growth LOO\n(14 fit)",
         "new_M13_full23_train22_same15": (
-            "M13: same 15 points\n(22 fit)"
+            f"{current_method_label}: same 15 points\n(22 fit)"
         ),
-        "new_M13_full23_train22_all23": "M13: all 23 points\n(22 fit)",
+        "new_M13_full23_train22_all23": (
+            f"{current_method_label}: all 23 points\n(22 fit)"
+        ),
     }
     metrics = [
         ("mean_absolute_error", "mean MAE (nm)", False),
@@ -243,7 +314,7 @@ def plot_protocol_comparison(
         ncol=3,
     )
     figure.suptitle(
-        "Adding eight growths did not improve the frozen M12 predictor",
+        "Retrospective protocol comparison (different cohort and fit size)",
         fontsize=11,
         fontweight="bold",
     )
@@ -351,8 +422,12 @@ def plot_confidence_audit(
     axes[0].set_xlabel("reported confidence index (0–100)")
     axes[0].set_ylabel("realized joint error rank")
     axes[0].set_title(
-        f"Ranking is not validated: Spearman ρ={rho.statistic:.2f}, "
-        f"p={rho.pvalue:.2f}"
+        (
+            "Confidence is error-related"
+            if rho.statistic < 0 and rho.pvalue < 0.05
+            else "Confidence ordering is not validated"
+        )
+        + f": Spearman ρ={rho.statistic:.2f}, p={rho.pvalue:.3f}"
     )
     colorbar = figure.colorbar(points, ax=axes[0], pad=0.02)
     colorbar.set_label("realized Rq error (nm)")
@@ -376,7 +451,7 @@ def plot_confidence_audit(
     axes[1].set_ylim(0, 1.05)
     axes[1].set_ylabel("outer-LOO empirical coverage")
     axes[1].set_title(
-        "Intervals cover reasonably; pointwise confidence ordering does not"
+        "Strict-LOO empirical interval coverage"
     )
     axes[1].legend(frameon=False, fontsize=8)
     _save(figure, figure_dir / "Fig5_confidence_audit")
@@ -502,6 +577,11 @@ def run(config: dict[str, Any]) -> None:
     rq = _read(report / "rq_crossfit_predictions.csv")
     fsmi = _read(report / "fsmi_crossfit_predictions.csv")
     confidence = _read(report / "confidence_crossfit.csv")
+    if config.get("external_confidence_predictions"):
+        confidence = _external_target_confidence(
+            path=config["external_confidence_predictions"],
+            fallback=confidence,
+        )
     cohort = _read(report / "cohort_manifest.csv")
     comparison = pd.read_csv(
         report / "comparison_to_prior15_targets.csv"
@@ -527,6 +607,9 @@ def run(config: dict[str, Any]) -> None:
     plot_protocol_comparison(
         figure_dir=figure_dir,
         comparison=comparison,
+        current_method_label=str(
+            config.get("target_prediction_method", "M13")
+        ).split("_", maxsplit=1)[0],
     )
     plot_rq_order(
         figure_dir=figure_dir,
@@ -566,8 +649,13 @@ def run(config: dict[str, Any]) -> None:
             "height_units": "nm",
             "scan_size_nm": float(config["scan_size_nm"]),
             "confidence_warning": (
-                "The full23 pointwise confidence ranking is not empirically "
-                "error-related; interval coverage is shown separately."
+                "Confidence is a relative index, not a calibrated probability."
+            ),
+            "confidence_vs_realized_target_error_spearman": float(
+                spearmanr(
+                    confidence["joint_confidence_index"],
+                    confidence["realized_joint_error_index"],
+                ).statistic
             ),
         },
         report / "visualization_manifest.json",

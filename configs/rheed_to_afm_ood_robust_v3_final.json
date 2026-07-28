@@ -1,0 +1,41 @@
+{
+  "experiment_id": "20260728_m14_ood_robust_multiview_v3_final",
+  "expected_growth_count": 23,
+  "explicitly_excluded_growths": ["6043", "6055"],
+  "scan_size_nm": 1000.0,
+  "analysis_scale_nm": 31.25,
+  "baseline_ridge_alpha": 1.0,
+  "baseline_morphology_weight": 0.75,
+  "robust_ridge_alpha": 10.0,
+  "density_strength": 0.5,
+  "density_floor": 0.25,
+  "residual_strength": 1.0,
+  "residual_floor": 0.25,
+  "r3d_pca_components": 5,
+  "confidence_alpha": 0.10,
+  "temporal_embedding_id": "r3d_18__causal_8__raw_luminance",
+  "generation_prediction_methods": {
+    "Rq_nm": "M14g_multiview_curated60_r3d40",
+    "FSMI_nm": "M14b_rheed_density_weighted"
+  },
+  "removelist_path": "removelist.txt",
+  "afm_descriptors": "outputs/rheed_video_afm_story/phase3a/afm_descriptors.csv",
+  "group_folds": "outputs/rheed_video_afm_story/phase3a/group_outer_splits.csv",
+  "rheed_physics_features": "outputs/rheed_video_afm_story/phase4a/rheed_physics_features.csv",
+  "phase1_manifest": "outputs/rheed_video_afm_story/phase1/modeling_manifest.csv",
+  "embedding_registry": "outputs/rheed_video_afm_story/phase2a/embedding_registry.csv",
+  "condition_columns": [
+    "log_rq_nm",
+    "unit_ra",
+    "unit_psd_mid_fraction",
+    "unit_psd_high_fraction",
+    "unit_psd_slope",
+    "log_unit_autocorr_length_nm",
+    "log_unit_anisotropy_ratio",
+    "unit_skewness",
+    "unit_kurtosis"
+  ],
+  "test_fold": 1,
+  "validation_fold": 0,
+  "report_root": "reports/rheed_to_afm_ood_robust/20260728_m14_ood_robust_multiview_v3_final"
+}
