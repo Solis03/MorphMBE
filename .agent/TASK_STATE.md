@@ -34,7 +34,7 @@ Last updated: 2026-07-28 (America/Detroit)
 - [x] Implement and test fold-local density/robust weighting candidates.
 - [x] Complete nested full-cohort evaluation, failure analysis and iteration.
 - [x] Produce figures and reports.
-- [ ] Complete final Git diff audit and local commits.
+- [x] Complete final Git diff audit and local commits.
 
 ## OOD-aware robust continuation evidence
 
@@ -93,6 +93,13 @@ Last updated: 2026-07-28 (America/Detroit)
   pass. This is recorded in
   `reports/rheed_to_afm_ood_robust/verification.md`; no placeholder was
   fabricated.
+- Implementation/config/test commit:
+  `e6a063d` (`feat: add OOD-aware robust RHEED-AFM head`).
+- Experiment/report/figure commit:
+  `00b412e` (`docs: freeze M14 robust full23 evidence`).
+- Final Git audit confirms that raw-data paths and `removelist.txt` have no
+  diff. Untracked `AGENTS.md` and `tmp/` and tracked pytest-cache timestamp
+  effects are outside the research commits and were not staged.
 
 ## Full 23-growth leave-one-out continuation (started 2026-07-28)
 
