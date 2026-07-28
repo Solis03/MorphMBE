@@ -1,0 +1,39 @@
+{
+  "experiment_id": "20260728_m14_target_specific_m12a_generator_v1",
+  "status": "selected_retrospective_full23",
+  "protocol": "leave-one-growth-out; 22 fit and one held, repeated for 23 growths",
+  "image_generator": "M12a_edge_preserving_terrace",
+  "target_head": "M14i_target_specific_robust",
+  "target_components": {
+    "Rq_nm": "M14g_multiview_curated60_r3d40",
+    "FSMI_nm": "M14b_rheed_density_weighted"
+  },
+  "confidence": {
+    "type": "relative index, not probability",
+    "risk_inputs": [
+      "fold-local R3D temporal density OOD score",
+      "fold-local upward target-amplitude extrapolation"
+    ],
+    "joint_confidence_vs_realized_error_spearman": -0.6958673808712917
+  },
+  "metrics": {
+    "Rq_nm": {
+      "mae": 1.4655696000763268,
+      "rmse": 2.0538123845805774,
+      "pearson_r": 0.5093670304120774,
+      "spearman_rho": 0.4990118577075099
+    },
+    "FSMI_nm": {
+      "mae": 1.3159379293145927,
+      "rmse": 2.0663606805589807,
+      "pearson_r": 0.28063744435662447,
+      "spearman_rho": 0.4298418972332016
+    }
+  },
+  "retrieval_at_inference": false,
+  "measured_afm_patch_used_at_inference": false,
+  "canonical_removelist_changed": false,
+  "robust_head_report": "reports/rheed_to_afm_ood_robust/20260728_m14_ood_robust_multiview_v3_final",
+  "integrated_generator_report": "reports/rheed_to_afm_ood_robust_generation/20260728_m14_target_specific_m12a_generator_v1/full23_loo",
+  "claim_boundary": "Retrospective method development on all 23 groups; freeze before prospective confirmation."
+}

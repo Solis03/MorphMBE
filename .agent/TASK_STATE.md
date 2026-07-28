@@ -2,6 +2,98 @@
 
 Last updated: 2026-07-28 (America/Detroit)
 
+## OOD-aware robust continuation (started 2026-07-28)
+
+- Working branch: `codex/rheed-afm-ood-robust-20260728`.
+- Immutable parent evidence:
+  - M12a 15-growth development milestone remains preserved.
+  - M13 full-23 retrospective LOO negative audit remains preserved at
+    commits `d4a07a6` and `f329129`.
+- New user-requested experiments:
+  1. define two to four clearly out-of-domain growths using RHEED-only,
+     target-blind support diagnostics, exclude them in a separately labelled
+     sensitivity cohort, and rerun the otherwise frozen M12a LOO pipeline;
+  2. test fold-local density/leverage weighting and robust regression so rare,
+     low-support training samples have less influence while low-support
+     queries receive visibly lower confidence.
+- Scientific guardrails:
+  - Do not modify the canonical `removelist.txt` merely because a sample has
+    high AFM prediction error.
+  - Keep experiment-specific OOD exclusions in a separate manifest/config.
+  - Select exclusions without AFM target values or outer-fold errors.
+  - Treat exclusion results as domain-restricted sensitivity evidence, not an
+    independent test or proof that removed measurements are invalid.
+  - Refit all weighting, scaling, model selection and uncertainty transforms
+    inside each outer growth fold.
+  - Evaluate confidence through error ranking, interval coverage and
+    selective risk-versus-coverage, not by visually assigned scores.
+- [x] Complete broad robust-learning, OOD, selective-prediction and
+  small-data literature review.
+- [x] Freeze a target-blind RHEED OOD detector and exclusion manifest.
+- [x] Run the unchanged M12a pipeline on the domain-restricted cohort.
+- [x] Implement and test fold-local density/robust weighting candidates.
+- [x] Complete nested full-cohort evaluation, failure analysis and iteration.
+- [x] Produce figures and reports.
+- [ ] Complete final Git diff audit and local commits.
+
+## OOD-aware robust continuation evidence
+
+- The target-blind RHEED OOD ranking identifies 6101, 6063, 6029 and
+  6028 as the top four atypical growths. AFM targets and held errors are not
+  inputs to the ranking. Separate top-2, top-3 and top-4 sensitivity
+  manifests were used; the canonical `removelist.txt` was not modified.
+- Hard exclusion is rejected. Frozen M12a Rq MAE is 1.910 nm with all 23
+  growths, 1.960 nm after top-2 exclusion, 2.321 nm after top-3 and 2.041 nm
+  after top-4. Growth 6099, the largest high-Rq failure, ranks 23/23 (most
+  in-domain) by the handcrafted RHEED audit, indicating conditional
+  ambiguity rather than simple input OOD.
+- Target-blind RHEED-density weighting helps, but target-residual self-paced
+  weighting is weaker because it can suppress valid rare high-Rq examples.
+  A causal temporal R3D view and fixed curated/temporal fusion provide the
+  largest balanced Rq improvement.
+- Selected M14i uses M14g (60% curated RHEED physics + 40% R3D temporal) for
+  Rq and M14b (RHEED-density weighted) for FSMI. Full23 LOO Rq MAE is
+  1.466 nm, Pearson r 0.509 and Spearman rho 0.499; FSMI MAE is 1.316 nm,
+  r 0.281 and rho 0.430. Relative to the frozen M12a full23 head, MAE falls
+  23.3% for Rq and 24.7% for FSMI.
+- Confidence uses fold-local temporal support and high-amplitude
+  extrapolation risk, never the held AFM target. Confidence versus realized
+  absolute error has rho -0.601 for Rq and -0.677 for FSMI. Both 90%
+  intervals cover 20/23 growths. Joint target confidence versus realized
+  joint error has rho -0.696.
+- Retaining the highest-confidence 12/23 growths reduces Rq MAE from
+  1.466 to 0.707 nm and FSMI MAE from 1.316 to 0.715 nm. This is reported as
+  a selective operational mode, not as a replacement for complete-cohort
+  evaluation.
+- The integrated full23 experiment reuses the immutable, genuinely
+  stochastic M12a island/terrace generator with M14i target predictions.
+  No measured AFM patch or AFM retrieval is used at inference. Every one of
+  23 generator fold audits has 22 fit growths and zero held overlap.
+- Five atlas pages show all 23 growths, and six more figures show target
+  correlation, protocol provenance, ordered roughness, confidence,
+  renderer strata and the four largest failures. Each is saved as PNG and
+  PDF. High-Rq 6099 remains underpredicted (10.32 to 4.64 nm) but receives
+  confidence 6/100; 6095 is 9.87 to 4.90 nm at confidence 22/100.
+- The result remains retrospective because all 23 growths have now informed
+  method development. M14i must be frozen before a new prospective test.
+- Final report:
+  `reports/rheed_to_afm_ood_robust_report.md`.
+- Literature review:
+  `reports/rheed_to_afm_ood_robust_literature_review.md`.
+- Selected robust-head artifacts:
+  `reports/rheed_to_afm_ood_robust/20260728_m14_ood_robust_multiview_v3_final`.
+- Selected integrated generator artifacts:
+  `reports/rheed_to_afm_ood_robust_generation/20260728_m14_target_specific_m12a_generator_v1/full23_loo`.
+- Verification completed so far: all RHEED-to-AFM tests pass 30/30; all 23
+  generator folds pass leakage checks; 17 PNG and 17 PDF final figures pass
+  integrity checks; three representative PDFs were rendered with Poppler and
+  visually inspected; raw-data and canonical-removelist diffs are empty.
+- The repository-wide suite is blocked by a missing, ignored human-checkpoint
+  artifact in the unrelated `rheed_peak_saddle` workflow after 134 tests
+  pass. This is recorded in
+  `reports/rheed_to_afm_ood_robust/verification.md`; no placeholder was
+  fabricated.
+
 ## Full 23-growth leave-one-out continuation (started 2026-07-28)
 
 - User-approved cohort: the existing harmonized 23-growth, 1 x 1 um AFM
