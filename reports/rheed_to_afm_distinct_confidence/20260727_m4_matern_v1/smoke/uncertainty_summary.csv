@@ -1,0 +1,2 @@
+nominal_component_coverage,empirical_component_coverage,all_component_coverage_fraction,interval_width_vs_error_spearman,confidence_vs_error_spearman,training_audit_group_count,confidence_is_probability,method
+0.9,1.0,1.0,0.5,-0.5,3,False,growth-group CV+/Jackknife+ component intervals; relative confidence is a monotone width ranking

@@ -1,0 +1,9 @@
+{
+  "group_count": 1,
+  "methods": [
+    "M4a_descriptor_matern_raw",
+    "M4b_variance_calibrated_descriptor_matern"
+  ],
+  "scan_count": 4,
+  "selection_policy": "AFM texture gate first; among passing methods use morphology composite and condition-control evidence. No old test reuse."
+}

@@ -1,0 +1,59 @@
+{
+  "status": "selected_development_method_requires_prospective_test",
+  "method_id": "M5_multiscale_spectral_hybrid",
+  "is_true_generator": true,
+  "uses_retrieval_at_inference": false,
+  "uses_measured_afm_at_inference": false,
+  "condition_path": "RHEED temporal/key-frame embeddings and physics summaries -> hybrid SVR/PLS AFM descriptors -> nested variance calibration",
+  "generator_path": "condition-sensitive multiscale Matern random field blended with learned M2b spectral random-field prior",
+  "matern_weight": 0.65,
+  "variance_factor_cap": 2.0,
+  "rheed_predictor": {
+    "path": "outputs/rheed_to_afm_distinct_confidence/20260727_m5_hybrid_v4_confidence/development/rheed_descriptor_predictor.joblib",
+    "sha256": "ec9f3cb2b22636b0626260d5f8505c089a7f36c1dc592e590915157acdfbad21"
+  },
+  "spectral_prior": {
+    "path": "outputs/rheed_to_afm_sharp_generation/20260727_sharp_v4_hybrid/development/M2_learned_spectral_field/model.joblib",
+    "sha256": "6096f9fceaa059704286067759bf0fd94411b3be38e5787144716d20e042c718"
+  },
+  "config": {
+    "path": "configs/rheed_to_afm_distinct_confidence.json",
+    "sha256": "b5afbb0d36aa2f1b9e67095e5fdd61744201afa6cabb8d1dfe74ec6c8ac49b0e"
+  },
+  "removelist": {
+    "path": "removelist.txt",
+    "sha256": "8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b",
+    "overlap_after_filtering": []
+  },
+  "strict_training_group_cross_validation": {
+    "group_count": 15,
+    "texture_gate_pass_fraction": 0.8666666666666667,
+    "median_rq_absolute_error_nm": 0.8293883576494947,
+    "median_condition_descriptor_mae_z": 0.9863876700401306,
+    "median_psd_log_distance": 0.9253710764619189,
+    "median_sharpness_ratio": 0.9385023985683348,
+    "median_composite_score": 8.54472155731617,
+    "median_max_training_ssim": 0.0372087958851047
+  },
+  "preexisting_validation": {
+    "group_count": 3,
+    "texture_gate_pass_fraction": 1.0,
+    "median_rq_absolute_error_nm": 0.8332059922803217,
+    "median_condition_descriptor_mae_z": 0.9708660840988159,
+    "median_psd_log_distance": 0.6657867505035122,
+    "median_sharpness_ratio": 1.0650710354260031,
+    "median_composite_score": 8.513049895964278
+  },
+  "uncertainty": {
+    "nominal_component_coverage": 0.9,
+    "empirical_component_coverage": 0.9333333333333333,
+    "rq_interval_empirical_coverage": 0.9333333333333333,
+    "confidence_vs_error_spearman": -0.5357142857142856,
+    "confidence_is_probability": false,
+    "maximum_current_confidence_index": 19.97292137145996
+  },
+  "test_policy": {
+    "historical_consumed_test_used_for_modeling_selection_or_evaluation": false,
+    "new_final_claim_requires_prospective_growth_groups": true
+  }
+}

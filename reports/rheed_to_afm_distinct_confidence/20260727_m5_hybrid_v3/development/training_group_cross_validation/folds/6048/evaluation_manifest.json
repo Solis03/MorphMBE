@@ -1,0 +1,11 @@
+{
+  "group_count": 1,
+  "methods": [
+    "M2b_prior_calibrated_spectral",
+    "M4b_variance_calibrated_descriptor_matern",
+    "M4a_descriptor_matern_raw",
+    "M5_multiscale_spectral_hybrid"
+  ],
+  "scan_count": 2,
+  "selection_policy": "AFM texture gate first; among passing methods use morphology composite and condition-control evidence. No old test reuse."
+}

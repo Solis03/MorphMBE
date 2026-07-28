@@ -2,6 +2,93 @@
 
 Last updated: 2026-07-27 (America/Detroit)
 
+## Distinct-morphology and confidence continuation (started 2026-07-27)
+
+- Working branch: `codex/rheed-afm-distinct-confidence-20260727`.
+- Preserved milestone: branch
+  `codex/rheed-afm-sharp-generation-20260727` remains frozen at commit
+  `67d35c5d9b85eb7b6134d2d2c73416ad24e1aef7`.
+- User-reported failure confirmed quantitatively: validation groups 6022 and
+  6056 have visibly different RHEED observations but the selected M2b
+  conditions differ by only 0.063 mean absolute standardized units, producing
+  nearly indistinguishable fine texture. Unit-Rq rendering also hid amplitude
+  differences; all new main figures will use physical nanometre height scales.
+- Development policy remains unchanged: the consumed historical test cohort
+  is not reopened. Method work uses the 15 training groups, strict nested
+  leave-one-growth-group-out checks, and the three pre-existing validation
+  groups. A future prospective cohort is required for a new final claim.
+- Canonical removelist remains mandatory, SHA-256
+  `8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b`.
+- Literature-informed direction:
+  1. counter regression-to-the-mean with strictly nested variance calibration;
+  2. use a descriptor-driven multiscale Matérn random-field generator whose
+     correlation scale, anisotropy, spectrum, height distribution, and Rq
+     respond explicitly to the RHEED-predicted condition;
+  3. report 90% group Jackknife+/cross-conformal intervals and a conservative
+     confidence index (explicitly not a probability);
+  4. include learning curves to quantify the value of additional growth groups.
+- Preliminary strict nested evidence:
+  - uncalibrated cross-fitted descriptor MAE 0.825 z, Rq MAE 1.119 nm,
+    sensitivity 0.485;
+  - a variance-factor cap of 2.0 is the preselected Pareto knee: descriptor
+    MAE 0.979 z, Rq MAE 0.739 nm, sensitivity 0.908;
+  - nested 90% interval component coverage is 0.933, and interval width versus
+    realized point error has Spearman rho 0.536;
+  - median descriptor MAE decreases from 1.013 z with 5 training groups to
+    0.638 z with 14 groups (strict repeated held-group learning curve).
+- Handcrafted RHEED spot/streak/quality temporal summaries were explored with
+  target selection repeated inside every outer fold. Their apparent
+  full-dataset correlations reversed or became unstable under nested
+  evaluation, so they are retained as a negative method result rather than
+  used in the selected model.
+- [x] Freeze the previous milestone.
+- [x] Inspect the cited figure and quantify conditional collapse.
+- [x] Review continuous-conditioning, condition-consistency, small-data
+  generation, PSD, and conformal uncertainty literature.
+- [x] Implement the distinct generator, nested variance calibration, and
+  group-conformal confidence package.
+- [x] Run smoke tests, full cross-validation, ablations, controls, and failure
+  analysis.
+- [x] Produce expanded nm-scale comparison, confidence, learning-curve, and
+  failure figures with rendered-PDF visual QA.
+- [x] Complete removelist/split/raw-data audits, report, independent review,
+  and local commit.
+
+## Distinct-confidence selected development evidence
+
+- Selected method: M5 multiscale spectral hybrid. It blends a
+  descriptor-driven, condition-sensitive Matérn random field (65%) with the
+  learned M2b spectral random-field prior (35%). Both inputs are generated;
+  inference uses no measured AFM or retrieval bank.
+- Strict 15-group leave-one-growth-group-out versus prior M2b:
+  - median Rq absolute error 0.829 vs 1.098 nm;
+  - PSD log distance 0.925 vs 0.957;
+  - sharpness ratio 0.939 vs 1.174 (target 1);
+  - morphology composite 8.545 vs 9.572;
+  - texture gate 13/15 vs 14/15;
+  - descriptor MAE 0.986 vs 0.826 z (explicit trade-off);
+  - median max-training SSIM 0.0372, incompatible with copied AFM output.
+- Pre-existing validation versus prior M2b:
+  texture gates 3/3 vs 2/3; Rq MAE 0.833 vs 1.205 nm; PSD distance
+  0.666 vs 0.860; sharpness 1.065 vs 1.284; composite 8.513 vs 9.604.
+- Validation generated-descriptor separation increased from M2b
+  0.062/0.464/0.451 z to M5 0.221/1.418/1.285 z. The formerly collapsed
+  6022--6056 pair is 3.6x farther apart; the median pair is 2.8x farther.
+- Group CV+/Jackknife+ 90% component coverage: 0.933; Rq interval coverage:
+  0.933. Confidence versus realized descriptor error Spearman rho: -0.536.
+  Intervals are wide, so the maximum conservative confidence index is only
+  20/100 and is explicitly not a probability.
+- Learning curve median descriptor MAE: 1.013 z at 5 independent growth
+  groups, 0.824 at 8, 0.765 at 11, and 0.638 at 14.
+- Final development artifacts:
+  `reports/rheed_to_afm_distinct_confidence/20260727_m5_hybrid_v4_confidence/development`.
+- Final report:
+  `reports/rheed_to_afm_distinct_confidence_report.md`.
+- Historical consumed test groups remain unused for current model fitting,
+  selection, generation, or evaluation. Prospective groups are required for a
+  new final claim.
+- Local runtime is approximately 30 seconds; CUDA handoff is not recommended.
+
 ## Sharp-generation continuation (started 2026-07-27 15:14 -0400)
 
 - Working branch: `codex/rheed-afm-sharp-generation-20260727`
