@@ -2,6 +2,81 @@
 
 Last updated: 2026-07-27 (America/Detroit)
 
+## Dynamic-range and functional-morphology continuation (started 2026-07-27)
+
+- Working branch:
+  `codex/rheed-afm-morphology-index-20260727`.
+- Immutable parent milestone: M10 dense-island generation is preserved at
+  commit `72ec10d17bbcd8e02cbbd2ba51d79b073531485c`.
+- New user-identified failures:
+  1. island edges and object shapes remain visually too soft;
+  2. Rq predictions are compressed toward a narrow low range, particularly
+     missing high-roughness growths;
+  3. Rq alone is only an RMS height statistic and does not fully express
+     texture, spatial scale, bearing/contact behavior or functional surface
+     state.
+- New objective: jointly improve generated AFM topology and amplitude
+  calibration, design a literature/standards-grounded multiscale functional
+  morphology index, predict it in strict held-one-growth evaluation, and
+  attach an error-correlated confidence score to every held prediction.
+- The historical test remains closed. Model selection remains strict
+  training-growth LOO plus the pre-existing validation cohort. All
+  `removelist.txt` exclusions remain mandatory.
+- [x] Audit Rq compression, high-Rq failures and topology softness.
+- [x] Review semiconductor/metrology standards and multiscale surface
+  descriptors.
+- [x] Define and validate a leakage-safe composite morphology index.
+- [x] Implement and compare amplitude-calibrated, sharper island generators.
+- [x] Complete strict grouped evaluation and confidence calibration.
+- [x] Produce figures, report and verification.
+- [x] Complete local commits.
+
+## Dynamic-range and functional-morphology final evidence
+
+- Selected development method: M12a edge-preserving terrace generator. It is
+  a stochastic conditional generator with random Laguerre capture zones,
+  continuous plateaus/grooves, signed-distance island shoulders and a
+  low-weight learned spectral prior. It uses no AFM patch or retrieval at
+  inference.
+- A strictly nested log-range calibration raises Rq predicted/true standard
+  deviation ratio from 0.652 to 0.796. Strict 15-growth LOO Rq mean MAE is
+  0.664 nm, median MAE 0.281 nm, Pearson r 0.836 and Spearman rho 0.932.
+- The extreme 6095 growth remains underpredicted (9.87 to 5.79 nm) but is
+  assigned the cohort's second-lowest confidence, 18.75/100, and is shown in
+  the failure figure.
+- Experimental FSMI is the RMS of Sq, 31.25 nm height increment, 31.25 nm
+  curvature relief, one-quarter p90-p10 bearing span and q70 island
+  prominence. It is not presented as an ISO/SEMI standard. Strict LOO FSMI
+  mean/median MAE are 0.722/0.417 nm; Pearson r 0.765 and Spearman rho 0.832.
+- M12a versus frozen M10 in strict LOO: median Rq error 0.316 vs 0.829 nm;
+  FSMI error 0.438 vs 0.684 nm; q70 area log error 0.574 vs 0.811; boundary
+  contrast 1.584 vs 1.324; composite 7.963 vs 8.106. Island MAE and AFM-prior
+  distance are worse and are reported as explicit sharpness tradeoffs.
+- Pre-existing validation, M12a versus M10: median Rq error 0.477 vs
+  0.833 nm; FSMI error 0.329 vs 0.659 nm; composite 7.792 vs 7.910; texture
+  gate 3/3 for both.
+- Confidence versus realized joint-error rank is Spearman rho -0.554
+  (p=0.0320). Rq and FSMI 90% interval coverages are 13/15 and 14/15;
+  confidence is explicitly a rank index, not a correctness probability.
+- M12b was rejected as over-sharpened; M12c improved validation island
+  metrics but its confidence-error relation was not significant. M11b remains
+  the conservative softer-contour ablation.
+- Historical test use is false; 24 historical test rows remain unselected.
+  The 11 canonical removelist IDs have zero overlap with retained tables.
+- Final report:
+  `reports/rheed_to_afm_functional_morphology_report.md`.
+- Literature/standards review:
+  `reports/rheed_to_afm_functional_morphology_literature_review.md`.
+- Final artifacts:
+  `reports/rheed_to_afm_functional_morphology/20260727_m12_range_terrace_v1/development`.
+- Ten PNG and ten PDF figures were generated. Fig. 1, Fig. 3 and Fig. 8 PDFs
+  were rendered with Poppler and visually inspected.
+- All RHEED-to-AFM tests pass 23/23. The smoke run is about 30 seconds and the
+  full M12 run about 75 seconds on Apple Silicon; MPS is available and CUDA is
+  unavailable. The CUDA-handoff condition is not met.
+- Implementation/config/test commit:
+  `73ea4ae` (`feat: add range-calibrated functional AFM generator`).
+
 ## Island-realism continuation (started 2026-07-27)
 
 - Working branch:

@@ -1,0 +1,11 @@
+{
+  "group_count": 1,
+  "methods": [
+    "M11b_sdf_contour_soft",
+    "M11a_amplitude_conditioned_islands",
+    "M11c_sdf_contour_selected",
+    "M10_dense_island_spectral_pareto"
+  ],
+  "scan_count": 6,
+  "selection_policy": "AFM texture gate first; among passing methods use morphology composite and condition-control evidence. No old test reuse."
+}

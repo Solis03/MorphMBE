@@ -1,0 +1,13 @@
+{
+  "confidence_definition": "Smoothed survival percentile of equal-weight ranks of strictly cross-fitted expected FSMI and island-topology errors. FSMI already contains height amplitude, so Rq is not double-counted.",
+  "confidence_is_probability": false,
+  "fsmi_90_interval_coverage": 0.9333333333333333,
+  "fsmi_expected_error_vs_realized_error_spearman": -0.09999999999999999,
+  "joint_confidence_vs_realized_error_pvalue": 0.03202806895896302,
+  "joint_confidence_vs_realized_error_spearman": -0.5542603125984532,
+  "method": "M12a_edge_preserving_terrace",
+  "morphology_90_upper_coverage": 0.8666666666666667,
+  "morphology_expected_error_vs_realized_error_spearman": 0.575,
+  "rq_90_interval_coverage": 0.8666666666666667,
+  "rq_expected_error_vs_realized_error_spearman": 0.20357142857142854
+}
