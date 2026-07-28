@@ -76,6 +76,8 @@ Last updated: 2026-07-27 (America/Detroit)
   unavailable. The CUDA-handoff condition is not met.
 - Implementation/config/test commit:
   `73ea4ae` (`feat: add range-calibrated functional AFM generator`).
+- Reports/figures/final-state commit:
+  `dafc94c` (`docs: freeze M11 and M12 functional morphology evidence`).
 
 ## Island-realism continuation (started 2026-07-27)
 
