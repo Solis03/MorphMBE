@@ -47,7 +47,13 @@ Last updated: 2026-07-28 (America/Detroit)
   334 passes and unrelated missing-freeze/checkpoint/parquet failures recorded
   in `reports/rheed_auto_roi_keyframe/verification.md`.
 - Final diff/raw-data audit and independent scientific review are complete.
-  Remaining work: local commits only.
+- Local implementation commit:
+  `7089a66` (`feat: automate RHEED ROI and phase keyframe selection`).
+- Frozen experiments/report/figure commit:
+  `1eaba50` (`docs: freeze automatic RHEED selection experiments`).
+- No raw data or `removelist.txt` changes are present. Pre-existing
+  `.pytest_cache`, untracked `AGENTS.md` and untracked `tmp/` remain outside
+  the task commits. No push was requested or performed.
 
 ## Dual paper-model freeze and publication handoff (2026-07-28)
 
