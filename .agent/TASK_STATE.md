@@ -2,6 +2,34 @@
 
 Last updated: 2026-07-28 (America/Detroit)
 
+## Dual paper-model freeze and publication handoff (2026-07-28)
+
+- Freeze ID:
+  `rheed_to_afm_dual_generative_models_v1_20260728`.
+- MODEL_A canonical name:
+  `MorphMBE-M12a-Strict15-RangeTerrace-v1` (`M12a-Strict15`).
+  Its primary evidence is strict LOO over 15 development growths
+  (14 fit, one held); three pre-existing validation growths are separate;
+  five historical-test growths / 24 AFM scans remain closed for that model.
+- MODEL_B canonical name:
+  `MorphMBE-M14i-Full23-OODAware-v1` (`M14i-Full23`).
+  Its primary evidence is retrospective full23 LOO (22 fit, one held).
+  Rq uses M14g, FSMI uses M14b, and image generation uses frozen M12a.
+- MODEL_A is pinned to source commit
+  `dafc94c177becc0015c03f29025e7fa065f0171e`; MODEL_B is pinned to
+  `e8ca3012a770bf9e06269670086db349c3da844a`.
+- The freeze records 133 MODEL_A artifacts and 277 MODEL_B artifacts with
+  SHA-256, Git blob ID and role. This covers 33/41 experiment-code files,
+  all frozen parameters, 20/34 result figures, result tables and reports.
+- Six derived input snapshots freeze the modeling manifest, AFM descriptor
+  table, group-fold table, RHEED physics table, embedding registry and
+  canonical removelist. No raw RHEED or AFM data is copied.
+- Validation command:
+  `PYTHONPATH=. .venv/bin/python scripts/freeze_rheed_to_afm_paper_models.py --validate`.
+  Freeze validation passes, and the current RHEED-to-AFM tests pass 30/30.
+- Freeze root:
+  `paper_freeze/rheed_to_afm_dual_generative_models_v1_20260728`.
+
 ## OOD-aware robust continuation (started 2026-07-28)
 
 - Working branch: `codex/rheed-afm-ood-robust-20260728`.
