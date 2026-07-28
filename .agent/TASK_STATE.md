@@ -1,6 +1,58 @@
 # RHEED-to-AFM Generative Modeling Task State
 
-Last updated: 2026-07-27 (America/Detroit)
+Last updated: 2026-07-28 (America/Detroit)
+
+## Full 23-growth leave-one-out continuation (started 2026-07-28)
+
+- User-approved cohort: the existing harmonized 23-growth, 1 x 1 um AFM
+  cohort only. Sample 6043 remains excluded; sample 6055 remains excluded.
+- The M12 milestone and its 15-growth development artifacts are immutable
+  comparison evidence and will not be overwritten.
+- New objective: freeze the M12a method, run retrospective nested
+  leave-one-growth-out over all 23 growths (22 fit, one held, repeated 23
+  times), refit every target-dependent condition/texture/island transform
+  inside each outer fold, and generate a complete quantitative and visual
+  comparison against the prior 15-growth result.
+- This is retrospective full-cohort cross-validation, not a new prospective
+  untouched test. All historical source split labels are retained only as
+  provenance and do not restrict the new outer LOO.
+- [x] Confirm the source descriptor, RHEED embedding and RHEED physics tables
+  contain exactly the same 23 independent growth groups.
+- [x] Implement a separate full-cohort nested-LOO runner and config.
+- [x] Run leakage smoke checks and the full 23-fold experiment.
+- [x] Generate the 23-growth atlas, target scatter, confidence, comparison and
+  failure figures.
+- [x] Verify reports, raw-data integrity and final diff.
+
+## Full 23-growth LOO evidence
+
+- The fixed cohort contains exactly 23 growth groups / 116 AFM scans. Growths
+  6043 and 6055 are absent; all canonical removelist IDs have zero overlap.
+- The M12a renderer and method family were frozen before this audit. Every
+  outer fold refits all target-, condition-, spectrum- and island-dependent
+  components on 22 growths, and all 23 leakage manifests pass.
+- The full-cohort hypothesis is rejected. Rq mean/median MAE is
+  1.910/1.322 nm, Pearson r is 0.265 and Spearman rho is 0.303. FSMI
+  mean/median MAE is 1.748/0.979 nm, r is 0.158 and rho is 0.237.
+- The new 22-fit predictions are also worse when restricted to the identical
+  15 IDs shown in the prior M12 result. The degradation is not only an effect
+  of plotting eight additional difficult groups.
+- High-Rq growths 6099 and 6095 are underpredicted by 6.642 and 5.316 nm.
+  Growth 6101 is an unstable near-zero extrapolation and produces a visibly
+  flat map.
+- M12a retains clearer island boundaries than M10 (median contrast 1.631
+  versus 1.356), but M10 is better on PSD distance, texture-gate rate,
+  island-feature MAE, AFM-prior distance and composite error over all 23.
+- Rq/FSMI 90% interval coverage is 20/23 and topology upper coverage is
+  22/23. Pointwise confidence does not validate: confidence versus realized
+  joint error has rho +0.043 (p=0.846). It must not be presented as a
+  correctness probability or reliable error ranking.
+- Five atlas pages show every held-out growth. Six additional figures show
+  target scatter, old/new protocol comparison, Rq range, confidence audit,
+  five roughness strata, and the four largest failures. Eleven PNG and eleven
+  PDF files were produced.
+- Final audit report:
+  `reports/rheed_to_afm_full_cohort_loo_report.md`.
 
 ## Dynamic-range and functional-morphology continuation (started 2026-07-27)
 

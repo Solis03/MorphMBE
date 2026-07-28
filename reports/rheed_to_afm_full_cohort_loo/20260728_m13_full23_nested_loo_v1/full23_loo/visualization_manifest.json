@@ -1,0 +1,19 @@
+{
+  "atlas_stems": [
+    "Fig1a_full23_loo_atlas",
+    "Fig1b_full23_loo_atlas",
+    "Fig1c_full23_loo_atlas",
+    "Fig1d_full23_loo_atlas",
+    "Fig1e_full23_loo_atlas"
+  ],
+  "confidence_warning": "The full23 pointwise confidence ranking is not empirically error-related; interval coverage is shown separately.",
+  "experiment_id": "20260728_m13_full23_nested_loo_v1",
+  "figure_directory": "/Users/ziyi/Desktop/LAB/code/reports/rheed_to_afm_full_cohort_loo/20260728_m13_full23_nested_loo_v1/full23_loo/figures",
+  "fit_growths_per_fold": 22,
+  "height_units": "nm",
+  "ordering": "ascending measured Rq for the five atlas pages",
+  "outer_growth_count": 23,
+  "pdf_count": 11,
+  "png_count": 11,
+  "scan_size_nm": 1000.0
+}
