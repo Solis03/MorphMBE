@@ -2,6 +2,53 @@
 
 Last updated: 2026-07-28 (America/Detroit)
 
+## Automatic RHEED ROI and keyframe selection (2026-07-28)
+
+- Working branch:
+  `codex/rheed-auto-roi-keyframe-20260728`.
+- New read-only tool accepts MOV/MP4/AVI/MKV/MPEG/MPG or a numeric PNG frame
+  directory, predicts a circular-border-safe ROI, tracks diffraction motion
+  and selects a rotation-phase vertex.
+- Ground truth contains 27 manually annotated source videos and 13,473
+  decoded frames. All 27 were used because this task does not use AFM
+  targets; AFM `removelist.txt` status is irrelevant to the RHEED-only
+  annotation benchmark.
+- Three ROI methods and six deterministic keyframe methods were compared.
+  V1 physical vertex median NCC was 0.602. V2 visibility gating raised it to
+  0.669. V3's larger aperture-inscribed ROI was rejected because its median
+  NCC fell to 0.568 despite greater human ROI overlap.
+- The selected method uses `calibrated_safe` ROI, compact bright-feature and
+  whole-diffraction-front trajectories, physical vertex candidates and a
+  gradient-boosting candidate ranker.
+- Strict leave-one-video-out evaluation trains on 26 annotated videos and
+  holds one video completely out in each of 27 folds. Held overlap is zero.
+  Median pattern NCC is 0.715, mean NCC 0.687, SSIM 0.516, gradient NCC 0.373
+  and absolute frame difference 24 frames. Repeated rotation cycles make
+  absolute difference a secondary metric.
+- Predicted similarity is error-related (Spearman rho -0.508, p 0.0068) and
+  is isotonic-calibrated as the inference confidence. It is explicitly not a
+  correctness probability. Samples 6023 and 6056 remain visible
+  low-confidence failures.
+- Final fitted model is refit on all 27 annotations for future prospective
+  video use. It must not be described as prospectively validated.
+- Direct original-video smoke benchmark: 810 frames / 27 seconds processed in
+  12.9 seconds on the M1 Pro (~62.7 frames/s). CUDA is unnecessary.
+- Final report:
+  `reports/rheed_auto_roi_keyframe_report.md`.
+- User guide:
+  `docs/AUTOMATIC_RHEED_ROI_KEYFRAME.md`.
+- Selected experiment:
+  `outputs/rheed_auto_roi_keyframe/20260728_diffraction_front_visibility_v2`.
+- Complete ROI/keyframe/supervised atlases:
+  `reports/rheed_auto_roi_keyframe/20260728_diffraction_front_visibility_v2`.
+- Verification complete: adjacent selector tests pass 48/48; 155 PNG and 44
+  PDF artifacts pass integrity checks; 27/27 raw-source size/mtime audits
+  pass; source video inference succeeds. The repository-wide `tests/` run has
+  334 passes and unrelated missing-freeze/checkpoint/parquet failures recorded
+  in `reports/rheed_auto_roi_keyframe/verification.md`.
+- Final diff/raw-data audit and independent scientific review are complete.
+  Remaining work: local commits only.
+
 ## Dual paper-model freeze and publication handoff (2026-07-28)
 
 - Freeze ID:

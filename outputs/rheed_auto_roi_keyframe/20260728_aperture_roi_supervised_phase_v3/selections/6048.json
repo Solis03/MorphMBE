@@ -1,0 +1,151 @@
+{
+  "candidate_count": 11,
+  "frame_count": 371,
+  "frames_dir": "data/rheed_keyframe_selection/6048/videos/After rampdown/frames",
+  "keyframe_predictions": {
+    "compact_physics": {
+      "candidate_count": 13,
+      "clarity": 6.6162886028645875,
+      "confidence": 0.4325208333333334,
+      "direction_consistent": false,
+      "estimated_period_frames": 23.0,
+      "frame_index": 137,
+      "method": "compact_physics",
+      "score": 0.7500000000000001,
+      "spot_x": 83.59341283836876,
+      "spot_y": 74.332291754714,
+      "vertex_prominence": 35.2903801420393
+    },
+    "compact_visibility": {
+      "candidate_count": 13,
+      "clarity": 5.570576337687995,
+      "confidence": 0.4729166666666663,
+      "direction_consistent": true,
+      "estimated_period_frames": 23.0,
+      "frame_index": 325,
+      "method": "compact_visibility",
+      "score": 0.7033333333333333,
+      "spot_x": 75.15888588122202,
+      "spot_y": 50.02171082913789,
+      "vertex_prominence": 8.238353856946148
+    },
+    "front_visibility": {
+      "candidate_count": 11,
+      "clarity": 6.0499690799317145,
+      "confidence": 0.49400000000000005,
+      "direction_consistent": true,
+      "estimated_period_frames": 34.5,
+      "frame_index": 196,
+      "method": "front_visibility",
+      "score": 0.8360000000000001,
+      "spot_x": 88.96505149955789,
+      "spot_y": 95.54526244881504,
+      "vertex_prominence": 67.406547258717
+    },
+    "physics_vertex": {
+      "candidate_count": 11,
+      "clarity": 6.6162886028645875,
+      "confidence": 0.47199999999999975,
+      "direction_consistent": true,
+      "estimated_period_frames": 34.5,
+      "frame_index": 135,
+      "method": "physics_vertex",
+      "score": 0.782,
+      "spot_x": 85.85577259555271,
+      "spot_y": 90.1375262115437,
+      "vertex_prominence": 10.447586041869144
+    },
+    "quality_only": {
+      "candidate_count": 11,
+      "clarity": 8.489826315131749,
+      "confidence": 0.8213271585447237,
+      "direction_consistent": false,
+      "estimated_period_frames": 34.5,
+      "frame_index": 154,
+      "method": "quality_only",
+      "score": 0.7945945945945947,
+      "spot_x": 76.1544599509654,
+      "spot_y": 77.17767242907951,
+      "vertex_prominence": 0.0
+    },
+    "vertex_clarity": {
+      "candidate_count": 11,
+      "clarity": 6.6162886028645875,
+      "confidence": 0.516,
+      "direction_consistent": true,
+      "estimated_period_frames": 34.5,
+      "frame_index": 135,
+      "method": "vertex_clarity",
+      "score": 0.7080000000000001,
+      "spot_x": 85.85577259555271,
+      "spot_y": 90.1375262115437,
+      "vertex_prominence": 10.447586041869144
+    }
+  },
+  "manual": {
+    "frame_index": 199,
+    "roi": {
+      "height": 744,
+      "source_height": 1080,
+      "source_width": 1920,
+      "width": 477,
+      "x": 745,
+      "y": 244
+    }
+  },
+  "roi_predictions": {
+    "activity_safe": {
+      "activity_coverage": 0.6651449462152088,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.29619791666666667,
+      "confidence": 0.9486940607130563,
+      "method": "activity_safe",
+      "rect": {
+        "height": 408,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 264,
+        "x": 816,
+        "y": 282
+      },
+      "safe_pixel_fraction": 0.9986631016042781
+    },
+    "aperture_inscribed": {
+      "activity_coverage": 0.14709644141804687,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.29619791666666667,
+      "confidence": 0.7541497447032736,
+      "method": "aperture_inscribed",
+      "rect": {
+        "height": 756,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 492,
+        "x": 540,
+        "y": 198
+      },
+      "safe_pixel_fraction": 0.9981610530391019
+    },
+    "calibrated_safe": {
+      "activity_coverage": 0.6952226312449741,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.29619791666666667,
+      "confidence": 0.959718468716538,
+      "method": "calibrated_safe",
+      "rect": {
+        "height": 582,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 378,
+        "x": 708,
+        "y": 90
+      },
+      "safe_pixel_fraction": 0.9981999672721322
+    }
+  },
+  "sample_id": "6048",
+  "source_video": "data/pair/6048/RHEED/After rampdown.MOV",
+  "source_video_mtime_ns": 1778867701000000000,
+  "source_video_size_bytes": 1611471,
+  "video_id": "After rampdown"
+}

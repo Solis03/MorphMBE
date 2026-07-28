@@ -1,0 +1,151 @@
+{
+  "candidate_count": 7,
+  "frame_count": 402,
+  "frames_dir": "data/rheed_keyframe_selection/6055/videos/after GaSb and rampdown /frames",
+  "keyframe_predictions": {
+    "compact_physics": {
+      "candidate_count": 7,
+      "clarity": 6.569987835290569,
+      "confidence": 0.6883333333333334,
+      "direction_consistent": true,
+      "estimated_period_frames": 42.0,
+      "frame_index": 342,
+      "method": "compact_physics",
+      "score": 0.8500000000000001,
+      "spot_x": 86.41480402634392,
+      "spot_y": 93.8620754157081,
+      "vertex_prominence": 24.932823876644697
+    },
+    "compact_visibility": {
+      "candidate_count": 7,
+      "clarity": 7.575558010413567,
+      "confidence": 0.7066666666666671,
+      "direction_consistent": true,
+      "estimated_period_frames": 42.0,
+      "frame_index": 382,
+      "method": "compact_visibility",
+      "score": 0.7616666666666668,
+      "spot_x": 85.8075727387797,
+      "spot_y": 93.48539363090534,
+      "vertex_prominence": 6.8560217472090415
+    },
+    "front_visibility": {
+      "candidate_count": 7,
+      "clarity": 7.575558010413567,
+      "confidence": 0.51875,
+      "direction_consistent": true,
+      "estimated_period_frames": 44.0,
+      "frame_index": 382,
+      "method": "front_visibility",
+      "score": 0.7300000000000001,
+      "spot_x": 87.98239191817599,
+      "spot_y": 87.80391364427611,
+      "vertex_prominence": 1.982391918175992
+    },
+    "physics_vertex": {
+      "candidate_count": 7,
+      "clarity": 7.575558010413567,
+      "confidence": 0.5233333333333332,
+      "direction_consistent": true,
+      "estimated_period_frames": 44.0,
+      "frame_index": 382,
+      "method": "physics_vertex",
+      "score": 0.7066666666666667,
+      "spot_x": 87.98239191817599,
+      "spot_y": 87.80391364427611,
+      "vertex_prominence": 1.982391918175992
+    },
+    "quality_only": {
+      "candidate_count": 7,
+      "clarity": 9.713267677376434,
+      "confidence": 0.8073357841040529,
+      "direction_consistent": false,
+      "estimated_period_frames": 44.0,
+      "frame_index": 52,
+      "method": "quality_only",
+      "score": 0.8552369077306734,
+      "spot_x": 85.52106821429108,
+      "spot_y": 77.33887475902308,
+      "vertex_prominence": 0.0
+    },
+    "vertex_clarity": {
+      "candidate_count": 7,
+      "clarity": 8.457835039112252,
+      "confidence": 0.3312291666666668,
+      "direction_consistent": false,
+      "estimated_period_frames": 44.0,
+      "frame_index": 41,
+      "method": "vertex_clarity",
+      "score": 0.755,
+      "spot_x": 86.94657601223955,
+      "spot_y": 86.18286353552584,
+      "vertex_prominence": 2.792525669367933
+    }
+  },
+  "manual": {
+    "frame_index": 379,
+    "roi": {
+      "height": 823,
+      "source_height": 1080,
+      "source_width": 1920,
+      "width": 518,
+      "x": 729,
+      "y": 178
+    }
+  },
+  "roi_predictions": {
+    "activity_safe": {
+      "activity_coverage": 0.20095178146398776,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.40607638888888886,
+      "confidence": 0.7746216239313484,
+      "method": "activity_safe",
+      "rect": {
+        "height": 408,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 264,
+        "x": 960,
+        "y": 354
+      },
+      "safe_pixel_fraction": 0.9986631016042781
+    },
+    "aperture_inscribed": {
+      "activity_coverage": 0.2707749738696368,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.40607638888888886,
+      "confidence": 0.8004584877576003,
+      "method": "aperture_inscribed",
+      "rect": {
+        "height": 936,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 606,
+        "x": 540,
+        "y": 84
+      },
+      "safe_pixel_fraction": 0.998032495557248
+    },
+    "calibrated_safe": {
+      "activity_coverage": 0.2707749738696368,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.40607638888888886,
+      "confidence": 0.8004584877576003,
+      "method": "calibrated_safe",
+      "rect": {
+        "height": 936,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 606,
+        "x": 540,
+        "y": 84
+      },
+      "safe_pixel_fraction": 0.998032495557248
+    }
+  },
+  "sample_id": "6055",
+  "source_video": "data/pair/6055/RHEED/after GaSb and rampdown .MOV",
+  "source_video_mtime_ns": 1779037204000000000,
+  "source_video_size_bytes": 2281414,
+  "video_id": "after GaSb and rampdown "
+}

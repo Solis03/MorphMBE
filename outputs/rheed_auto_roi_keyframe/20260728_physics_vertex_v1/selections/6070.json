@@ -1,0 +1,112 @@
+{
+  "candidate_count": 22,
+  "frame_count": 767,
+  "frames_dir": "data/rheed_keyframe_selection/6070/videos/rampdown to 300C/frames",
+  "keyframe_predictions": {
+    "physics_vertex": {
+      "candidate_count": 22,
+      "clarity": 7.257501137377613,
+      "confidence": 0.7616666666666663,
+      "direction_consistent": true,
+      "estimated_period_frames": 24.0,
+      "frame_index": 135,
+      "method": "physics_vertex",
+      "score": 0.8523809523809522,
+      "spot_x": 87.15744157977142,
+      "spot_y": 98.319233524937,
+      "vertex_prominence": 17.29227425537188
+    },
+    "quality_only": {
+      "candidate_count": 22,
+      "clarity": 7.2175858368487065,
+      "confidence": 0.8558962509061334,
+      "direction_consistent": false,
+      "estimated_period_frames": 24.0,
+      "frame_index": 142,
+      "method": "quality_only",
+      "score": 0.8870757180156659,
+      "spot_x": 83.81063375612963,
+      "spot_y": 85.359650244652,
+      "vertex_prominence": 0.0
+    },
+    "vertex_clarity": {
+      "candidate_count": 22,
+      "clarity": 6.825824101384584,
+      "confidence": 0.5529642857142861,
+      "direction_consistent": false,
+      "estimated_period_frames": 24.0,
+      "frame_index": 598,
+      "method": "vertex_clarity",
+      "score": 0.8780952380952382,
+      "spot_x": 85.3957519821852,
+      "spot_y": 90.77669286710454,
+      "vertex_prominence": 6.7486244711719365
+    }
+  },
+  "manual": {
+    "frame_index": 135,
+    "roi": {
+      "height": 707,
+      "source_height": 1080,
+      "source_width": 1920,
+      "width": 433,
+      "x": 789,
+      "y": 220
+    }
+  },
+  "roi_predictions": {
+    "activity_safe": {
+      "activity_coverage": 0.142642978642186,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.41713541666666665,
+      "confidence": 0.7525032409243627,
+      "method": "activity_safe",
+      "rect": {
+        "height": 786,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 510,
+        "x": 594,
+        "y": 282
+      },
+      "safe_pixel_fraction": 0.9982038616973506
+    },
+    "aperture_inscribed": {
+      "activity_coverage": 0.17557712679312512,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.41713541666666665,
+      "confidence": 0.7647420692258464,
+      "method": "aperture_inscribed",
+      "rect": {
+        "height": 972,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 630,
+        "x": 522,
+        "y": 18
+      },
+      "safe_pixel_fraction": 0.9980011757789535
+    },
+    "calibrated_safe": {
+      "activity_coverage": 0.1726952498095755,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.41713541666666665,
+      "confidence": 0.7636699734862832,
+      "method": "calibrated_safe",
+      "rect": {
+        "height": 960,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 624,
+        "x": 516,
+        "y": 24
+      },
+      "safe_pixel_fraction": 0.9980168269230769
+    }
+  },
+  "sample_id": "6070",
+  "source_video": "data/pair/6070/RHEED/rampdown to 300C.MOV",
+  "source_video_mtime_ns": 1779037584000000000,
+  "source_video_size_bytes": 2653753,
+  "video_id": "rampdown to 300C"
+}

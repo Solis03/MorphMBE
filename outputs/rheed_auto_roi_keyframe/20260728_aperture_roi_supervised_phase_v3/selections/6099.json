@@ -1,0 +1,151 @@
+{
+  "candidate_count": 8,
+  "frame_count": 401,
+  "frames_dir": "data/rheed_keyframe_selection/6099/videos/ramping to 650C/frames",
+  "keyframe_predictions": {
+    "compact_physics": {
+      "candidate_count": 12,
+      "clarity": 5.288822451312986,
+      "confidence": 0.7649999999999999,
+      "direction_consistent": true,
+      "estimated_period_frames": 26.0,
+      "frame_index": 32,
+      "method": "compact_physics",
+      "score": 0.989090909090909,
+      "spot_x": 88.83843453232286,
+      "spot_y": 75.99091448332662,
+      "vertex_prominence": 13.603772886090837
+    },
+    "compact_visibility": {
+      "candidate_count": 12,
+      "clarity": 5.288822451312986,
+      "confidence": 0.5700000000000002,
+      "direction_consistent": true,
+      "estimated_period_frames": 26.0,
+      "frame_index": 32,
+      "method": "compact_visibility",
+      "score": 0.9736363636363637,
+      "spot_x": 88.83843453232286,
+      "spot_y": 75.99091448332662,
+      "vertex_prominence": 13.603772886090837
+    },
+    "front_visibility": {
+      "candidate_count": 8,
+      "clarity": 5.435159962852483,
+      "confidence": 0.5953571428571425,
+      "direction_consistent": true,
+      "estimated_period_frames": 32.0,
+      "frame_index": 33,
+      "method": "front_visibility",
+      "score": 0.9299999999999999,
+      "spot_x": 89.98118527946058,
+      "spot_y": 77.05090627977972,
+      "vertex_prominence": 10.397978257565669
+    },
+    "physics_vertex": {
+      "candidate_count": 8,
+      "clarity": 5.435159962852483,
+      "confidence": 0.929285714285714,
+      "direction_consistent": true,
+      "estimated_period_frames": 32.0,
+      "frame_index": 33,
+      "method": "physics_vertex",
+      "score": 0.9485714285714285,
+      "spot_x": 89.98118527946058,
+      "spot_y": 77.05090627977972,
+      "vertex_prominence": 10.397978257565669
+    },
+    "quality_only": {
+      "candidate_count": 8,
+      "clarity": 7.926204168217998,
+      "confidence": 0.8290278535201943,
+      "direction_consistent": false,
+      "estimated_period_frames": 32.0,
+      "frame_index": 18,
+      "method": "quality_only",
+      "score": 0.9032500000000001,
+      "spot_x": 85.80115126814268,
+      "spot_y": 81.73731965125818,
+      "vertex_prominence": 0.0
+    },
+    "vertex_clarity": {
+      "candidate_count": 8,
+      "clarity": 5.435159962852483,
+      "confidence": 0.6817857142857138,
+      "direction_consistent": true,
+      "estimated_period_frames": 32.0,
+      "frame_index": 33,
+      "method": "vertex_clarity",
+      "score": 0.8057142857142856,
+      "spot_x": 89.98118527946058,
+      "spot_y": 77.05090627977972,
+      "vertex_prominence": 10.397978257565669
+    }
+  },
+  "manual": {
+    "frame_index": 62,
+    "roi": {
+      "height": 783,
+      "source_height": 1920,
+      "source_width": 1080,
+      "width": 550,
+      "x": 360,
+      "y": 481
+    }
+  },
+  "roi_predictions": {
+    "activity_safe": {
+      "activity_coverage": 0.22333305888250368,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.35494791666666664,
+      "confidence": 0.7834406303243037,
+      "method": "activity_safe",
+      "rect": {
+        "height": 702,
+        "source_height": 1920,
+        "source_width": 1080,
+        "width": 456,
+        "x": 372,
+        "y": 630
+      },
+      "safe_pixel_fraction": 0.9994376968061178
+    },
+    "aperture_inscribed": {
+      "activity_coverage": 0.20632511404916454,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.35494791666666664,
+      "confidence": 0.7763012616761512,
+      "method": "aperture_inscribed",
+      "rect": {
+        "height": 876,
+        "source_height": 1920,
+        "source_width": 1080,
+        "width": 570,
+        "x": 270,
+        "y": 396
+      },
+      "safe_pixel_fraction": 0.9980533525594809
+    },
+    "calibrated_safe": {
+      "activity_coverage": 0.21366452542710748,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.35494791666666664,
+      "confidence": 0.7790346885978946,
+      "method": "calibrated_safe",
+      "rect": {
+        "height": 870,
+        "source_height": 1920,
+        "source_width": 1080,
+        "width": 564,
+        "x": 264,
+        "y": 396
+      },
+      "safe_pixel_fraction": 0.9980190755685987
+    }
+  },
+  "sample_id": "6099",
+  "source_video": "data/pair/6099/RHEED/ramping to 650C.MOV",
+  "source_video_mtime_ns": 1779037582000000000,
+  "source_video_size_bytes": 1441004,
+  "video_id": "ramping to 650C"
+}

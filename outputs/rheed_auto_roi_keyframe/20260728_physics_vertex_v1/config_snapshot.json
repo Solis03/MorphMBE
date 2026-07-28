@@ -1,0 +1,26 @@
+{
+  "config_sha256": "663ebf9c85ef301b0ba211ed13b52cacaa1660d9006fa8a98d56c4e5913d1bd7",
+  "evaluated_rows": 27,
+  "evaluation_note": "All 27 videos with existing human ROI/keyframe annotations are evaluated. AFM removelist status is irrelevant because no AFM target is used.",
+  "experiment_id": "20260728_physics_vertex_v1",
+  "final_keyframe_method": "physics_vertex",
+  "final_roi_method": "calibrated_safe",
+  "generated_unix_time": 1785278704.2563698,
+  "keyframe_methods": [
+    "quality_only",
+    "vertex_clarity",
+    "physics_vertex"
+  ],
+  "manifest": "outputs/rheed_video_afm_story/phase1/modeling_manifest.csv",
+  "manifest_sha256": "c4afcf55dd06efbef2357e15f7b4a3b20eb9f2604833f7842dd6a70e98eae52f",
+  "random_seed": 17,
+  "raw_data_policy": "read_only",
+  "roi_aspect_ratio": 1.54,
+  "roi_calibrated_scale": 0.9,
+  "roi_methods": [
+    "aperture_inscribed",
+    "activity_safe",
+    "calibrated_safe"
+  ],
+  "roi_sample_count": 48
+}

@@ -1,0 +1,112 @@
+{
+  "candidate_count": 18,
+  "frame_count": 497,
+  "frames_dir": "data/rheed_keyframe_selection/6085/videos/ramping down to 300C/frames",
+  "keyframe_predictions": {
+    "physics_vertex": {
+      "candidate_count": 18,
+      "clarity": 8.845440849777011,
+      "confidence": 0.6376470588235291,
+      "direction_consistent": true,
+      "estimated_period_frames": 20.0,
+      "frame_index": 172,
+      "method": "physics_vertex",
+      "score": 0.7835294117647058,
+      "spot_x": 87.23233422273744,
+      "spot_y": 84.49512349714215,
+      "vertex_prominence": 67.739193042896
+    },
+    "quality_only": {
+      "candidate_count": 18,
+      "clarity": 11.456967715612675,
+      "confidence": 0.8453103535748265,
+      "direction_consistent": false,
+      "estimated_period_frames": 20.0,
+      "frame_index": 431,
+      "method": "quality_only",
+      "score": 0.7936491935483871,
+      "spot_x": 83.92060971769938,
+      "spot_y": 102.82176952356797,
+      "vertex_prominence": 0.0
+    },
+    "vertex_clarity": {
+      "candidate_count": 18,
+      "clarity": 11.181117451580443,
+      "confidence": 0.5551470588235297,
+      "direction_consistent": true,
+      "estimated_period_frames": 20.0,
+      "frame_index": 415,
+      "method": "vertex_clarity",
+      "score": 0.7394117647058823,
+      "spot_x": 86.89293968917382,
+      "spot_y": 109.0663511616841,
+      "vertex_prominence": 10.76953151938956
+    }
+  },
+  "manual": {
+    "frame_index": 320,
+    "roi": {
+      "height": 735,
+      "source_height": 1080,
+      "source_width": 1920,
+      "width": 516,
+      "x": 550,
+      "y": 143
+    }
+  },
+  "roi_predictions": {
+    "activity_safe": {
+      "activity_coverage": 0.8055924965816869,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.2851736111111111,
+      "confidence": 0.9989895897121862,
+      "method": "activity_safe",
+      "rect": {
+        "height": 426,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 276,
+        "x": 684,
+        "y": 258
+      },
+      "safe_pixel_fraction": 0.998162890385793
+    },
+    "aperture_inscribed": {
+      "activity_coverage": 0.5392912601151097,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.2851736111111111,
+      "confidence": 0.9011988309769011,
+      "method": "aperture_inscribed",
+      "rect": {
+        "height": 768,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 498,
+        "x": 438,
+        "y": 96
+      },
+      "safe_pixel_fraction": 0.9981174698795181
+    },
+    "calibrated_safe": {
+      "activity_coverage": 0.8055924965816869,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.2851736111111111,
+      "confidence": 0.9989895897121862,
+      "method": "calibrated_safe",
+      "rect": {
+        "height": 426,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 276,
+        "x": 684,
+        "y": 258
+      },
+      "safe_pixel_fraction": 0.998162890385793
+    }
+  },
+  "sample_id": "6085",
+  "source_video": "data/pair/6085/RHEED/ramping down to 300C.MOV",
+  "source_video_mtime_ns": 1779037582000000000,
+  "source_video_size_bytes": 1870369,
+  "video_id": "ramping down to 300C"
+}

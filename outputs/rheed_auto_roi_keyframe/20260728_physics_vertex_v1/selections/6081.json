@@ -1,0 +1,112 @@
+{
+  "candidate_count": 4,
+  "frame_count": 184,
+  "frames_dir": "data/rheed_keyframe_selection/6081/videos/After rampong for GaSb/frames",
+  "keyframe_predictions": {
+    "physics_vertex": {
+      "candidate_count": 4,
+      "clarity": 7.337978619358375,
+      "confidence": 0.5145833333333336,
+      "direction_consistent": true,
+      "estimated_period_frames": 39.5,
+      "frame_index": 135,
+      "method": "physics_vertex",
+      "score": 0.8,
+      "spot_x": 84.14985205426531,
+      "spot_y": 68.17936869044178,
+      "vertex_prominence": 4.7574016478410215
+    },
+    "quality_only": {
+      "candidate_count": 4,
+      "clarity": 8.622848731944735,
+      "confidence": 0.8701770044568108,
+      "direction_consistent": false,
+      "estimated_period_frames": 39.5,
+      "frame_index": 87,
+      "method": "quality_only",
+      "score": 0.9221311475409837,
+      "spot_x": 84.76980626484054,
+      "spot_y": 77.77887706535996,
+      "vertex_prominence": 0.0
+    },
+    "vertex_clarity": {
+      "candidate_count": 4,
+      "clarity": 7.337978619358375,
+      "confidence": 0.46233333333333354,
+      "direction_consistent": true,
+      "estimated_period_frames": 39.5,
+      "frame_index": 135,
+      "method": "vertex_clarity",
+      "score": 0.72,
+      "spot_x": 84.14985205426531,
+      "spot_y": 68.17936869044178,
+      "vertex_prominence": 4.7574016478410215
+    }
+  },
+  "manual": {
+    "frame_index": 135,
+    "roi": {
+      "height": 772,
+      "source_height": 1080,
+      "source_width": 1920,
+      "width": 447,
+      "x": 717,
+      "y": 127
+    }
+  },
+  "roi_predictions": {
+    "activity_safe": {
+      "activity_coverage": 0.3125576391287967,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.3792361111111111,
+      "confidence": 0.8161219535287205,
+      "method": "activity_safe",
+      "rect": {
+        "height": 768,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 498,
+        "x": 606,
+        "y": 258
+      },
+      "safe_pixel_fraction": 0.998023343373494
+    },
+    "aperture_inscribed": {
+      "activity_coverage": 0.27297470586657413,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.3792361111111111,
+      "confidence": 0.8013421228870999,
+      "method": "aperture_inscribed",
+      "rect": {
+        "height": 912,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 594,
+        "x": 522,
+        "y": 48
+      },
+      "safe_pixel_fraction": 0.9981392876129718
+    },
+    "calibrated_safe": {
+      "activity_coverage": 0.3258260225513506,
+      "analysis_scale": 0.16666666666666666,
+      "aperture_area_fraction": 0.3792361111111111,
+      "confidence": 0.8211021700863801,
+      "method": "calibrated_safe",
+      "rect": {
+        "height": 822,
+        "source_height": 1080,
+        "source_width": 1920,
+        "width": 534,
+        "x": 570,
+        "y": 198
+      },
+      "safe_pixel_fraction": 0.9980316575084065
+    }
+  },
+  "sample_id": "6081",
+  "source_video": "data/pair/6081/RHEED/After rampong for GaSb.MOV",
+  "source_video_mtime_ns": 1779037582000000000,
+  "source_video_size_bytes": 938170,
+  "video_id": "After rampong for GaSb"
+}

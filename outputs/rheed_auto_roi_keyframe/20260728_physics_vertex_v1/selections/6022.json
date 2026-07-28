@@ -1,0 +1,112 @@
+{
+  "candidate_count": 25,
+  "frame_count": 810,
+  "frames_dir": "data/rheed_keyframe_selection/6022/videos/After GaSb/frames",
+  "keyframe_predictions": {
+    "physics_vertex": {
+      "candidate_count": 25,
+      "clarity": 10.297623544949106,
+      "confidence": 0.5210416666666668,
+      "direction_consistent": true,
+      "estimated_period_frames": 29.0,
+      "frame_index": 232,
+      "method": "physics_vertex",
+      "score": 0.7625000000000001,
+      "spot_x": 87.58800598279636,
+      "spot_y": 50.007744590528,
+      "vertex_prominence": 2.4309961175811736
+    },
+    "quality_only": {
+      "candidate_count": 25,
+      "clarity": 10.506843343850077,
+      "confidence": 0.8875896017963666,
+      "direction_consistent": false,
+      "estimated_period_frames": 29.0,
+      "frame_index": 565,
+      "method": "quality_only",
+      "score": 0.9426452410383189,
+      "spot_x": 79.96306157895494,
+      "spot_y": 89.36797247268248,
+      "vertex_prominence": 0.0
+    },
+    "vertex_clarity": {
+      "candidate_count": 25,
+      "clarity": 6.357245697564318,
+      "confidence": 0.3766614583333332,
+      "direction_consistent": false,
+      "estimated_period_frames": 29.0,
+      "frame_index": 156,
+      "method": "vertex_clarity",
+      "score": 0.8533333333333333,
+      "spot_x": 82.17484626958942,
+      "spot_y": 49.14865884290189,
+      "vertex_prominence": 17.57930220302886
+    }
+  },
+  "manual": {
+    "frame_index": 757,
+    "roi": {
+      "height": 391,
+      "source_height": 1280,
+      "source_width": 720,
+      "width": 249,
+      "x": 245,
+      "y": 366
+    }
+  },
+  "roi_predictions": {
+    "activity_safe": {
+      "activity_coverage": 0.46393273130739343,
+      "analysis_scale": 0.25,
+      "aperture_area_fraction": 0.27296875,
+      "confidence": 0.872898453300938,
+      "method": "activity_safe",
+      "rect": {
+        "height": 448,
+        "source_height": 1280,
+        "source_width": 720,
+        "width": 292,
+        "x": 192,
+        "y": 424
+      },
+      "safe_pixel_fraction": 0.9980430528375733
+    },
+    "aperture_inscribed": {
+      "activity_coverage": 0.3104812384159029,
+      "analysis_scale": 0.25,
+      "aperture_area_fraction": 0.27296875,
+      "confidence": 0.8154722762526536,
+      "method": "aperture_inscribed",
+      "rect": {
+        "height": 504,
+        "source_height": 1280,
+        "source_width": 720,
+        "width": 328,
+        "x": 160,
+        "y": 324
+      },
+      "safe_pixel_fraction": 0.9982578397212544
+    },
+    "calibrated_safe": {
+      "activity_coverage": 0.46393273130739343,
+      "analysis_scale": 0.25,
+      "aperture_area_fraction": 0.27296875,
+      "confidence": 0.872898453300938,
+      "method": "calibrated_safe",
+      "rect": {
+        "height": 448,
+        "source_height": 1280,
+        "source_width": 720,
+        "width": 292,
+        "x": 192,
+        "y": 424
+      },
+      "safe_pixel_fraction": 0.9980430528375733
+    }
+  },
+  "sample_id": "6022",
+  "source_video": "data/pair/6022/RHEED/After GaSb.MP4",
+  "source_video_mtime_ns": 1778867699000000000,
+  "source_video_size_bytes": 2055039,
+  "video_id": "After GaSb"
+}
