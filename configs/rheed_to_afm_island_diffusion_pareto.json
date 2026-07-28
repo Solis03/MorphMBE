@@ -1,0 +1,30 @@
+{
+  "experiment_id": "20260727_m8_diffusion_pareto",
+  "parent_config": "configs/rheed_to_afm_island_generation_v2.json",
+  "m6_output": "outputs/rheed_to_afm_island_generation/20260727_m6_island_v2/development",
+  "m6_report": "reports/rheed_to_afm_island_generation/20260727_m6_island_v2/development",
+  "output_root": "outputs/rheed_to_afm_island_generation/20260727_m8_diffusion_pareto/development",
+  "report_root": "reports/rheed_to_afm_island_generation/20260727_m8_diffusion_pareto/development",
+  "guided_diffusion": {
+    "training_steps": 900,
+    "batch_size": 16,
+    "patch_size": 64,
+    "base_channels": 24,
+    "embedding_dim": 96,
+    "diffusion_timesteps": 200,
+    "guide_sigma_pixels": 2.2,
+    "learning_rate": 0.0002,
+    "sampling_steps": 48,
+    "strength": 0.25
+  },
+  "pareto_blend": {
+    "diffusion_weight": 0.50,
+    "spectral_weight": 0.50
+  },
+  "selection_policy": "Fixed after internal AFM-prior validation and pre-existing validation development; historical test remains closed.",
+  "inference_uses_measured_afm": false,
+  "retrieval_at_inference": false,
+  "historical_test_used": false,
+  "removelist_path": "removelist.txt",
+  "removelist_sha256": "8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b"
+}

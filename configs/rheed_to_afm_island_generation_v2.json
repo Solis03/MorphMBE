@@ -1,0 +1,16 @@
+{
+  "seed": 271828,
+  "resolution": 128,
+  "draws": 6,
+  "crossfit_draws": 4,
+  "blend_weights": [0.35, 0.45, 0.55, 0.65],
+  "selected_blend_weight": 0.55,
+  "island_ridge_alphas": [0.3, 1.0, 3.0, 10.0, 30.0],
+  "removelist_path": "removelist.txt",
+  "removelist_sha256": "8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b",
+  "parent_config": "configs/rheed_to_afm_distinct_confidence.json",
+  "parent_output": "outputs/rheed_to_afm_distinct_confidence/20260727_m5_hybrid_v4_confidence/development",
+  "parent_report": "reports/rheed_to_afm_distinct_confidence/20260727_m5_hybrid_v4_confidence/development",
+  "output_root": "outputs/rheed_to_afm_island_generation/20260727_m6_island_v2",
+  "report_root": "reports/rheed_to_afm_island_generation/20260727_m6_island_v2"
+}
