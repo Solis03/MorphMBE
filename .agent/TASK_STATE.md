@@ -41,7 +41,7 @@ Last updated: 2026-07-27 (America/Detroit)
 - [x] Implement and smoke-test multiple island-aware generators.
 - [x] Run strict grouped experiments and select the best defensible method.
 - [x] Produce figures, confidence audit and final report.
-- [ ] Complete the final verification and local commit.
+- [x] Complete the final verification and local commit.
 
 ## Island-realism final development evidence
 
@@ -94,6 +94,15 @@ Last updated: 2026-07-27 (America/Detroit)
 - Local MPS timing is approximately 55 seconds per 900-step diffusion fold,
   about 14 minutes total; M10 is approximately two minutes. The CUDA handoff
   condition is not met.
+- Final focused verification: package compilation passed; the focused
+  island/diffusion/confidence tests pass 9/9 and all RHEED-to-AFM tests pass
+  19/19. The wider `tests/` suite has 326 passes and 22 unrelated failures:
+  20 require absent historical `rheed_peak_saddle` checkpoint artifacts and
+  two require an unavailable parquet engine.
+- Final PDF QA: ten PNG and ten PDF figures are present; Fig. 1 and Fig. 7
+  were rendered from PDF with Poppler and visually inspected.
+- Raw-data and exclusion audit: `git diff -- data` is empty; the 11 canonical
+  removal-list IDs have zero overlap with retained model tables.
 
 ## Distinct-morphology and confidence continuation (started 2026-07-27)
 
