@@ -438,16 +438,24 @@ def run(config_path: str | Path) -> None:
     config = _load_config(config_path)
     extra = set(map(str, config["extra_batch_growths"]))
     parameter_report = repo_path(
-        "reports/rheed_auto_input_robustness/"
-        "20260729_m15b_line3_full28_extra5_v1"
+        config.get(
+            "parameter_report_root",
+            "reports/rheed_auto_input_robustness/"
+            "20260729_m15b_line3_full28_extra5_v1",
+        )
     )
     generation_report = (
         repo_path(config["report_root"])
         / str(config.get("full_run_suffix", "full23_loo"))
     )
     integration_report = repo_path(
-        "reports/extra_five_integration/20260729_line3_full28_v1"
+        config.get(
+            "integration_report_root",
+            "reports/extra_five_integration/"
+            "20260729_line3_full28_v1",
+        )
     )
+    integration_report.mkdir(parents=True, exist_ok=True)
     figure_root = integration_report / "figures"
     predictions = pd.read_csv(
         parameter_report / "m15b_strict_loo_predictions.csv",

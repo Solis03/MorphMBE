@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import queue
 import threading
 import time
@@ -14,6 +14,11 @@ import numpy as np
 from PySide6.QtCore import QThread, Signal
 
 from rheed2morph.rheed.automatic_roi_keyframe import _rgb_uint8
+from rheed2morph.rheed.orientation import (
+    rotate_frame_clockwise,
+    rotation_for_sample,
+    value_for_sample,
+)
 
 from .clips import build_causal_perturbation_clips, build_model_clip
 from .model import MorphologyPrediction, RealtimeMorphologyPredictor
@@ -152,6 +157,12 @@ class ReplayWorker(QThread):
     def run(self) -> None:
         try:
             repository = Path(self.config["repository_root"])
+            rotation = rotation_for_sample(
+                self.config.get(
+                    "rheed_rotation_clockwise_degrees_by_sample"
+                ),
+                self.sample_id,
+            )
             selection = analyze_replay(
                 self.source,
                 deep_visibility_ranker_path=(
@@ -188,8 +199,47 @@ class ReplayWorker(QThread):
                         0.45,
                     )
                 ),
+                frame_rotation_clockwise_degrees=rotation,
                 progress=self.log.emit,
             )
+            override = value_for_sample(
+                self.config.get("replay_keyframe_override_by_sample"),
+                self.sample_id,
+            )
+            if (
+                override is not None
+                and override.get("source_name")
+                and self.source.name != str(override["source_name"])
+            ):
+                self.log.emit(
+                    "已跳过归档视频专用顶点锁定："
+                    f"当前视频 {self.source.name!r} 与配置来源不一致"
+                )
+                override = None
+            if override is not None:
+                if not selection.events:
+                    raise RuntimeError(
+                        "cannot apply keyframe override without a selector event"
+                    )
+                source_event = selection.events[0]
+                event = replace(
+                    source_event,
+                    frame_index=int(override["frame_index"]),
+                    keyframe_quality=float(
+                        override.get(
+                            "keyframe_quality",
+                            source_event.keyframe_quality,
+                        )
+                    ),
+                    refined_from_frame_index=source_event.frame_index,
+                    tracker="frozen_raw_coordinate_v5",
+                )
+                selection = replace(selection, events=(event,))
+                self.log.emit(
+                    "方向校正消融锁定："
+                    f"模型读取 CW {rotation}° 帧，时序顶点沿用目标盲 "
+                    f"V5 frame {event.frame_index}"
+                )
             if self._stop_event.is_set():
                 return
             reader = imageio.get_reader(str(self.source), "ffmpeg")
@@ -226,7 +276,10 @@ class ReplayWorker(QThread):
                     if pause_started is not None:
                         paused_total += time.perf_counter() - pause_started
                         pause_started = None
-                    rgb = _rgb_uint8(frame)
+                    rgb = rotate_frame_clockwise(
+                        _rgb_uint8(frame),
+                        rotation,
+                    )
                     ring.append(rgb.copy())
                     event = events.get(index)
                     is_event = event is not None

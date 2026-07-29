@@ -66,11 +66,19 @@ def _overlap(first: Rect, second: Rect) -> dict[str, float]:
     }
 
 
-def _decode_selected16(source: Path, keyframe_index: int) -> list[np.ndarray]:
+def _decode_selected16(
+    source: Path,
+    keyframe_index: int,
+    *,
+    rotation_clockwise_degrees: int = 0,
+) -> list[np.ndarray]:
     requested = set(range(int(keyframe_index) - 7, int(keyframe_index) + 9))
     if min(requested) < 0:
         raise IndexError(f"keyframe {keyframe_index} is too close to video start")
-    factory, _, _ = _source_factory(source)
+    factory, _, _ = _source_factory(
+        source,
+        rotation_clockwise_degrees=rotation_clockwise_degrees,
+    )
     decoded: dict[int, np.ndarray] = {}
     for index, frame in factory():
         if index in requested:

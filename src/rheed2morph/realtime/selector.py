@@ -46,6 +46,7 @@ class ReplaySelection:
     events: tuple[ReplayEvent, ...]
     estimated_period_frames: float | None
     aperture: ApertureAnalysis
+    frame_rotation_clockwise_degrees: int = 0
 
 
 def _event_rows(
@@ -161,6 +162,7 @@ def analyze_replay(
     minimum_event_quality: float = 0.0,
     event_policy: str = "best_visible_cycle",
     refinement_period_fraction: float = 0.45,
+    frame_rotation_clockwise_degrees: int = 0,
     progress: Callable[[str], None] | None = None,
 ) -> ReplaySelection:
     """Analyze a complete recording, then emit causal replay events.
@@ -173,8 +175,17 @@ def analyze_replay(
 
     source_path = Path(source).resolve()
     log = progress or (lambda _: None)
+    if int(frame_rotation_clockwise_degrees) % 360:
+        log(
+            "应用采集方向校正："
+            f"顺时针 {int(frame_rotation_clockwise_degrees) % 360}°"
+        )
     log("采样视频并估计目镜孔径")
-    sampled, counted = sample_frames(source_path, maximum=int(roi_sample_count))
+    sampled, counted = sample_frames(
+        source_path,
+        maximum=int(roi_sample_count),
+        rotation_clockwise_degrees=frame_rotation_clockwise_degrees,
+    )
     tracking_roi, aperture = predict_roi(
         sampled,
         method="calibrated_safe",
@@ -204,7 +215,10 @@ def analyze_replay(
             lattice_calibration=physics_calibration_path,
         )
     log("提取亮斑轨迹与旋转顶点候选")
-    factory, known_count, _ = _source_factory(source_path)
+    factory, known_count, _ = _source_factory(
+        source_path,
+        rotation_clockwise_degrees=frame_rotation_clockwise_degrees,
+    )
     trajectory = extract_spot_trajectory(factory(), tracking_roi.rect)
     candidates, periods = _supervised_candidate_rows(trajectory)
     required = {int(candidate["frame_index"]) for candidate in candidates}
@@ -349,4 +363,7 @@ def analyze_replay(
         events=tuple(events),
         estimated_period_frames=estimated_period,
         aperture=aperture,
+        frame_rotation_clockwise_degrees=(
+            int(frame_rotation_clockwise_degrees) % 360
+        ),
     )

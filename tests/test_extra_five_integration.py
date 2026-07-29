@@ -32,6 +32,29 @@ def test_extra_five_config_has_exact_operator_approved_cohort() -> None:
     assert config["standalone_policy"] == "read_only"
 
 
+def test_orientation_corrected_config_rotates_only_6389_and_6390() -> None:
+    path = (
+        REPOSITORY
+        / "configs/"
+        "extra_five_line3_full28_orientation90_keyframe_locked_v3.json"
+    )
+    config = json.loads(path.read_text(encoding="utf-8"))
+    rotations = config["rheed_rotation_clockwise_degrees_by_sample"]
+
+    assert rotations == {"N6389": 90, "N6390": 90}
+    assert config["keyframe_override_samples"] == ["N6389", "N6390"]
+    assert "full28_v1" in config["keyframe_override_records_root"]
+    assert "orientation90_v2" in config["selection_seed_root"]
+    assert set(config["included_samples"]) == {
+        "N6342",
+        "N6358",
+        "N6382",
+        "N6389",
+        "N6390",
+    }
+    assert config["excluded_samples"] == ["N6324"]
+
+
 def test_batch_summary_keeps_extra_five_separate() -> None:
     extra = {"N6342", "N6358", "N6382", "N6389", "N6390"}
     groups = ["6022", "6028", *sorted(extra)]

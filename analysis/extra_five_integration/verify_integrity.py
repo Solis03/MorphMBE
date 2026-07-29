@@ -101,7 +101,12 @@ def _verify_model_artifacts(
         dtype={"growth_run_id": str},
     )
     scans = pd.read_csv(
-        integration_root / "combined_primary_1um_scans.csv",
+        repo_path(
+            config.get(
+                "combined_scan_table",
+                integration_root / "combined_primary_1um_scans.csv",
+            )
+        ),
         dtype={"growth_run_id": str},
     )
     predictions_path = repo_path(
@@ -201,13 +206,36 @@ def _verify_model_artifacts(
 def run(config_path: str | Path) -> None:
     config = _load_config(config_path)
     integration_output = repo_path(
-        "outputs/extra_five_integration/20260729_line3_full28_v1"
+        config.get(
+            "integration_output_root",
+            str(
+                Path(
+                    config.get(
+                        "phase1_manifest",
+                        "outputs/extra_five_integration/"
+                        "20260729_line3_full28_v1/"
+                        "machine_dataset_full28/modeling_manifest.csv",
+                    )
+                ).parents[1]
+            ),
+        )
     )
     integration_report = repo_path(
-        "reports/extra_five_integration/20260729_line3_full28_v1"
+        config.get(
+            "integration_report_root",
+            "reports/extra_five_integration/"
+            "20260729_line3_full28_v1",
+        )
     )
     afm = _verify_raw_afm(
-        integration_report / "raw_afm_source_inventory.csv"
+        repo_path(
+            config.get(
+                "raw_afm_inventory",
+                "reports/extra_five_integration/"
+                "20260729_line3_full28_v1/"
+                "raw_afm_source_inventory.csv",
+            )
+        )
     )
     rheed = _verify_raw_rheed(
         integration_report / "raw_rheed_source_inventory.csv"

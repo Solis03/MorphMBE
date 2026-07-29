@@ -1,0 +1,58 @@
+{
+  "afm_target_invariance": {
+    "afm_target_changed": false,
+    "growth_count": 28,
+    "maximum_absolute_numeric_difference": 0.0,
+    "numeric_column_count": 59,
+    "row_count": 214
+  },
+  "afm_target_used_for_keyframe_selection": false,
+  "best_scalar_metrics": {
+    "FSMI_nm": {
+      "confidence_error_p": 0.033493913538236726,
+      "confidence_error_spearman": -0.40295648922917826,
+      "growth_count": 28,
+      "mae_nm": 1.1681767536258019,
+      "pearson_p": 0.0003249809937566065,
+      "pearson_r": 0.6302415008681884,
+      "protocol": "rotate_locked"
+    },
+    "Rq_nm": {
+      "confidence_error_p": 0.01414052099260739,
+      "confidence_error_spearman": -0.4584644904025722,
+      "growth_count": 28,
+      "mae_nm": 1.3205867652708485,
+      "pearson_p": 0.00040869380980156176,
+      "pearson_r": 0.6220976501227713,
+      "protocol": "rotate_locked"
+    }
+  },
+  "best_scalar_protocol": "rotate_locked",
+  "clockwise_rotation_degrees": 90,
+  "corrected_samples": [
+    "N6389",
+    "N6390"
+  ],
+  "default_ui_config": "configs/rheed_realtime_ui.json",
+  "deployment_bundle": "outputs/rheed_realtime_ui/morphmbe_m15b_m12a_line3_full28_orientation90_keyframe_locked_live_v7.joblib",
+  "experiment_id": "20260729_m15b_m12a_line3_auto_full28_orientation90_keyframe_locked_v3",
+  "figures": [
+    "figures/Fig10_orientation_corrected_generated_afm.png",
+    "figures/Fig2_extra_five_machine_inputs.png",
+    "figures/Fig5_orientation_keyframe_roi_audit.png",
+    "figures/Fig6a_orientation_protocol_metrics.png",
+    "figures/Fig6b_orientation_protocol_scatter.png"
+  ],
+  "maximum_control_embedding_l2_difference": 0.0,
+  "protocols": [
+    "uncorrected",
+    "rotate_reselect",
+    "rotate_locked"
+  ],
+  "report": "reports/extra_five_integration/20260729_line3_full28_orientation90_keyframe_locked_v3/ORIENTATION_CORRECTION_REPORT.md",
+  "selected_live_renderer": "M12a_edge_preserving_terrace",
+  "status": "final_controlled_orientation_correction",
+  "strict_outer_loo": true,
+  "stronger_image_metric_comparator": "M10_dense_island_spectral_pareto",
+  "unchanged_control_growth_count": 26
+}

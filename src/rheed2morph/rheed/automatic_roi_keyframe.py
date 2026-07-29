@@ -34,6 +34,8 @@ from scipy.signal import find_peaks, peak_prominences
 from skimage import measure, morphology
 from skimage.filters import threshold_otsu
 
+from .orientation import rotate_frame_clockwise
+
 
 SUPPORTED_VIDEO_SUFFIXES = {
     ".avi",
@@ -237,7 +239,11 @@ def _resize_float(
     )
 
 
-def iter_video_frames(path: str | Path) -> Iterator[tuple[int, np.ndarray]]:
+def iter_video_frames(
+    path: str | Path,
+    *,
+    rotation_clockwise_degrees: int = 0,
+) -> Iterator[tuple[int, np.ndarray]]:
     """Decode common video formats without modifying the source."""
 
     source = Path(path)
@@ -249,7 +255,10 @@ def iter_video_frames(path: str | Path) -> Iterator[tuple[int, np.ndarray]]:
     reader = imageio.get_reader(str(source), "ffmpeg")
     try:
         for index, frame in enumerate(reader):
-            yield index, _rgb_uint8(frame)
+            yield index, rotate_frame_clockwise(
+                _rgb_uint8(frame),
+                rotation_clockwise_degrees,
+            )
     finally:
         reader.close()
 
@@ -260,26 +269,47 @@ def sorted_png_paths(path: str | Path) -> list[Path]:
     return sorted(paths, key=lambda item: int(item.stem))
 
 
-def iter_png_frames(path: str | Path) -> Iterator[tuple[int, np.ndarray]]:
+def iter_png_frames(
+    path: str | Path,
+    *,
+    rotation_clockwise_degrees: int = 0,
+) -> Iterator[tuple[int, np.ndarray]]:
     for frame_path in sorted_png_paths(path):
         with Image.open(frame_path) as image:
-            yield int(frame_path.stem), np.asarray(
-                image.convert("RGB"), dtype=np.uint8
+            yield int(frame_path.stem), rotate_frame_clockwise(
+                np.asarray(image.convert("RGB"), dtype=np.uint8),
+                rotation_clockwise_degrees,
             )
 
 
 def _source_factory(
     source: str | Path,
+    *,
+    rotation_clockwise_degrees: int = 0,
 ) -> tuple[Callable[[], Iterator[tuple[int, np.ndarray]]], int | None, str]:
     path = Path(source)
     if path.is_dir():
         paths = sorted_png_paths(path)
         if not paths:
             raise FileNotFoundError(f"No numeric PNG frames in {path}")
-        return lambda: iter_png_frames(path), len(paths), str(path)
+        return (
+            lambda: iter_png_frames(
+                path,
+                rotation_clockwise_degrees=rotation_clockwise_degrees,
+            ),
+            len(paths),
+            str(path),
+        )
     if not path.is_file():
         raise FileNotFoundError(path)
-    return lambda: iter_video_frames(path), None, str(path)
+    return (
+        lambda: iter_video_frames(
+            path,
+            rotation_clockwise_degrees=rotation_clockwise_degrees,
+        ),
+        None,
+        str(path),
+    )
 
 
 def _reservoir_sample(
@@ -309,8 +339,12 @@ def sample_frames(
     source: str | Path,
     *,
     maximum: int = 48,
+    rotation_clockwise_degrees: int = 0,
 ) -> tuple[list[np.ndarray], int]:
-    factory, known_count, _ = _source_factory(source)
+    factory, known_count, _ = _source_factory(
+        source,
+        rotation_clockwise_degrees=rotation_clockwise_degrees,
+    )
     if known_count is not None:
         paths = sorted_png_paths(source)
         indices = np.linspace(
@@ -319,7 +353,12 @@ def sample_frames(
         frames = []
         for position in indices:
             with Image.open(paths[int(position)]) as image:
-                frames.append(np.asarray(image.convert("RGB"), dtype=np.uint8))
+                frames.append(
+                    rotate_frame_clockwise(
+                        np.asarray(image.convert("RGB"), dtype=np.uint8),
+                        rotation_clockwise_degrees,
+                    )
+                )
         return frames, known_count
     return _reservoir_sample(factory(), maximum=maximum)
 

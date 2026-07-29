@@ -28,6 +28,7 @@ from analysis.rheed_video_afm_story.common import (
     write_json,
 )
 from rheed2morph.rheed.automatic_roi_keyframe import Rect, _source_factory
+from rheed2morph.rheed.orientation import rotation_for_sample
 from rheed2morph.realtime.clips import build_model_clip, live_physics_row
 from rheed2morph.realtime.selector import analyze_replay
 
@@ -154,6 +155,7 @@ def _selection_record(
     source_sha256: str,
     keyframe: int,
     selection: Any,
+    frame_rotation_clockwise_degrees: int,
 ) -> dict[str, Any]:
     event = selection.events[0]
     machine = selection.model_input_roi.rect
@@ -196,6 +198,12 @@ def _selection_record(
         "machine_roi_coverage_by_human": np.nan,
         "machine_to_human_area_ratio": np.nan,
         "selection_source": "automatic_v5_v8_frozen_transfer",
+        "frame_rotation_clockwise_degrees": int(
+            frame_rotation_clockwise_degrees
+        ),
+        "orientation_correction_stage": (
+            "before_keyframe_roi_physics_and_embedding"
+        ),
         "raw_data_modified": False,
     }
 
@@ -205,6 +213,7 @@ def _load_cached_selection(
     *,
     source: Path,
     source_sha256: str,
+    frame_rotation_clockwise_degrees: int,
 ) -> dict[str, Any] | None:
     if not path.exists():
         return None
@@ -212,6 +221,8 @@ def _load_cached_selection(
     if (
         str(record.get("source_sha256", "")) != str(source_sha256)
         or str(record.get("source_video", "")) != display_path(source)
+        or int(record.get("frame_rotation_clockwise_degrees", 0))
+        != int(frame_rotation_clockwise_degrees)
     ):
         return None
     return record
@@ -225,7 +236,12 @@ def _clip_from_record(
 ) -> tuple[np.ndarray, list[int], Rect]:
     keyframe = int(record["machine_keyframe_index"])
     indices = list(range(keyframe - 7, keyframe + 9))
-    decoded = _decode_selected16(source, keyframe)
+    rotation = int(record.get("frame_rotation_clockwise_degrees", 0))
+    decoded = _decode_selected16(
+        source,
+        keyframe,
+        rotation_clockwise_degrees=rotation,
+    )
     roi = Rect(
         x=int(record["machine_roi_x"]),
         y=int(record["machine_roi_y"]),
@@ -464,8 +480,16 @@ def _combine_embeddings(
     return pd.DataFrame(records)
 
 
-def _keyframe(source: Path, frame_index: int) -> np.ndarray:
-    factory, _, _ = _source_factory(source)
+def _keyframe(
+    source: Path,
+    frame_index: int,
+    *,
+    frame_rotation_clockwise_degrees: int = 0,
+) -> np.ndarray:
+    factory, _, _ = _source_factory(
+        source,
+        rotation_clockwise_degrees=frame_rotation_clockwise_degrees,
+    )
     for index, frame in factory():
         if index == frame_index:
             return np.asarray(frame)
@@ -486,7 +510,14 @@ def _plot_extra_inputs(
     )
     for row_index, row in enumerate(extra_selection.itertuples(index=False)):
         source = repo_path(row.source_video)
-        frame = _keyframe(source, int(row.machine_keyframe_index))
+        rotation = int(
+            getattr(row, "frame_rotation_clockwise_degrees", 0)
+        )
+        frame = _keyframe(
+            source,
+            int(row.machine_keyframe_index),
+            frame_rotation_clockwise_degrees=rotation,
+        )
         roi = (
             int(row.machine_roi_x),
             int(row.machine_roi_y),
@@ -506,7 +537,7 @@ def _plot_extra_inputs(
         )
         axes[row_index, 0].set_title(
             f"{row.sample_id}: frame {row.machine_keyframe_index}, "
-            f"quality {row.machine_keyframe_quality:.2f}"
+            f"quality {row.machine_keyframe_quality:.2f}; CW {rotation}°"
         )
         axes[row_index, 0].axis("off")
         crop = frame[
@@ -552,8 +583,14 @@ def run(config_path: str | Path, *, device: str) -> dict[str, Any]:
         .astype(str)
         .to_dict()
     )
+    target_table = repo_path(
+        config.get(
+            "extra_five_sample_target_table",
+            output_root / "extra_five_sample_sq_targets.csv",
+        )
+    )
     targets = pd.read_csv(
-        output_root / "extra_five_sample_sq_targets.csv",
+        target_table,
         dtype={"sample_id": str, "growth_run_id": str},
     ).set_index("sample_id")
     included = list(map(str, config["included_samples"]))
@@ -566,12 +603,28 @@ def run(config_path: str | Path, *, device: str) -> dict[str, Any]:
     clip_metadata: dict[str, tuple[list[int], Rect]] = {}
     for position, sample_id in enumerate(included, start=1):
         source = repo_path(config["selected_videos"][sample_id])
+        rotation = rotation_for_sample(
+            config.get("rheed_rotation_clockwise_degrees_by_sample"),
+            sample_id,
+        )
         cache = extra_root / "selections" / f"{sample_id}.json"
         record = _load_cached_selection(
             cache,
             source=source,
             source_sha256=selected_hashes[sample_id],
+            frame_rotation_clockwise_degrees=rotation,
         )
+        if record is None and config.get("selection_seed_root"):
+            seed_path = (
+                repo_path(config["selection_seed_root"])
+                / f"{sample_id}.json"
+            )
+            record = _load_cached_selection(
+                seed_path,
+                source=source,
+                source_sha256=selected_hashes[sample_id],
+                frame_rotation_clockwise_degrees=rotation,
+            )
         if record is None:
             print(
                 f"[RHEED select {position:02d}/{len(included):02d}] "
@@ -597,6 +650,7 @@ def run(config_path: str | Path, *, device: str) -> dict[str, Any]:
                 refinement_period_fraction=float(
                     config["keyframe_refinement_period_fraction"]
                 ),
+                frame_rotation_clockwise_degrees=rotation,
             )
             if len(selection.events) != 1:
                 raise RuntimeError(
@@ -614,9 +668,53 @@ def run(config_path: str | Path, *, device: str) -> dict[str, Any]:
                 source_sha256=selected_hashes[sample_id],
                 keyframe=int(selection.events[0].frame_index),
                 selection=selection,
+                frame_rotation_clockwise_degrees=rotation,
             )
             cache.parent.mkdir(parents=True, exist_ok=True)
             write_json(record, cache)
+        override_samples = set(
+            map(str, config.get("keyframe_override_samples", []))
+        )
+        if (
+            sample_id in override_samples
+            and config.get("keyframe_override_records_root")
+        ):
+            override_path = (
+                repo_path(config["keyframe_override_records_root"])
+                / f"{sample_id}.json"
+            )
+            override = json.loads(override_path.read_text(encoding="utf-8"))
+            original_rotated_index = int(
+                record.get(
+                    "rotated_reanalysis_keyframe_index",
+                    record["machine_keyframe_index"],
+                )
+            )
+            for field in (
+                "machine_keyframe_index",
+                "machine_keyframe_quality",
+                "machine_visibility_rank",
+                "machine_model_input_visibility",
+                "machine_selector_score",
+                "machine_refined_from_frame_index",
+                "selector_tracker",
+                "estimated_period_frames",
+            ):
+                if field in override:
+                    record[field] = override[field]
+            record["rotated_reanalysis_keyframe_index"] = (
+                original_rotated_index
+            )
+            record["keyframe_override_applied"] = True
+            record["keyframe_override_source"] = display_path(override_path)
+            record["temporal_selection_coordinate_system"] = (
+                "frozen_target_blind_raw_acquisition_coordinates"
+            )
+            record["model_visible_coordinate_system"] = (
+                f"clockwise_{rotation}_degrees"
+            )
+        else:
+            record["keyframe_override_applied"] = False
         clip, indices, roi = _clip_from_record(
             record,
             source=source,
@@ -760,6 +858,15 @@ def run(config_path: str | Path, *, device: str) -> dict[str, Any]:
         ),
         "selection_model_refit_on_extra_five": False,
         "afm_targets_used_for_selection": False,
+        "extra_five_sample_target_table": display_path(target_table),
+        "rheed_rotation_clockwise_degrees_by_sample": {
+            sample_id: rotation_for_sample(
+                config.get("rheed_rotation_clockwise_degrees_by_sample"),
+                sample_id,
+            )
+            for sample_id in included
+        },
+        "orientation_correction_applied_before_all_rheed_analysis": True,
         "embedding_families": combined_registry["embedding_id"].tolist(),
         "n6324_used": False,
         "raw_data_modified": False,

@@ -1,0 +1,28 @@
+# Reproduction command history
+
+# Build the controlled corrected RHEED dataset. Raw files are read-only.
+PYTHONPATH=src:. .venv/bin/python -m analysis.extra_five_integration.build_rheed --config configs/extra_five_line3_full28_orientation90_keyframe_locked_v3.json --device mps
+
+# Reuse audited line-3 AFM arrays and rebuild the 28-growth descriptor table.
+PYTHONPATH=src:. .venv/bin/python -m analysis.afm_metrology_repair.build_descriptors --config configs/rheed_video_afm_story_phase3a_line3_full28_orientation90_keyframe_locked_v3.json
+
+# Build target-blind angular/temporal confidence perturbations.
+PYTHONPATH=src:. .venv/bin/python -m analysis.extra_five_integration.build_perturbations --config configs/extra_five_line3_full28_orientation90_keyframe_locked_v3.json --device cpu
+
+# Strict outer leave-one-growth-out Sq/FSMI and confidence.
+PYTHONPATH=src:. .venv/bin/python -m analysis.rheed_auto_input_robustness.run --config configs/rheed_auto_input_robustness_line3_full28_orientation90_keyframe_locked_v3.json
+
+# Strict outer leave-one-growth-out M10/M12a AFM generation.
+PYTHONPATH=src:. .venv/bin/python -m analysis.rheed_to_afm_full_cohort_loo.run --config configs/rheed_m15b_end_to_end_generation_line3_full28_orientation90_keyframe_locked_v3.json --device auto
+PYTHONPATH=src:. .venv/bin/python -m analysis.rheed_to_afm_full_cohort_loo.visualization --config configs/rheed_m15b_end_to_end_generation_line3_full28_orientation90_keyframe_locked_v3.json
+PYTHONPATH=src:. .venv/bin/python -m analysis.extra_five_integration.compare_orientation --config configs/rheed_m15b_end_to_end_generation_line3_full28_orientation90_keyframe_locked_v3.json
+
+# Deployment refit and real-video replay checks.
+PYTHONPATH=src:. .venv/bin/python scripts/prepare_rheed_realtime_model.py --config configs/rheed_realtime_ui_full28_line3_orientation90_keyframe_locked_v7.json --force
+PYTHONPATH=src:. .venv/bin/python scripts/smoke_rheed_realtime_pipeline.py 'data/compressedfile/N6389/Rampdown to 300C.avi' --sample-id 6389 --config configs/rheed_realtime_ui_full28_line3_orientation90_keyframe_locked_v7.json --output-dir outputs/rheed_realtime_ui/headless_smoke_full28_line3_orientation90_keyframe_locked_v7_N6389
+PYTHONPATH=src:. .venv/bin/python scripts/smoke_rheed_realtime_pipeline.py 'data/compressedfile/N6390/rampdon to 200c.avi' --sample-id 6390 --config configs/rheed_realtime_ui_full28_line3_orientation90_keyframe_locked_v7.json --output-dir outputs/rheed_realtime_ui/headless_smoke_full28_line3_orientation90_keyframe_locked_v7_N6390
+PYTHONPATH=src:. .venv/bin/python scripts/capture_rheed_realtime_ui.py --sample-id 6389 --video-contains 'Rampdown to 300C' --config configs/rheed_realtime_ui.json --output outputs/rheed_realtime_ui/full28_line3_orientation90_keyframe_locked_v7_ui_N6389.png --timeout-seconds 240
+
+# Integrity and tests.
+PYTHONPATH=src:. .venv/bin/python -m analysis.extra_five_integration.verify_integrity --config configs/rheed_m15b_end_to_end_generation_line3_full28_orientation90_keyframe_locked_v3.json
+PYTHONPATH=src:. .venv/bin/python -m pytest -q tests/test_rheed_realtime_ui.py tests/test_extra_five_integration.py tests/test_rheed_auto_input_robustness.py tests/test_rheed_manual_vs_auto_selection.py tests/test_afm_metrology_repair.py tests/test_rheed_to_afm_full_cohort_loo.py

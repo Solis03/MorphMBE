@@ -104,6 +104,11 @@ def extract_perturbation_embeddings(
         row = rows.loc[group]
         source = Path(str(row["source_video"]))
         base_keyframe = int(row["machine_keyframe_index"])
+        rotation = int(
+            row.get("frame_rotation_clockwise_degrees", 0)
+            if pd.notna(row.get("frame_rotation_clockwise_degrees", 0))
+            else 0
+        )
         base_roi = _rect_from_row(
             pd.concat([row, metadata.loc[group]])
         )
@@ -112,7 +117,11 @@ def extract_perturbation_embeddings(
         for view in view_list:
             keyframe = base_keyframe + int(view.frame_offset)
             if keyframe not in decoded:
-                decoded[keyframe] = _decode_selected16(source, keyframe)
+                decoded[keyframe] = _decode_selected16(
+                    source,
+                    keyframe,
+                    rotation_clockwise_degrees=rotation,
+                )
             roi = perturb_rect(base_roi, view)
             clip = build_model_clip(decoded[keyframe], roi)
             tensor = preprocess_frames(

@@ -25,6 +25,10 @@ from rheed2morph.realtime.ui import RealtimeMainWindow
 from rheed2morph.realtime.selector import _event_rows, _lattice_vertex_scores
 from rheed2morph.realtime.workers import ReplayWorker
 from rheed2morph.rheed.automatic_roi_keyframe import Rect
+from rheed2morph.rheed.orientation import (
+    rotate_frame_clockwise,
+    rotation_for_sample,
+)
 
 
 REPOSITORY = Path(__file__).resolve().parents[1]
@@ -47,6 +51,17 @@ def test_video_catalog_groups_samples_and_excludes_removelist(
     grouped = group_by_sample(entries)
     assert list(grouped) == ["6063"]
     assert grouped["6063"][0].path.name == "growth.MOV"
+
+
+def test_clockwise_orientation_correction_is_shared_by_numeric_and_n_ids() -> None:
+    frame = np.arange(2 * 3, dtype=np.uint8).reshape(2, 3)
+    expected = np.asarray([[3, 0], [4, 1], [5, 2]], dtype=np.uint8)
+    mapping = {"N6389": 90, "N6390": 90}
+
+    assert np.array_equal(rotate_frame_clockwise(frame, 90), expected)
+    assert rotation_for_sample(mapping, "6389") == 90
+    assert rotation_for_sample(mapping, "N6390") == 90
+    assert rotation_for_sample(mapping, "6382") == 0
 
 
 def test_selected_16_clip_preserves_keyframe_position() -> None:
@@ -227,7 +242,21 @@ def test_realtime_config_and_ui_identify_m15b_m12a_pipeline() -> None:
     manifest_path = REPOSITORY / config["deployment_manifest"]
     assert "m15b_m12a" in Path(config["deployment_bundle"]).name
     assert "line3" in Path(config["deployment_bundle"]).name
-    assert "full28_extra5" in Path(config["deployment_bundle"]).name
+    assert "full28" in Path(config["deployment_bundle"]).name
+    assert "orientation90_keyframe_locked" in Path(
+        config["deployment_bundle"]
+    ).name
+    assert config["rheed_rotation_clockwise_degrees_by_sample"] == {
+        "6389": 90,
+        "6390": 90,
+    }
+    assert set(config["replay_keyframe_override_by_sample"]) == {
+        "6389",
+        "6390",
+    }
+    assert config["replay_keyframe_override_by_sample"]["6389"][
+        "source_name"
+    ] == "Rampdown to 300C.avi"
     assert "m15b_m12a" in manifest_path.name
     assert config["metrology_audited_mode"] is True
     assert "line3" in config["generation_config"]

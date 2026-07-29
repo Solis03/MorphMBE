@@ -1,0 +1,30 @@
+{
+  "phase1_afm_audit_path": "outputs/extra_five_integration/20260729_line3_full28_v1/combined_primary_1um_scans.csv",
+  "phase1_manifest_path": "outputs/extra_five_integration/20260729_line3_full28_orientation90_v2/machine_dataset_full28/modeling_manifest.csv",
+  "afm_source_roots": [
+    "data/afm_metrology_line3_v1/order_3",
+    "data/extra_five_consolidated_v1/afm_line_flattened_1um/order_3"
+  ],
+  "removelist_path": "removelist.txt",
+  "excluded_samples": [
+    "6023",
+    "6087",
+    "N6324"
+  ],
+  "primary_scan_size_um": 1.0,
+  "scan_size_tolerance_um": 0.000001,
+  "height_unit": "nm",
+  "epsilon": 0.000001,
+  "input_resolutions": {
+    "stage_a": 128,
+    "stage_b": 256
+  },
+  "outer_split": {
+    "folds": 5,
+    "unit": "growth_run_id",
+    "random_seed": 17
+  },
+  "expected_growth_count": 28,
+  "output_root": "outputs/rheed_video_afm_story/phase3a_line3_full28_orientation90_v2",
+  "report_root": "reports/rheed_video_afm_story/phase3a_line3_full28_orientation90_v2"
+}

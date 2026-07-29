@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import asdict
+from dataclasses import replace
 import json
 from pathlib import Path
 import time
@@ -23,6 +24,10 @@ from rheed2morph.realtime.clips import (
 from rheed2morph.realtime.model import RealtimeMorphologyPredictor
 from rheed2morph.realtime.selector import analyze_replay
 from rheed2morph.rheed.automatic_roi_keyframe import iter_video_frames
+from rheed2morph.rheed.orientation import (
+    rotation_for_sample,
+    value_for_sample,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -48,6 +53,10 @@ def main() -> None:
     output = Path(args.output_dir).resolve()
     output.mkdir(parents=True, exist_ok=True)
     started = time.perf_counter()
+    rotation = rotation_for_sample(
+        config.get("rheed_rotation_clockwise_degrees_by_sample"),
+        str(args.sample_id),
+    )
     selection = analyze_replay(
         source,
         deep_visibility_ranker_path=(
@@ -76,8 +85,38 @@ def main() -> None:
         refinement_period_fraction=float(
             config.get("keyframe_refinement_period_fraction", 0.45)
         ),
+        frame_rotation_clockwise_degrees=rotation,
         progress=lambda message: print(f"[selector] {message}", flush=True),
     )
+    override = value_for_sample(
+        config.get("replay_keyframe_override_by_sample"),
+        str(args.sample_id),
+    )
+    if (
+        override is not None
+        and override.get("source_name")
+        and source.name != str(override["source_name"])
+    ):
+        override = None
+    if override is not None:
+        source_event = selection.events[0]
+        selection = replace(
+            selection,
+            events=(
+                replace(
+                    source_event,
+                    frame_index=int(override["frame_index"]),
+                    keyframe_quality=float(
+                        override.get(
+                            "keyframe_quality",
+                            source_event.keyframe_quality,
+                        )
+                    ),
+                    refined_from_frame_index=source_event.frame_index,
+                    tracker="frozen_raw_coordinate_v5",
+                ),
+            ),
+        )
     event = max(selection.events, key=lambda item: item.selector_score)
     # Match ReplayWorker exactly. At trigger k+8, its 18-frame ring contains
     # k-9..k+8; selected-16 is ring[2:] and the extra two frames provide the
@@ -86,7 +125,10 @@ def main() -> None:
     last = event.frame_index + 8
     frames: list[np.ndarray] = []
     keyframe: np.ndarray | None = None
-    for index, frame in iter_video_frames(source):
+    for index, frame in iter_video_frames(
+        source,
+        rotation_clockwise_degrees=rotation,
+    ):
         if first <= index <= last:
             frames.append(frame)
         if index == event.frame_index:
@@ -141,6 +183,7 @@ def main() -> None:
     payload = {
         "source": str(source),
         "sample_id": str(args.sample_id),
+        "frame_rotation_clockwise_degrees": rotation,
         "frame_count": selection.frame_count,
         "model_input_roi": asdict(selection.model_input_roi.rect),
         "physics_feature_roi_not_generator_input": asdict(

@@ -1173,3 +1173,96 @@ Status: completed locally on branch
   model confidence 72%, inference 6.52 s, retrieval false.
 - Final report:
   `reports/extra_five_integration/20260729_line3_full28_v1/FULL28_GENERATION_REPORT.md`.
+
+## 2026-07-29 — N6389/N6390 RHEED orientation correction
+
+### Objective and immutable constraints
+
+- Operator correction: rotate N6389 and N6390 RHEED frames clockwise 90°
+  so their diffraction orientation matches the other 26 growths.
+- Apply the correction before key-frame selection, ROI inference, physics
+  features, DINO/R3D embeddings, perturbation confidence views, UI display and
+  UI model input. A display-only transform is invalid.
+- Raw videos and raw AFM remain read-only. The transform is an additive,
+  versioned derived-data operation with the source hashes preserved.
+- Keep AFM line-3 targets and all model hyperparameters fixed; rerun the same
+  strict 28-fold leave-one-growth-out scalar and generative protocols so the
+  orientation effect is interpretable.
+- N6324 remains excluded.
+
+### Current state
+
+- Branch: `codex/rheed-orientation-correction-20260729`.
+- Added a shared target-blind frame-orientation transform supporting only
+  validated quarter-turns.
+- Preserved the provisional `orientation90_v2` experiment as a negative
+  ablation. Rotating and then rerunning the selector changed N6389/N6390
+  vertices from 1238/1048 to 508/964 and confounded orientation with temporal
+  sample choice.
+- Final controlled data protocol:
+  `20260729_line3_full28_orientation90_keyframe_locked_v3`.
+  Model-visible frames and ROIs are clockwise 90°, while the earlier
+  target-blind V5 temporal vertices remain locked at 1238/1048.
+- The final rotated ROIs are 804 × 899 (N6389) and 791 × 899 (N6390);
+  visual audit confirms complete spot-lattice coverage without the eyepiece
+  edge entering the model crop.
+- Embedding isolation check: the other 26 growths have exact zero change in
+  causal-R3D, selected-16 R3D and DINO keyframe embeddings. Only N6389/N6390
+  changed.
+
+### Strict full-28 orientation results
+
+- Uncorrected v1 reference:
+  Sq MAE 1.284 nm, r 0.661; FSMI MAE 1.134 nm, r 0.661.
+- Rotate + automatic reselect negative ablation:
+  Sq MAE 1.380 nm, r 0.333; FSMI MAE 1.222 nm, r 0.334.
+- Final rotate + locked target-blind vertex:
+  Sq MAE 1.321 nm, Pearson r 0.622 (p=0.000409), Spearman rho 0.524
+  (p=0.00423); FSMI MAE 1.168 nm, r 0.630 (p=0.000325), Spearman rho
+  0.504 (p=0.00623).
+- Final confidence versus absolute error:
+  Sq rho -0.458 (p=0.0141); FSMI rho -0.403 (p=0.0335).
+- The correction is scientifically accepted because it fixes operator-known
+  acquisition orientation while retaining significant full-cohort
+  association. It is not claimed to improve over the incorrectly oriented
+  v1 input; its small metric cost is reported.
+
+### Corrected generated AFM and UI
+
+- All 28 outer folds completed with 27 fit growths and four generated draws
+  per renderer/held growth.
+- M10: 100% AFM texture-gate pass, median sharpness ratio 0.795, median
+  island-feature MAE 1.371 z.
+- M12a: 75% texture-gate pass, median sharpness ratio 0.728, median
+  island-feature MAE 1.814 z.
+- Retrieval, exact training-pixel equality and measured held-AFM patch use at
+  inference are all false.
+- Final live bundle:
+  `outputs/rheed_realtime_ui/morphmbe_m15b_m12a_line3_full28_orientation90_keyframe_locked_live_v7.joblib`.
+- Default UI config points to v7 and discovers `data/compressedfile`, excludes
+  N6324, rotates 6389/6390 CW 90° and applies the archived-sample vertex lock.
+- Real-video smoke:
+  N6389 frame 1238, Sq 2.90 nm, FSMI 2.58 nm, model confidence 45%,
+  inference 7.26 s; N6390 frame 1048, Sq 2.32 nm, FSMI 2.11 nm,
+  confidence 58%, inference 6.80 s.
+- Actual offscreen Qt replay screenshot passed for N6389.
+
+### Verification status
+
+- Relevant regression tests: 35/35 passed.
+- Broad historical `tests/` collection: 368 passed, 24 failed and 6 errored.
+  All non-passing tests are pre-existing artifact/environment gates outside
+  this change: missing old paper-freeze manifests, missing peak/saddle human
+  checkpoint outputs, or absent optional Parquet engines. The initial
+  repository-root collection additionally encounters three duplicate-module
+  names inside an archived code snapshot; `pytest tests` avoids that unrelated
+  collection-path collision.
+- Raw/model audit: 31 AFM source hashes and five selected RHEED hashes pass;
+  28 growths, 214 scans, 56 scalar rows, 28 generator folds, 27 fit growths
+  per fold, 28 generated map archives, four draws each; zero held overlap.
+- N6324/6043/6055 are absent from modeling artifacts.
+- Nineteen PNG/PDF figure pairs are present and all PDFs are valid one-page
+  documents. PDF raster inspection passed for the corrected generated-AFM,
+  all-28 confidence scatter and corrected-sample atlas figures.
+- Primary report:
+  `reports/extra_five_integration/20260729_line3_full28_orientation90_keyframe_locked_v3/ORIENTATION_CORRECTION_REPORT.md`.

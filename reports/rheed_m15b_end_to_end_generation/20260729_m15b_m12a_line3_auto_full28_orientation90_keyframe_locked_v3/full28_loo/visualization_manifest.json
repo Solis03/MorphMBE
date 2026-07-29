@@ -1,0 +1,21 @@
+{
+  "atlas_stems": [
+    "Fig1a_full28_loo_atlas",
+    "Fig1b_full28_loo_atlas",
+    "Fig1c_full28_loo_atlas",
+    "Fig1d_full28_loo_atlas",
+    "Fig1e_full28_loo_atlas",
+    "Fig1f_full28_loo_atlas"
+  ],
+  "confidence_vs_realized_target_error_spearman": -0.4417337448598569,
+  "confidence_warning": "Confidence is a relative index, not a calibrated probability.",
+  "experiment_id": "20260729_m15b_m12a_line3_auto_full28_orientation90_keyframe_locked_v3",
+  "figure_directory": "/Users/ziyi/Desktop/LAB/code/reports/rheed_m15b_end_to_end_generation/20260729_m15b_m12a_line3_auto_full28_orientation90_keyframe_locked_v3/full28_loo/figures",
+  "fit_growths_per_fold": 27,
+  "height_units": "nm",
+  "ordering": "ascending measured Sq across atlas pages",
+  "outer_growth_count": 28,
+  "pdf_count": 14,
+  "png_count": 14,
+  "scan_size_nm": 1000.0
+}

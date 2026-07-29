@@ -537,10 +537,21 @@ class RealtimeMainWindow(QMainWindow):
         excluded = read_removelist(
             self.repository / self.config["removelist_path"]
         )
-        entries = discover_videos(
-            self.repository / self.config["raw_video_root"],
-            excluded_sample_ids=excluded,
+        excluded.update(
+            map(str, self.config.get("ui_excluded_sample_ids", []))
         )
+        roots = [
+            self.config["raw_video_root"],
+            *self.config.get("additional_raw_video_roots", []),
+        ]
+        entries = []
+        for raw_root in roots:
+            entries.extend(
+                discover_videos(
+                    self.repository / raw_root,
+                    excluded_sample_ids=excluded,
+                )
+            )
         self.entries = group_by_sample(entries)
         self.sample_combo.clear()
         self.sample_combo.addItems(sorted(self.entries))
