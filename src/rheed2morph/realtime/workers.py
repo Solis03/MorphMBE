@@ -22,7 +22,13 @@ from rheed2morph.rheed.orientation import (
 
 from .clips import build_causal_perturbation_clips, build_model_clip
 from .model import MorphologyPrediction, RealtimeMorphologyPredictor
-from .selector import ReplayEvent, ReplaySelection, analyze_replay
+from .selector import (
+    CausalClearMomentDetector,
+    ReplayEvent,
+    ReplaySelection,
+    analyze_replay,
+    initialize_causal_stream,
+)
 
 
 @dataclass(frozen=True)
@@ -55,12 +61,15 @@ class PredictionWorker(QThread):
         *,
         bundle_path: str | Path,
         device: str = "auto",
+        queue_capacity: int = 0,
         parent=None,
     ) -> None:
         super().__init__(parent)
         self.bundle_path = Path(bundle_path)
         self.device = str(device)
-        self.jobs: queue.Queue[PredictionJob | None] = queue.Queue(maxsize=1)
+        self.jobs: queue.Queue[PredictionJob | None] = queue.Queue(
+            maxsize=max(0, int(queue_capacity))
+        )
 
     def submit(self, job: PredictionJob) -> bool:
         try:
@@ -156,8 +165,268 @@ class ReplayWorker(QThread):
             time.sleep(0.03)
         return self._stop_event.is_set()
 
+    @staticmethod
+    def _video_metadata(reader) -> tuple[float, int]:
+        metadata = reader.get_meta_data()
+        fps = float(metadata.get("fps") or 30.0)
+        if not np.isfinite(fps) or fps <= 0:
+            fps = 30.0
+        frame_count = 0
+        raw_count = metadata.get("nframes")
+        if raw_count is not None:
+            try:
+                if np.isfinite(float(raw_count)):
+                    frame_count = int(round(float(raw_count)))
+            except (TypeError, ValueError):
+                frame_count = 0
+        if frame_count <= 0:
+            duration = float(metadata.get("duration") or 0.0)
+            if np.isfinite(duration) and duration > 0:
+                frame_count = int(round(duration * fps))
+        return fps, frame_count
+
+    def _run_causal_stream(self) -> None:
+        repository = Path(self.config["repository_root"])
+        rotation = rotation_for_sample(
+            self.config.get("rheed_rotation_clockwise_degrees_by_sample"),
+            self.sample_id,
+        )
+        reader = imageio.get_reader(str(self.source), "ffmpeg")
+        fps, metadata_frame_count = self._video_metadata(reader)
+        warmup_count = max(
+            8,
+            int(self.config.get("online_roi_warmup_frames", 48)),
+        )
+        self.log.emit(
+            f"Causal ROI warm-up: buffering the first {warmup_count} "
+            "arrived frames only; no full-video pre-analysis"
+        )
+        warmup_frames: list[np.ndarray] = []
+        iterator = reader.iter_data()
+        try:
+            for _ in range(warmup_count):
+                warmup_frames.append(
+                    rotate_frame_clockwise(
+                        _rgb_uint8(next(iterator)),
+                        rotation,
+                    )
+                )
+        except StopIteration:
+            reader.close()
+            raise RuntimeError(
+                "Video ended before causal ROI warm-up completed"
+            )
+        selection = initialize_causal_stream(
+            self.source,
+            warmup_frames,
+            frame_count=max(metadata_frame_count, warmup_count),
+            model_input_calibration_path=(
+                repository / self.config["model_input_roi_calibration"]
+            ),
+            full_lattice_calibration_path=(
+                repository / self.config["full_lattice_roi_calibration"]
+            ),
+            physics_calibration_path=(
+                repository / self.config["physics_roi_calibration"]
+                if self.config.get("physics_roi_calibration")
+                else None
+            ),
+            frame_rotation_clockwise_degrees=rotation,
+        )
+        detector = CausalClearMomentDetector(
+            tracking_roi=selection.tracking_roi,
+            bundle_path=(
+                repository / self.config["online_clear_moment_detector"]
+            ),
+            minimum_event_frame=warmup_count,
+            minimum_score=(
+                float(self.config["online_minimum_clear_score"])
+                if self.config.get("online_minimum_clear_score") is not None
+                else None
+            ),
+            lookahead_frames=int(
+                self.config.get("online_vertex_lookahead_frames", 4)
+            ),
+            history_frames=int(
+                self.config.get("online_detector_history_frames", 41)
+            ),
+            minimum_vertex_separation_frames=int(
+                self.config.get(
+                    "online_minimum_vertex_separation_frames",
+                    8,
+                )
+            ),
+        )
+        override = value_for_sample(
+            self.config.get("replay_keyframe_override_by_sample"),
+            self.sample_id,
+        )
+        if override is not None:
+            self.log.emit(
+                "Archived single-keyframe locks are disabled in causal-stream "
+                "mode; acquisition-orientation correction remains active"
+            )
+        if rotation:
+            self.log.emit(
+                f"Applying acquisition-orientation correction online: "
+                f"CW {rotation}°"
+            )
+        for index, frame in enumerate(warmup_frames):
+            detector.observe(index, frame)
+        if self._stop_event.is_set():
+            reader.close()
+            return
+
+        self.prepared.emit(selection, fps)
+        playback_fps = fps / self.playback_ratio
+        maximum_display = float(
+            self.config.get("maximum_display_fps", 24.0)
+        )
+        display_stride = max(
+            1, int(np.ceil(playback_fps / maximum_display))
+        )
+        interval = self.playback_ratio / fps
+        ring: deque[np.ndarray] = deque(warmup_frames[-18:], maxlen=18)
+        pending: dict[int, tuple[ReplayEvent, float | None]] = {}
+        detected_count = 0
+        submitted_count = 0
+        start = time.perf_counter()
+        pause_started: float | None = None
+        paused_total = 0.0
+        self.log.emit(
+            "Online detector active: every accepted clear rotational vertex "
+            "will trigger one prediction after the required 8-frame context"
+        )
+        try:
+            for index, frame in enumerate(iterator, start=warmup_count):
+                if self._stop_event.is_set():
+                    return
+                if self._pause_event.is_set() and pause_started is None:
+                    pause_started = time.perf_counter()
+                if self._wait_if_paused():
+                    return
+                if pause_started is not None:
+                    paused_total += time.perf_counter() - pause_started
+                    pause_started = None
+                rgb = rotate_frame_clockwise(_rgb_uint8(frame), rotation)
+                ring.append(rgb.copy())
+                event = detector.observe(index, rgb)
+                if event is not None:
+                    detected_count += 1
+                    trigger = event.frame_index + int(
+                        self.config.get("prediction_trigger_delay_frames", 8)
+                    )
+                    pending[trigger] = (
+                        event,
+                        detector.estimated_period_frames,
+                    )
+                    self.log.emit(
+                        f"Online clear moment #{detected_count}: keyframe "
+                        f"{event.frame_index}, score={event.selector_score:.3f}; "
+                        f"prediction scheduled at frame {trigger}"
+                    )
+
+                pending_item = pending.pop(index, None)
+                is_event = pending_item is not None
+                if index % display_stride == 0 or is_event:
+                    self.frame.emit(
+                        rgb,
+                        index,
+                        index / fps,
+                        is_event,
+                    )
+                if pending_item is not None:
+                    event, period_at_detection = pending_item
+                    if len(ring) != 18:
+                        self.log.emit(
+                            f"Frame {event.frame_index}: temporal buffer "
+                            "incomplete; event skipped"
+                        )
+                    else:
+                        ring_frames = list(ring)
+                        selected_frames = ring_frames[2:]
+                        clip = build_model_clip(
+                            selected_frames,
+                            selection.model_input_roi.rect,
+                            output_size=int(
+                                self.config.get("model_image_size", 224)
+                            ),
+                        )
+                        physics_clip = build_model_clip(
+                            selected_frames,
+                            selection.physics_roi.rect,
+                            output_size=int(
+                                self.config.get("model_image_size", 224)
+                            ),
+                        )
+                        view_names, causal_views = (
+                            build_causal_perturbation_clips(
+                                ring_frames,
+                                selection.model_input_roi.rect,
+                                output_size=int(
+                                    self.config.get(
+                                        "model_image_size",
+                                        224,
+                                    )
+                                ),
+                            )
+                        )
+                        submitted_count += 1
+                        self.log.emit(
+                            f"Frame {event.frame_index}: full-lattice context "
+                            f"ready; submitting prediction #{submitted_count}"
+                        )
+                        self.prediction_job.emit(
+                            PredictionJob(
+                                sample_id=self.sample_id,
+                                source=self.source,
+                                event=event,
+                                event_time_seconds=event.frame_index / fps,
+                                selected_16=clip,
+                                physics_selected_16=physics_clip,
+                                causal_view_names=tuple(view_names),
+                                causal_8_views=causal_views,
+                                estimated_period_frames=period_at_detection,
+                            )
+                        )
+
+                playback_position = index - warmup_count + 1
+                target = (
+                    start
+                    + paused_total
+                    + playback_position * interval
+                )
+                while (
+                    not self._stop_event.is_set()
+                    and time.perf_counter() < target
+                ):
+                    time.sleep(
+                        min(
+                            0.015,
+                            max(target - time.perf_counter(), 0.0),
+                        )
+                    )
+        finally:
+            reader.close()
+        self.log.emit(
+            f"Causal replay complete: detected {detected_count} clear "
+            f"moments and submitted {submitted_count} predictions"
+        )
+        self.completed.emit()
+
     def run(self) -> None:
         try:
+            if (
+                str(
+                    self.config.get(
+                        "replay_detection_mode",
+                        "precomputed",
+                    )
+                )
+                == "causal_stream"
+            ):
+                self._run_causal_stream()
+                return
             repository = Path(self.config["repository_root"])
             rotation = rotation_for_sample(
                 self.config.get(

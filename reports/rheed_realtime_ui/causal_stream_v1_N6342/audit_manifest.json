@@ -1,0 +1,44 @@
+{
+  "accepted_event_count": 13,
+  "accepted_event_frames": [
+    129,
+    221,
+    312,
+    495,
+    678,
+    862,
+    1045,
+    1228,
+    1321,
+    1595,
+    1962,
+    2054,
+    2145
+  ],
+  "decoded_frame_count": 2201,
+  "frame_rotation_clockwise_degrees": 0,
+  "full_video_preanalysis": false,
+  "model_input_roi": {
+    "height": 899,
+    "source_height": 1100,
+    "source_width": 1376,
+    "width": 649,
+    "x": 301,
+    "y": 120
+  },
+  "prediction_context_delay_frames": 8,
+  "sample_id": "6342",
+  "selection_mode": "causal_stream",
+  "source": "/Users/ziyi/Desktop/LAB/code/data/compressedfile/N6342/Ramp down to 200C.avi",
+  "source_read_only": true,
+  "tracking_roi_not_model_input": {
+    "height": 980,
+    "source_height": 1100,
+    "source_width": 1376,
+    "width": 636,
+    "x": 215,
+    "y": 9
+  },
+  "vertex_lookahead_frames": 4,
+  "warmup_frame_count": 48
+}

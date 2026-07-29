@@ -25,6 +25,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--config", default="configs/rheed_realtime_ui.json")
     parser.add_argument("--output", required=True)
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
+    parser.add_argument("--minimum-predictions", type=int, default=1)
+    parser.add_argument("--playback-duration-ratio", type=float, default=1.0)
     return parser.parse_args()
 
 
@@ -47,7 +49,7 @@ def main() -> None:
             ).lower():
                 window.video_combo.setCurrentIndex(index)
                 break
-    window.speed.setValue(1.0)
+    window.speed.setValue(float(args.playback_duration_ratio))
     started = time.monotonic()
     state = {"started": False}
 
@@ -55,7 +57,7 @@ def main() -> None:
         if not state["started"] and window._model_ready:
             state["started"] = True
             window.start_session()
-        if window.trend.times:
+        if len(window.trend.times) >= int(args.minimum_predictions):
             window.grab().save(str(destination))
             window.close()
             app.quit()

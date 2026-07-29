@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 import time
 
@@ -379,7 +380,7 @@ class RealtimeMainWindow(QMainWindow):
             Qt.ItemDataRole.ToolTipRole,
         )
         self.speed = QDoubleSpinBox()
-        self.speed.setRange(1.0, 4.0)
+        self.speed.setRange(0.25, 4.0)
         self.speed.setSingleStep(0.1)
         self.speed.setSuffix("× duration")
         self.speed.setValue(
@@ -564,11 +565,26 @@ class RealtimeMainWindow(QMainWindow):
         self.sample_combo.addItems(sorted(self.entries))
         if "6063" in self.entries:
             self.sample_combo.setCurrentText("6063")
+        generation_config = json.loads(
+            (
+                self.repository / self.config["generation_config"]
+            ).read_text(encoding="utf-8")
+        )
+        training_growth_count = int(
+            generation_config.get("expected_growth_count", 0)
+        )
         self.append_log(
             f"Discovered {len(entries)} raw videos across "
-            f"{len(self.entries)} eligible samples; removelist excludes "
+            f"{len(self.entries)} selectable sample IDs; removelist excludes "
             f"{len(excluded)} sample IDs"
         )
+        if training_growth_count:
+            self.append_log(
+                f"The deployed model was trained on "
+                f"{training_growth_count} growths; selectable samples outside "
+                "that cohort are prospective/OOD inputs and should be judged "
+                "with their reported confidence"
+            )
 
     def _update_videos(self, sample_id: str) -> None:
         self.video_combo.clear()
@@ -588,6 +604,9 @@ class RealtimeMainWindow(QMainWindow):
         self.prediction_worker = PredictionWorker(
             bundle_path=self.repository / self.config["deployment_bundle"],
             device=str(self.config.get("prediction_device", "auto")),
+            queue_capacity=int(
+                self.config.get("prediction_queue_capacity", 0)
+            ),
         )
         self.prediction_worker.log.connect(self.append_log)
         self.prediction_worker.ready.connect(self._model_loaded)
@@ -602,7 +621,10 @@ class RealtimeMainWindow(QMainWindow):
         self.start_button.setEnabled(
             self.mode_combo.currentData() == "video"
         )
-        self.append_log(f"Model ready: {model_id}")
+        display_name = str(
+            self.config.get("deployment_display_name", model_id)
+        )
+        self.append_log(f"Model ready: {display_name}")
 
     def append_log(self, message: str) -> None:
         stamp = time.strftime("%H:%M:%S")
@@ -651,7 +673,7 @@ class RealtimeMainWindow(QMainWindow):
         self.replay_worker.completed.connect(self._replay_completed)
         self.replay_worker.failed.connect(self._worker_failed)
         self.replay_worker.start()
-        self.stream_state.setText("ANALYZING")
+        self.stream_state.setText("INITIALIZING")
         self.start_button.setEnabled(False)
         self.pause_button.setEnabled(True)
         self.stop_button.setEnabled(True)
@@ -665,12 +687,24 @@ class RealtimeMainWindow(QMainWindow):
         self.video_canvas.set_selection(selection)
         duration = selection.frame_count / max(fps, 1e-6)
         slowed = duration * float(self.speed.value())
-        self.stream_state.setText("STREAMING")
-        self.append_log(
-            f"Source video {fps:.2f} fps / {duration:.1f} s; "
-            f"simulated replay about {slowed:.1f} s; "
-            f"{len(selection.events)} prediction event(s)"
-        )
+        if selection.selection_mode == "causal_stream":
+            self.stream_state.setText("DETECTING")
+            self.append_log(
+                f"Source video {fps:.2f} fps / approximately "
+                f"{duration:.1f} s; simulated replay about {slowed:.1f} s"
+            )
+            self.append_log(
+                f"Causal detector started after a "
+                f"{selection.warmup_frame_count}-frame ROI warm-up; "
+                "no prediction events were precomputed"
+            )
+        else:
+            self.stream_state.setText("STREAMING")
+            self.append_log(
+                f"Source video {fps:.2f} fps / {duration:.1f} s; "
+                f"simulated replay about {slowed:.1f} s; "
+                f"{len(selection.events)} precomputed prediction event(s)"
+            )
         if self.recorder is not None:
             self.recorder.record_selection(selection, fps=fps)
 
@@ -744,7 +778,15 @@ class RealtimeMainWindow(QMainWindow):
         paused = self.pause_button.text() == "Pause"
         self.replay_worker.set_paused(paused)
         self.pause_button.setText("Resume" if paused else "Pause")
-        self.stream_state.setText("PAUSED" if paused else "STREAMING")
+        running_state = (
+            "DETECTING"
+            if (
+                self.selection is not None
+                and self.selection.selection_mode == "causal_stream"
+            )
+            else "STREAMING"
+        )
+        self.stream_state.setText("PAUSED" if paused else running_state)
 
     def stop_session(self, *, silent: bool = False) -> None:
         if self.replay_worker is not None:
@@ -784,5 +826,12 @@ class RealtimeMainWindow(QMainWindow):
         self.stop_session(silent=True)
         if self.prediction_worker is not None:
             self.prediction_worker.stop()
-            self.prediction_worker.wait(5000)
+            self.prediction_worker.wait(
+                int(
+                    self.config.get(
+                        "prediction_shutdown_timeout_ms",
+                        30_000,
+                    )
+                )
+            )
         super().closeEvent(event)

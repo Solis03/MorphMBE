@@ -1282,3 +1282,31 @@ Status: completed locally on branch
   `outputs/rheed_realtime_ui/full28_orientation90_v7_ui_N6389_english.png`.
 - Raw data, model weights, predictions, and the desktop standalone freeze were
   not modified.
+
+## 2026-07-29 — Causal multi-event real-time UI repair
+
+- Root cause: the UI inherited the paper-evaluation combination of complete
+  video pre-analysis plus `best_visible_cycle`, so it knew the event count in
+  advance and emitted only one prediction.
+- Default UI now uses `causal_stream`; offline LOO/data-building code retains
+  its separate frozen single-best-frame protocol.
+- The first 48 arrived frames initialize ROI. A vertex at `k` is confirmed
+  with bounded lookahead at `k+4`, and prediction is submitted at `k+8` after
+  selected-16 context is complete.
+- Added an absolute online clear-moment ExtraTrees model trained from 642
+  physical candidates in 25 annotated videos. Strict leave-one-video-out:
+  MAE 0.0950, Pearson r 0.7089, Spearman rho 0.7117, good-frame AUC 0.8600,
+  zero held-video overlap.
+- Prediction queue is unbounded in live mode: every accepted event is queued
+  rather than dropped when M12a is busy.
+- N6342 full 2201-frame causal audit detected 13 clear moments:
+  129, 221, 312, 495, 678, 862, 1045, 1228, 1321, 1595, 1962, 2054, 2145.
+- Real offscreen Qt test displayed three completed predictions and three
+  timeline points; final screenshot:
+  `outputs/rheed_realtime_ui/causal_stream_v1_ui_N6342_three_predictions_final.png`.
+  Closing during a queued prediction is now safe.
+- UI catalog language now distinguishes 58 selectable video sample IDs from
+  the 28-growth model-training cohort; out-of-cohort inputs are labeled
+  prospective/OOD rather than eligible training samples.
+- Report:
+  `reports/rheed_realtime_ui/causal_stream_v1_N6342/REPORT.md`.

@@ -65,6 +65,10 @@ class SessionRecorder:
         self.metadata["selector"] = {
             "fps": float(fps),
             "frame_count": int(selection.frame_count),
+            "selection_mode": selection.selection_mode,
+            "causal_warmup_frame_count": int(
+                selection.warmup_frame_count
+            ),
             "estimated_period_frames": selection.estimated_period_frames,
             "model_input_roi": asdict(selection.model_input_roi.rect),
             "physics_feature_roi_not_generator_input": asdict(
@@ -77,6 +81,7 @@ class SessionRecorder:
                 selection.audit_full_lattice_roi.rect
             ),
             "events": [asdict(event) for event in selection.events],
+            "events_are_precomputed": bool(selection.events),
         }
         (self.root / "session.json").write_text(
             json.dumps(self.metadata, indent=2, ensure_ascii=False) + "\n",
@@ -104,6 +109,9 @@ class SessionRecorder:
         row = {
             "event_frame": event.frame_index,
             "event_time_seconds": result.job.event_time_seconds,
+            "estimated_period_frames_at_detection": (
+                result.job.estimated_period_frames
+            ),
             "predicted_rq_nm": prediction.rq.value,
             "unconstrained_rq_nm": prediction.rq.unconstrained_value,
             "rq_support_clipped": prediction.rq.support_clipped,

@@ -22,8 +22,12 @@ from rheed2morph.realtime.clips import (
 )
 from rheed2morph.realtime.model import MODEL_ID, load_deployment_bundle
 from rheed2morph.realtime.ui import RealtimeMainWindow
-from rheed2morph.realtime.selector import _event_rows, _lattice_vertex_scores
-from rheed2morph.realtime.workers import ReplayWorker
+from rheed2morph.realtime.selector import (
+    _event_rows,
+    _lattice_vertex_scores,
+    causal_candidate_rows,
+)
+from rheed2morph.realtime.workers import PredictionWorker, ReplayWorker
 from rheed2morph.rheed.automatic_roi_keyframe import Rect
 from rheed2morph.rheed.orientation import (
     rotate_frame_clockwise,
@@ -200,6 +204,31 @@ def test_lattice_vertex_score_rejects_sparse_bright_phase() -> None:
     assert int(np.argmax(scores)) == 1
 
 
+def test_causal_vertex_uses_only_bounded_past_and_four_frame_lookahead() -> None:
+    history = []
+    vertex = 12
+    for index in range(17):
+        x = 60.0 - 0.55 * (index - vertex) ** 2
+        history.append(
+            {
+                "frame_index": index,
+                "spot_x": x,
+                "spot_y": 120.0 - index,
+                "compact_spot_x": x - 1.0,
+                "compact_spot_y": 119.0 - index,
+                "clarity": 8.0,
+                "sharpness": 0.2,
+                "spot_energy": 0.1,
+                "mean_intensity": 0.3,
+                "absolute_contrast": 0.1,
+            }
+        )
+    candidates = causal_candidate_rows(history, lookahead_frames=4)
+    assert candidates
+    assert {int(row["frame_index"]) for row in candidates} == {vertex}
+    assert all(bool(row["direction_consistent"]) for row in candidates)
+
+
 def test_replay_worker_never_uses_tracking_roi_as_model_input() -> None:
     source = inspect.getsource(ReplayWorker.run)
     forbidden = (
@@ -211,6 +240,20 @@ def test_replay_worker_never_uses_tracking_roi_as_model_input() -> None:
     assert "selection.physics_roi.rect" in source
     assert "deque(maxlen=18)" in source
     assert forbidden not in source
+
+
+def test_default_ui_uses_causal_multi_event_streaming_without_drops() -> None:
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    assert config["replay_detection_mode"] == "causal_stream"
+    assert config["replay_event_policy"] == "all_eligible_cycles"
+    assert config["prediction_queue_capacity"] == 0
+    source = inspect.getsource(ReplayWorker._run_causal_stream)
+    assert "analyze_replay" not in source
+    assert "detector.observe" in source
+    assert "pending[trigger]" in source
+    assert "prediction_job.emit" in source
+    worker = PredictionWorker(bundle_path="unused.joblib")
+    assert worker.jobs.maxsize == 0
 
 
 def test_deployment_cache_identifies_frozen_nonretrieval_pipeline() -> None:
@@ -250,6 +293,8 @@ def test_realtime_config_and_ui_identify_m15b_m12a_pipeline() -> None:
         "6389": 90,
         "6390": 90,
     }
+    assert config["replay_detection_mode"] == "causal_stream"
+    assert config["replay_event_policy"] == "all_eligible_cycles"
     assert set(config["replay_keyframe_override_by_sample"]) == {
         "6389",
         "6390",

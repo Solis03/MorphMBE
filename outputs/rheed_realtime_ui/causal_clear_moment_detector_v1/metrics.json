@@ -1,0 +1,14 @@
+{
+  "accepted_candidate_count": 335,
+  "accepted_good_frame_precision": 0.4597014925373134,
+  "accepted_mean_target_similarity": 0.4944205882891906,
+  "candidate_count": 642,
+  "good_frame_auc": 0.8599647222187474,
+  "held_video_overlap_sum": 0,
+  "mae": 0.09503171245240052,
+  "minimum_score": 0.4,
+  "pearson_r": 0.7088807467866646,
+  "spearman_rho": 0.7117401356840528,
+  "validation_protocol": "strict_leave_one_video_out",
+  "video_count": 25
+}

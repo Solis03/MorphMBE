@@ -2,25 +2,56 @@
 
 from __future__ import annotations
 
+from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Sequence
 
 import numpy as np
+from scipy import ndimage
+from scipy.signal import find_peaks, peak_prominences
 from scipy.stats import rankdata
 
 from rheed2morph.rheed.automatic_roi_keyframe import (
     ApertureAnalysis,
     ROIPrediction,
     _source_factory,
+    _spot_features,
     _supervised_candidate_rows,
     extract_spot_trajectory,
     predict_roi,
     sample_frames,
 )
 from rheed2morph.rheed.spot_visibility import (
+    SPOT_VISIBILITY_FEATURES,
     analyze_spot_visibility,
     score_deep_visibility_candidates,
+    visibility_proxy,
+)
+
+
+ONLINE_CLEAR_MOMENT_GEOMETRY_FEATURES = (
+    "spot_x",
+    "spot_y",
+    "clarity",
+    "sharpness",
+    "spot_energy",
+    "mean_intensity",
+    "absolute_contrast",
+    "prominence",
+    "pre_dx",
+    "post_dx",
+    "upward_dy",
+    "direction_consistent",
+    "tracker_front",
+    "cross_tracker_distance",
+    "cross_tracker_agreement",
+    "cross_tracker_direction_support",
+)
+ONLINE_CLEAR_MOMENT_FEATURES = (
+    *ONLINE_CLEAR_MOMENT_GEOMETRY_FEATURES,
+    *SPOT_VISIBILITY_FEATURES,
+    "visibility_proxy",
 )
 
 
@@ -47,6 +78,341 @@ class ReplaySelection:
     estimated_period_frames: float | None
     aperture: ApertureAnalysis
     frame_rotation_clockwise_degrees: int = 0
+    selection_mode: str = "offline_precomputed"
+    warmup_frame_count: int = 0
+
+
+def _smoothed_coordinate(
+    history: Sequence[dict[str, float | int]],
+    name: str,
+) -> np.ndarray:
+    values = np.asarray([float(row[name]) for row in history], dtype=float)
+    return ndimage.gaussian_filter1d(
+        ndimage.median_filter(values, size=3, mode="nearest"),
+        sigma=1.5,
+        mode="nearest",
+    )
+
+
+def causal_candidate_rows(
+    history: Sequence[dict[str, float | int]],
+    *,
+    lookahead_frames: int = 4,
+) -> list[dict[str, float | int | bool | str]]:
+    """Return physical-vertex candidates confirmable at the current frame.
+
+    A vertex at frame ``k`` is confirmed only after frames through ``k+4``
+    have arrived. No descriptor or rank uses a later frame. This bounded
+    latency preserves the original left-opening trajectory definition while
+    remaining valid for a live stream.
+    """
+
+    lookahead = int(lookahead_frames)
+    if lookahead < 2:
+        raise ValueError("causal vertex confirmation needs at least 2 frames")
+    if len(history) < 2 * lookahead + 9:
+        return []
+    position = len(history) - 1 - lookahead
+    if position - lookahead < 0:
+        return []
+
+    coordinates: dict[str, tuple[np.ndarray, np.ndarray]] = {}
+    for name in ("spot_x", "compact_spot_x"):
+        x = _smoothed_coordinate(history, name)
+        prominence_floor = max(0.8, float(np.std(x) * 0.10))
+        peaks, _ = find_peaks(
+            x,
+            distance=max(6, 2 * lookahead),
+            prominence=prominence_floor,
+        )
+        coordinates[name] = (x, peaks)
+
+    center = dict(history[position])
+    local = history[position - lookahead : position + lookahead + 1]
+    result: list[dict[str, float | int | bool | str]] = []
+    for tracker, x_name, y_name, other_name in (
+        ("front", "spot_x", "spot_y", "compact_spot_x"),
+        (
+            "compact",
+            "compact_spot_x",
+            "compact_spot_y",
+            "spot_x",
+        ),
+    ):
+        x, peaks = coordinates[x_name]
+        if position not in set(map(int, peaks)):
+            continue
+        y = _smoothed_coordinate(history, y_name)
+        left = position - lookahead
+        right = position + lookahead
+        pre_dx = float(x[position] - x[left])
+        post_dx = float(x[position] - x[right])
+        upward_dy = float(y[left] - y[right])
+        direction_consistent = (
+            pre_dx > 0.0 and post_dx > 0.0 and upward_dy > 0.0
+        )
+        if not direction_consistent:
+            continue
+
+        other_peaks = coordinates[other_name][1]
+        if len(other_peaks):
+            nearest = int(
+                other_peaks[
+                    int(np.argmin(np.abs(other_peaks - position)))
+                ]
+            )
+            cross_distance = abs(nearest - position)
+        else:
+            cross_distance = 60
+        prominence = float(
+            peak_prominences(x, np.asarray([position], dtype=int))[0][0]
+        )
+        result.append(
+            {
+                **center,
+                "tracker": tracker,
+                "spot_x": float(x[position]),
+                "spot_y": float(y[position]),
+                "clarity": float(
+                    np.median([float(row["clarity"]) for row in local])
+                ),
+                "sharpness": float(
+                    np.median([float(row["sharpness"]) for row in local])
+                ),
+                "spot_energy": float(
+                    np.median([float(row["spot_energy"]) for row in local])
+                ),
+                "mean_intensity": float(
+                    np.median(
+                        [float(row["mean_intensity"]) for row in local]
+                    )
+                ),
+                "absolute_contrast": float(
+                    np.median(
+                        [float(row["absolute_contrast"]) for row in local]
+                    )
+                ),
+                "prominence": prominence,
+                "pre_dx": pre_dx,
+                "post_dx": post_dx,
+                "upward_dy": upward_dy,
+                "direction_consistent": True,
+                "tracker_front": float(tracker == "front"),
+                "cross_tracker_distance": float(min(cross_distance, 60)),
+                "cross_tracker_agreement": float(
+                    np.exp(-cross_distance / 3.0)
+                ),
+                "cross_tracker_direction_support": float(
+                    cross_distance <= lookahead
+                ),
+            }
+        )
+    return result
+
+
+class CausalClearMomentDetector:
+    """Causal multi-cycle detector calibrated against human keyframes."""
+
+    def __init__(
+        self,
+        *,
+        tracking_roi: ROIPrediction,
+        bundle_path: str | Path,
+        minimum_event_frame: int = 0,
+        minimum_score: float | None = None,
+        lookahead_frames: int = 4,
+        history_frames: int = 41,
+        minimum_vertex_separation_frames: int = 8,
+    ) -> None:
+        import joblib
+
+        bundle = joblib.load(Path(bundle_path))
+        if int(bundle.get("schema_version", -1)) != 1:
+            raise ValueError("Expected an online clear-moment schema-v1 bundle")
+        if tuple(bundle["feature_names"]) != ONLINE_CLEAR_MOMENT_FEATURES:
+            raise ValueError("Online clear-moment feature schema mismatch")
+        self.tracking_roi = tracking_roi
+        self.model = bundle["model"]
+        self.feature_names = tuple(bundle["feature_names"])
+        self.minimum_score = float(
+            bundle["minimum_score"]
+            if minimum_score is None
+            else minimum_score
+        )
+        self.minimum_visibility_proxy = float(
+            bundle["minimum_visibility_proxy"]
+        )
+        self.maximum_shadow_fraction = float(
+            bundle["maximum_shadow_fraction"]
+        )
+        self.minimum_spot_peak_count = float(
+            bundle["minimum_spot_peak_count"]
+        )
+        self.score_reference = np.sort(
+            np.asarray(bundle["score_reference"], dtype=float)
+        )
+        self.minimum_event_frame = int(minimum_event_frame)
+        self.lookahead_frames = int(lookahead_frames)
+        self.minimum_vertex_separation_frames = int(
+            minimum_vertex_separation_frames
+        )
+        self.history: deque[dict[str, float | int]] = deque(
+            maxlen=max(int(history_frames), 2 * self.lookahead_frames + 9)
+        )
+        self.geometric_vertices: list[int] = []
+        self.accepted_events: list[ReplayEvent] = []
+
+    @property
+    def estimated_period_frames(self) -> float | None:
+        if len(self.geometric_vertices) < 3:
+            return None
+        differences = np.diff(
+            np.asarray(self.geometric_vertices[-24:], dtype=float)
+        )
+        differences = differences[
+            (differences >= 10.0) & (differences <= 120.0)
+        ]
+        if len(differences) < 2:
+            return None
+        center = float(np.median(differences))
+        retained = differences[
+            np.abs(differences - center) <= max(5.0, 0.35 * center)
+        ]
+        return float(np.median(retained if len(retained) else differences))
+
+    def _score_percentile(self, score: float) -> float:
+        if not len(self.score_reference):
+            return 0.5
+        return float(
+            np.searchsorted(self.score_reference, score, side="right")
+            / len(self.score_reference)
+        )
+
+    def observe(
+        self,
+        frame_index: int,
+        frame: np.ndarray,
+    ) -> ReplayEvent | None:
+        import pandas as pd
+
+        tracking = _spot_features(frame, self.tracking_roi.rect)
+        visibility = analyze_spot_visibility(
+            frame,
+            self.tracking_roi.rect,
+        ).features
+        self.history.append(
+            {
+                "frame_index": int(frame_index),
+                **tracking,
+                **visibility,
+                "visibility_proxy": visibility_proxy(visibility),
+            }
+        )
+        candidates = causal_candidate_rows(
+            list(self.history),
+            lookahead_frames=self.lookahead_frames,
+        )
+        if not candidates:
+            return None
+        table = pd.DataFrame(candidates)
+        scores = np.asarray(
+            self.model.predict(table[list(self.feature_names)]),
+            dtype=float,
+        )
+        position = int(np.argmax(scores))
+        candidate = candidates[position]
+        candidate_frame = int(candidate["frame_index"])
+        if (
+            self.geometric_vertices
+            and candidate_frame - self.geometric_vertices[-1]
+            < self.minimum_vertex_separation_frames
+        ):
+            return None
+        self.geometric_vertices.append(candidate_frame)
+
+        score = float(scores[position])
+        accepted = (
+            candidate_frame >= self.minimum_event_frame
+            and score >= self.minimum_score
+            and float(candidate["visibility_proxy"])
+            >= self.minimum_visibility_proxy
+            and float(candidate["raw_shadow_fraction"])
+            <= self.maximum_shadow_fraction
+            and float(candidate["spot_peak_count"])
+            >= self.minimum_spot_peak_count
+        )
+        if not accepted:
+            return None
+        percentile = self._score_percentile(score)
+        event = ReplayEvent(
+            frame_index=candidate_frame,
+            keyframe_quality=float(0.35 + 0.65 * percentile),
+            visibility_rank=percentile,
+            selector_score=score,
+            tracker=f"causal_online_{candidate['tracker']}",
+            model_input_visibility=percentile,
+            refined_from_frame_index=None,
+        )
+        self.accepted_events.append(event)
+        return event
+
+
+def initialize_causal_stream(
+    source: str | Path,
+    warmup_frames: Sequence[np.ndarray],
+    *,
+    frame_count: int,
+    model_input_calibration_path: str | Path,
+    full_lattice_calibration_path: str | Path,
+    physics_calibration_path: str | Path | None = None,
+    frame_rotation_clockwise_degrees: int = 0,
+) -> ReplaySelection:
+    """Initialize ROI geometry using only an already-arrived warm-up prefix."""
+
+    if len(warmup_frames) < 8:
+        raise ValueError("Causal stream ROI initialization needs 8 frames")
+    tracking_roi, aperture = predict_roi(
+        warmup_frames,
+        method="calibrated_safe",
+        aspect_ratio=1.54,
+        calibrated_scale=0.90,
+    )
+    model_input_roi, _ = predict_roi(
+        warmup_frames,
+        method="full_lattice",
+        analysis=aperture,
+        lattice_calibration=model_input_calibration_path,
+    )
+    audit_full_lattice_roi, _ = predict_roi(
+        warmup_frames,
+        method="full_lattice",
+        analysis=aperture,
+        lattice_calibration=full_lattice_calibration_path,
+    )
+    physics_roi = model_input_roi
+    if physics_calibration_path is not None:
+        physics_roi, _ = predict_roi(
+            warmup_frames,
+            method="full_lattice",
+            analysis=aperture,
+            lattice_calibration=physics_calibration_path,
+        )
+    return ReplaySelection(
+        source=Path(source).resolve(),
+        frame_count=int(frame_count),
+        tracking_roi=tracking_roi,
+        model_input_roi=model_input_roi,
+        physics_roi=physics_roi,
+        audit_full_lattice_roi=audit_full_lattice_roi,
+        events=(),
+        estimated_period_frames=None,
+        aperture=aperture,
+        frame_rotation_clockwise_degrees=(
+            int(frame_rotation_clockwise_degrees) % 360
+        ),
+        selection_mode="causal_stream",
+        warmup_frame_count=len(warmup_frames),
+    )
 
 
 def _event_rows(
