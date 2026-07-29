@@ -60,6 +60,57 @@ def build_model_clip(
     ).astype(np.uint8)
 
 
+def build_causal_perturbation_clips(
+    frames: Sequence[np.ndarray],
+    roi: Rect,
+    *,
+    output_size: int = 224,
+) -> tuple[list[str], np.ndarray]:
+    """Build target-blind causal-8 views around a confirmed keyframe.
+
+    At the normal ``k+8`` trigger, an 18-frame ring contains ``k-9..k+8``.
+    That is sufficient for causal windows ending at ``k-2..k+2`` without
+    adding playback latency.
+    """
+
+    from analysis.rheed_auto_input_robustness.perturbation import (
+        DEFAULT_VIEWS,
+        perturb_rect,
+    )
+
+    source = list(frames)
+    if len(source) != 18:
+        raise ValueError(
+            f"causal perturbations require 18 frames, got {len(source)}"
+        )
+    clips = []
+    names = []
+    # Ring index 2 is k-7, the first frame of the base causal-8 view.
+    for view in DEFAULT_VIEWS:
+        start = 2 + int(view.frame_offset)
+        selected = source[start : start + 8]
+        if len(selected) != 8:
+            raise IndexError(
+                f"causal view {view.name} is incomplete at start {start}"
+            )
+        view_roi = perturb_rect(roi, view)
+        clips.append(
+            np.stack(
+                [
+                    crop_model_frame(
+                        frame,
+                        view_roi,
+                        output_size=output_size,
+                    )
+                    for frame in selected
+                ],
+                axis=0,
+            )
+        )
+        names.append(view.name)
+    return names, np.stack(clips).astype(np.uint8)
+
+
 def live_physics_row(
     selected_16: np.ndarray,
     *,

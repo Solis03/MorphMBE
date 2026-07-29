@@ -67,6 +67,9 @@ class SessionRecorder:
             "frame_count": int(selection.frame_count),
             "estimated_period_frames": selection.estimated_period_frames,
             "model_input_roi": asdict(selection.model_input_roi.rect),
+            "physics_feature_roi_not_generator_input": asdict(
+                selection.physics_roi.rect
+            ),
             "internal_tracking_roi_not_model_input": asdict(
                 selection.tracking_roi.rect
             ),
@@ -109,6 +112,13 @@ class SessionRecorder:
             ),
             "rq_interval_lower_nm": prediction.rq.interval_lower,
             "rq_interval_upper_nm": prediction.rq.interval_upper,
+            "rq_tta_confidence": prediction.rq.tta_confidence,
+            "rq_rotation_period_risk": (
+                prediction.rq.rotation_period_risk
+            ),
+            "rq_head_agreement_confidence": (
+                prediction.rq.head_agreement_confidence
+            ),
             "predicted_fsmi_nm": prediction.fsmi.value,
             "unconstrained_fsmi_nm": prediction.fsmi.unconstrained_value,
             "fsmi_support_clipped": prediction.fsmi.support_clipped,
@@ -117,6 +127,13 @@ class SessionRecorder:
             ),
             "fsmi_interval_lower_nm": prediction.fsmi.interval_lower,
             "fsmi_interval_upper_nm": prediction.fsmi.interval_upper,
+            "fsmi_tta_confidence": prediction.fsmi.tta_confidence,
+            "fsmi_rotation_period_risk": (
+                prediction.fsmi.rotation_period_risk
+            ),
+            "fsmi_head_agreement_confidence": (
+                prediction.fsmi.head_agreement_confidence
+            ),
             "model_confidence": prediction.model_confidence,
             "keyframe_quality": prediction.keyframe_quality,
             "combined_confidence": prediction.combined_confidence,

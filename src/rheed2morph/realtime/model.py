@@ -1,4 +1,4 @@
-"""Deploy the frozen M14i target heads with the frozen M12a generator."""
+"""Deploy M15b automatic-input target heads with the frozen M12a generator."""
 
 from __future__ import annotations
 
@@ -57,11 +57,19 @@ from analysis.rheed_to_afm_island_generation.islands import (
 from analysis.rheed_to_afm_ood_robust.prediction import (
     DENSITY_WEIGHTED,
     MULTIVIEW_60,
+    R3D_TEMPORAL,
     CandidateConfig,
     _expected_error_and_confidence,
     _nested_calibrated_errors,
+    _r3d_prediction,
     _risk_score,
     predict_candidates,
+)
+from analysis.rheed_auto_input_robustness.confidence import (
+    _empirical_risk,
+    _isotonic_expected_error,
+    angular_coverage_risk,
+    combine_tta_and_head_confidence,
 )
 from analysis.rheed_to_afm_sharp_generation.cross_validation import (
     _calibrate,
@@ -79,7 +87,10 @@ from analysis.rheed_video_afm_story.pretrained_embeddings import (
 from .clips import live_physics_row
 
 
-MODEL_ID = "MorphMBE-M14i-Full23-OODAware + M12a-RangeTerrace-live-v1"
+MODEL_ID = (
+    "MorphMBE-M15b-AutoR3D-AngularTTA + "
+    "M12a-RangeTerrace-live-v3"
+)
 QUERY_ID = "__live_stream__"
 
 
@@ -92,6 +103,7 @@ class TargetReference:
     calibrated_loo_predictions: np.ndarray
     calibrated_loo_errors: np.ndarray
     diagnostics: pd.DataFrame
+    tta_centrality_reference: np.ndarray | None = None
 
 
 @dataclass
@@ -102,6 +114,7 @@ class DeploymentBundle:
     physics: pd.DataFrame
     causal_embeddings: pd.DataFrame
     target_config: CandidateConfig
+    period_frames_reference: np.ndarray | None
     rq_reference: TargetReference
     fsmi_reference: TargetReference
     condition_scaler: ConditionScaler
@@ -113,6 +126,7 @@ class DeploymentBundle:
     frozen_parameter_hashes: dict[str, str]
     retrieval_at_inference: bool
     measured_afm_patch_at_inference: bool
+    automatic_input_domain: bool = False
 
 
 @dataclass(frozen=True)
@@ -125,6 +139,9 @@ class ScalarPrediction:
     interval_lower: float
     interval_upper: float
     risk_score: float
+    tta_confidence: float
+    rotation_period_risk: float
+    head_agreement_confidence: float
 
 
 @dataclass(frozen=True)
@@ -222,7 +239,7 @@ def build_deployment_bundle(
     *,
     progress: Callable[[str], None] | None = None,
 ) -> DeploymentBundle:
-    """Refit the frozen method on all 23 allowed growths for deployment."""
+    """Refit M15b and frozen M12a on all 23 allowed growths for deployment."""
 
     log = progress or (lambda _: None)
     repository = Path(config.get("repository_root", ".")).resolve()
@@ -289,23 +306,81 @@ def build_deployment_bundle(
             target_parameters["baseline_morphology_weight"]
         ),
     )
-    log("拟合 M14i Rq/FSMI 全队列部署头和误差相关置信度参照")
+    automatic_domain = bool(config.get("automatic_target_physics"))
+    target_physics = physics
+    target_embeddings = causal_embeddings
+    rq_method = MULTIVIEW_60
+    fsmi_method = DENSITY_WEIGHTED
+    period_frames_reference: np.ndarray | None = None
+    if automatic_domain:
+        target_physics = _physics_table(
+            pd.read_csv(
+                repository / str(config["automatic_target_physics"]),
+                dtype={"sample_id": str, "growth_run_id": str},
+            )
+        ).loc[groups]
+        target_registry = pd.read_csv(
+            repository
+            / str(config["automatic_target_embedding_registry"])
+        )
+        target_embeddings = _embedding_frame(
+            target_registry,
+            str(target_parameters["temporal_embedding_id"]),
+        ).loc[groups]
+        rq_method = str(
+            config.get("automatic_rq_method", R3D_TEMPORAL)
+        )
+        fsmi_method = str(
+            config.get("automatic_fsmi_method", R3D_TEMPORAL)
+        )
+        if (rq_method, fsmi_method) != (R3D_TEMPORAL, R3D_TEMPORAL):
+            raise RuntimeError(
+                "automatic-domain continuation requires the nested-selected "
+                "causal R3D head for both targets"
+            )
+        selection = pd.read_csv(
+            repository / str(config["automatic_selection_table"]),
+            dtype={"growth_run_id": str},
+        ).set_index("growth_run_id").loc[groups]
+        period_frames_reference = selection[
+            "estimated_period_frames"
+        ].to_numpy(float)
+        if not np.isfinite(period_frames_reference).all():
+            raise RuntimeError(
+                "automatic deployment requires finite rotation periods"
+            )
+
+    log("拟合自动输入域 Rq/FSMI 部署头和严格 LOO 置信度参照")
     rq_reference = _target_reference(
         name="Rq_nm",
-        method=MULTIVIEW_60,
-        physics=physics,
-        embeddings=causal_embeddings,
+        method=rq_method,
+        physics=target_physics,
+        embeddings=target_embeddings,
         log_target=log_rq,
         config=target_config,
     )
     fsmi_reference = _target_reference(
         name="FSMI_nm",
-        method=DENSITY_WEIGHTED,
-        physics=physics,
-        embeddings=causal_embeddings,
+        method=fsmi_method,
+        physics=target_physics,
+        embeddings=target_embeddings,
         log_target=log_fsmi,
         config=target_config,
     )
+    if automatic_domain:
+        stability = pd.read_csv(
+            repository / str(config["stability_predictions"]),
+            dtype={"growth_run_id": str},
+        )
+        for reference in (rq_reference, fsmi_reference):
+            rows = (
+                stability.loc[stability["target"] == reference.name]
+                .set_index("growth_run_id")
+                .loc[groups]
+            )
+            reference.tta_centrality_reference = rows[
+                "base_to_tta_median_nm"
+            ].to_numpy(float)
 
     condition_columns = list(model_config["condition_columns"])
     condition_scaler = ConditionScaler.fit(
@@ -347,9 +422,10 @@ def build_deployment_bundle(
         model_id=MODEL_ID,
         created_at=time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         groups=groups,
-        physics=physics,
-        causal_embeddings=causal_embeddings,
+        physics=target_physics,
+        causal_embeddings=target_embeddings,
         target_config=target_config,
+        period_frames_reference=period_frames_reference,
         rq_reference=rq_reference,
         fsmi_reference=fsmi_reference,
         condition_scaler=condition_scaler,
@@ -368,6 +444,7 @@ def build_deployment_bundle(
         },
         retrieval_at_inference=False,
         measured_afm_patch_at_inference=False,
+        automatic_input_domain=automatic_domain,
     )
 
 
@@ -440,7 +517,178 @@ class RealtimeMorphologyPredictor:
         *,
         physics: pd.DataFrame,
         embeddings: pd.DataFrame,
+        tta_embeddings: np.ndarray | None = None,
+        estimated_period_frames: float | None = None,
     ) -> ScalarPrediction:
+        truth = np.exp(
+            reference.log_target.loc[self.bundle.groups].to_numpy(float)
+        )
+        if (
+            reference.method == R3D_TEMPORAL
+            and tta_embeddings is not None
+            and reference.tta_centrality_reference is not None
+        ):
+            calibrated_views = []
+            for view_index, embedding in enumerate(
+                np.asarray(tta_embeddings, dtype=np.float32)
+            ):
+                query = f"{QUERY_ID}_tta_{view_index}"
+                view_frame = pd.concat(
+                    [
+                        self.bundle.causal_embeddings,
+                        pd.DataFrame(
+                            embedding[None],
+                            index=[query],
+                        ),
+                    ]
+                )
+                raw_log = _r3d_prediction(
+                    embeddings=view_frame,
+                    log_target=reference.log_target,
+                    fit_groups=self.bundle.groups,
+                    query_group=query,
+                    alpha=self.bundle.target_config.ridge_alpha,
+                    components=(
+                        self.bundle.target_config.r3d_pca_components
+                    ),
+                )
+                calibrated, _ = _range_calibrate(
+                    reference.raw_loo_predictions,
+                    truth,
+                    float(np.exp(raw_log)),
+                )
+                calibrated_views.append(calibrated)
+            view_values = np.asarray(calibrated_views, dtype=float)
+            unconstrained_value = float(view_values[0])
+            centrality = float(
+                abs(unconstrained_value - np.median(view_values))
+            )
+            centrality_reference = np.asarray(
+                reference.tta_centrality_reference,
+                dtype=float,
+            )
+            centrality_risk = _empirical_risk(
+                centrality,
+                centrality_reference,
+            )
+            period_reference = self.bundle.period_frames_reference
+            rotation_period_risk = 0.0
+            risk = centrality_risk
+            if (
+                period_reference is not None
+                and estimated_period_frames is not None
+                and np.isfinite(estimated_period_frames)
+            ):
+                rotation_period_risk = _empirical_risk(
+                    float(estimated_period_frames),
+                    np.asarray(period_reference, dtype=float),
+                )
+                risk = float(
+                    angular_coverage_risk(
+                        centrality_risk,
+                        rotation_period_risk,
+                    ).item()
+                )
+            tta_confidence = float(np.clip(1.0 - risk, 0.0, 1.0))
+            _, query_diagnostics = predict_candidates(
+                physics=physics,
+                embeddings=embeddings,
+                log_target=reference.log_target,
+                fit_groups=self.bundle.groups,
+                query_group=QUERY_ID,
+                config=self.bundle.target_config,
+            )
+            head_reference = reference.diagnostics[
+                "core_head_disagreement_log_std"
+            ].to_numpy(float)
+            head_risk = _empirical_risk(
+                float(
+                    query_diagnostics[
+                        "core_head_disagreement_log_std"
+                    ]
+                ),
+                head_reference,
+            )
+            head_confidence = float(
+                np.clip(1.0 - head_risk, 0.0, 1.0)
+            )
+            combined, veto = combine_tta_and_head_confidence(
+                tta_confidence,
+                head_confidence,
+            )
+            extreme_head_veto = bool(veto.item())
+            confidence = float(combined.item())
+            composite_risk = (
+                max(risk, head_risk) if extreme_head_veto else risk
+            )
+            centrality_reference_risk = np.asarray(
+                [
+                    _empirical_risk(
+                        value,
+                        np.delete(centrality_reference, index),
+                    )
+                    for index, value in enumerate(centrality_reference)
+                ],
+                dtype=float,
+            )
+            reference_risk = centrality_reference_risk
+            if period_reference is not None:
+                period_values = np.asarray(period_reference, dtype=float)
+                period_reference_risk = np.asarray(
+                    [
+                        _empirical_risk(
+                            value,
+                            np.delete(period_values, index),
+                        )
+                        for index, value in enumerate(period_values)
+                    ],
+                    dtype=float,
+                )
+                reference_risk = angular_coverage_risk(
+                    centrality_reference_risk,
+                    period_reference_risk,
+                )
+            expected_error = _isotonic_expected_error(
+                reference_risk,
+                reference.calibrated_loo_errors,
+                risk,
+            )
+            adaptive = reference.calibrated_loo_errors / np.maximum(
+                0.50 + reference_risk,
+                0.25,
+            )
+            radius = _higher_quantile(adaptive, 0.90) * (0.50 + risk)
+            support_lower = float(np.min(truth))
+            support_upper = float(np.max(truth))
+            value = float(
+                np.clip(
+                    unconstrained_value,
+                    support_lower,
+                    support_upper,
+                )
+            )
+            support_clipped = not np.isclose(
+                value,
+                unconstrained_value,
+                rtol=1e-8,
+                atol=1e-8,
+            )
+            if support_clipped:
+                confidence *= 0.5
+            return ScalarPrediction(
+                value=value,
+                unconstrained_value=unconstrained_value,
+                support_clipped=bool(support_clipped),
+                expected_absolute_error=float(expected_error),
+                confidence=float(confidence),
+                interval_lower=float(max(value - radius, 0.0)),
+                interval_upper=float(value + radius),
+                risk_score=float(composite_risk),
+                tta_confidence=tta_confidence,
+                rotation_period_risk=float(rotation_period_risk),
+                head_agreement_confidence=head_confidence,
+            )
+
         predicted, diagnostics = predict_candidates(
             physics=physics,
             embeddings=embeddings,
@@ -450,9 +698,6 @@ class RealtimeMorphologyPredictor:
             config=self.bundle.target_config,
         )
         raw = float(np.exp(predicted[reference.method]))
-        truth = np.exp(
-            reference.log_target.loc[self.bundle.groups].to_numpy(float)
-        )
         unconstrained_value, _ = _range_calibrate(
             reference.raw_loo_predictions,
             truth,
@@ -488,12 +733,21 @@ class RealtimeMorphologyPredictor:
             interval_lower=float(max(value - radius, 0.0)),
             interval_upper=float(value + radius),
             risk_score=float(risk),
+            tta_confidence=float(np.clip(confidence, 0.0, 1.0)),
+            rotation_period_risk=0.0,
+            head_agreement_confidence=float(
+                np.clip(confidence, 0.0, 1.0)
+            ),
         )
 
     def predict(
         self,
         selected_16: np.ndarray,
         *,
+        physics_selected_16: np.ndarray | None = None,
+        causal_view_names: list[str] | None = None,
+        causal_8_views: np.ndarray | None = None,
+        estimated_period_frames: float | None = None,
         keyframe_quality: float,
         seed: int,
     ) -> MorphologyPrediction:
@@ -503,9 +757,48 @@ class RealtimeMorphologyPredictor:
             raise ValueError(
                 f"model input must be [16,224,224], got {frames.shape}"
             )
-        causal_embedding = self._embedding(frames[:8])
+        tta_embeddings: np.ndarray | None = None
+        if causal_8_views is not None:
+            causal_views = np.asarray(causal_8_views, dtype=np.uint8)
+            names = list(causal_view_names or [])
+            if causal_views.ndim != 4 or causal_views.shape[1:] != (
+                8,
+                224,
+                224,
+            ):
+                raise ValueError(
+                    "causal TTA input must be [V,8,224,224]"
+                )
+            if len(names) != len(causal_views) or "base" not in names:
+                raise ValueError(
+                    "causal TTA view names must identify one base view"
+                )
+            ordered = [names.index("base")] + [
+                index
+                for index, name in enumerate(names)
+                if name != "base"
+            ]
+            tta_embeddings = np.stack(
+                [self._embedding(causal_views[index]) for index in ordered]
+            ).astype(np.float32)
+            causal_embedding = tta_embeddings[0]
+        else:
+            causal_embedding = self._embedding(frames[:8])
         selected_embedding = self._embedding(frames)
-        query_physics = live_physics_row(frames, sample_id=QUERY_ID)
+        physics_frames = (
+            frames
+            if physics_selected_16 is None
+            else np.asarray(physics_selected_16, dtype=np.uint8)
+        )
+        if physics_frames.shape != (16, 224, 224):
+            raise ValueError(
+                "physics input must be [16,224,224], got "
+                f"{physics_frames.shape}"
+            )
+        query_physics = live_physics_row(
+            physics_frames,
+            sample_id=QUERY_ID,
+        )
         physics = pd.concat([self.bundle.physics, query_physics], axis=0)
         embeddings = pd.concat(
             [
@@ -521,11 +814,15 @@ class RealtimeMorphologyPredictor:
             self.bundle.rq_reference,
             physics=physics,
             embeddings=embeddings,
+            tta_embeddings=tta_embeddings,
+            estimated_period_frames=estimated_period_frames,
         )
         fsmi = self._scalar(
             self.bundle.fsmi_reference,
             physics=physics,
             embeddings=embeddings,
+            tta_embeddings=tta_embeddings,
+            estimated_period_frames=estimated_period_frames,
         )
 
         morphology = self.bundle.morphology_predictor.morphology_predictor

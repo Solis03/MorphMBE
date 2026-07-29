@@ -2,6 +2,73 @@
 
 Last updated: 2026-07-29 (America/Detroit)
 
+## Automatic-input confidence/FSMI robustness continuation (2026-07-29)
+
+- Audited all 23 human and automatic clip caches. Both domains use exactly
+  `keyframe_1=k`, `causal_8=k-7..k` and `selected_16=k-7..k+8`; every clip is
+  contiguous and the keyframe is always at zero-based index 7. Temporal frame
+  count mismatch is ruled out.
+- A frame × ROI factorial audit isolates the FSMI failure. Automatic
+  keyframes with human ROIs improve strict physics-head FSMI LOO to MAE
+  1.225 nm / Pearson r 0.544, versus 1.625 / -0.130 for automatic
+  keyframes + V8 ROI. Human keyframes + V8 ROIs extrapolate catastrophically.
+  The primary failure is therefore ROI/feature-domain mismatch, not V5
+  keyframe selection.
+- Current V8 crops preserve the full diffraction family for R3D/generation
+  but destabilize percentile-normalized connected-component, skeleton and
+  temporal-difference features. A dedicated median-geometry physics ROI
+  improves FSMI to MAE 1.359 nm / r 0.455, but remains below the
+  automatic-keyframe + human-ROI diagnostic upper bound.
+- More importantly, the existing strict nested candidate audit selects the
+  causal-8 R3D head in every one of the 23 automatic-domain outer folds for
+  both targets. Its held-one-out FSMI is MAE 1.036 nm / r 0.748 and Rq is
+  MAE 1.212 nm / r 0.757. The frozen human-domain target-specific mapping,
+  not information loss in automatic inputs, selected the wrong deployment
+  head.
+- Existing automatic-domain confidence was weak because its risk score only
+  included R3D density OOD and upper-amplitude extrapolation. It ignored
+  frame/ROI perturbation sensitivity and representation conflict.
+- Implemented eleven target-blind causal-8 input views: keyframe offsets
+  -2/-1/0/+1/+2, ROI shifts left/right/up/down by 3%, and ROI scale 94/100/
+  106%. Raw TTA variance fails on stable-but-wrong sample 6057; base-to-TTA
+  median displacement is the useful input-instability statistic.
+- Identified a second temporal issue: every clip has eight frames, but video
+  periods range from about 25 to 40 frames, so the fixed window covers a
+  different rotation angle. M15b combines the strictly nested TTA-centrality
+  risk with a target-blind empirical rotation-period/angular-coverage risk.
+- Independent review rejected the first post-hoc multi-head veto because its
+  global LOO reference could indirectly include the outer-held target. That
+  result is preserved under `superseded_posthoc_confidence/` and is explicitly
+  non-citable. The replacement recomputes temporal/physics disagreement in
+  every inner fold. It remains a separate conflict alert and only vetoes a
+  genuinely inner-95th-percentile conflict.
+- Final strictly nested outer-held confidence-versus-absolute-error Spearman
+  is -0.538 (p=0.0081) for Rq and -0.710 (p=0.00015) for FSMI. AURC is 0.817
+  nm for Rq and 0.602 nm for FSMI; 50%-coverage risks are 0.753/0.666 nm.
+- Integrated `MorphMBE-M15b-AutoR3D-AngularTTA` into the current-workspace
+  UI. V8 remains the full-pattern R3D/M12a ROI; Q50 is explicitly labeled as
+  a separate physics-feature diagnostic ROI. The replay ring is 18 frames
+  so all TTA views are available at the existing k+8 trigger without added
+  video lookahead.
+- Corrected the headless smoke script to exercise that exact 18-frame path
+  rather than silently falling back to a single base view. Raw-video 6056
+  selects frame 160 versus human 161, predicts Rq 2.687 nm / FSMI 2.324 nm,
+  assigns 61.5% angular-TTA reliability confidence, and generates an AFM
+  field with measured Rq 2.687 nm in 7.14 seconds of inference.
+- Strict point prediction and confidence evidence uses outer AFM-target LOO.
+  The fixed selector is an AFM-target-blind prior preprocessor and is not
+  retrained inside these outer folds. Angular-risk composition and the
+  95th-percentile conflict diagnostic are exploratory and require prospective
+  validation; UI all-23 refits are not held-out evidence.
+- Complete report:
+  `reports/rheed_auto_input_robustness/20260729_auto_input_robustness_v2/REPORT.md`.
+- Final verification: 48 targeted robustness/realtime/generative regression
+  tests pass; strict table integrity confirms 23 rows per target, 22-growth
+  outer fits, 22-growth confidence calibration and zero outer-target usage.
+  Publication figures were visually inspected and the frozen artifacts pass
+  their SHA-256 manifest.
+- Raw data and the desktop Standalone remain read-only.
+
 ## Human-vs-automatic M14i/M12a input-domain comparison (2026-07-29)
 
 - Built a parallel automatic-input dataset for the exact frozen M14i Full23

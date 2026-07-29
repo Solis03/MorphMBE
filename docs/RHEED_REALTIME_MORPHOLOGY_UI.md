@@ -8,9 +8,10 @@
 1. 从 `data/raw/raw_RHEED` 只读发现原始视频；
 2. 在下拉菜单中选择样品编号和视频；
 3. V5 DINOv2-S 在内部 tracking ROI 中定位旋转周期，V8 在完整点阵区域
-   细化顶点并给出模型输入 ROI；
+   细化顶点并给出 R3D/生成模型输入 ROI；
 4. 在顶点之后等待 8 帧，构造与冻结模型一致的时序输入；
-5. M14i 输出 Rq、FSMI、经验预测区间和误差相关置信度；
+5. M15b 自动输入域 causal R3D 输出 Rq、FSMI、经验预测区间和误差相关
+   置信度；
 6. M12a 随机岛屿/台阶生成器输出新的 AFM 高度场；
 7. UI 实时更新 AFM 图、指标卡、置信度和粗糙度时间曲线；
 8. 每次预测自动写入派生 session 目录，原始视频从不改写。
@@ -45,7 +46,7 @@ PYTHONPATH=src:. .venv/bin/python \
 部署缓存位于：
 
 ```text
-outputs/rheed_realtime_ui/morphmbe_m14i_m12a_live_v1.joblib
+outputs/rheed_realtime_ui/morphmbe_m15b_m12a_auto_live_v3.joblib
 ```
 
 这是可重建的派生缓存，不是新的论文验证结果，也不会覆盖两个论文模型冻结。
@@ -55,15 +56,15 @@ outputs/rheed_realtime_ui/morphmbe_m14i_m12a_live_v1.joblib
 设自动检测的顶点为帧 `k`：
 
 - `keyframe_1`：帧 `k`；
-- `causal_8`：`k-7 ... k`，用于 M14i 的 Rq 时序分支；
+- `causal_8`：`k-7 ... k`，用于 M15b 的 Rq 和 FSMI 时序分支；
 - `selected_16`：`k-7 ... k+8`，用于 M12a 的形貌条件分支；
 - 预测触发时刻为收到 `k+8` 后，因此没有偷看尚未进入模拟流的图像。
 
-所有帧都使用青色的 **V8 模型输入 / 完整点阵 ROI** 转为亮度图，再保持
-纵横比缩放、零填充到 `224×224`。内部 V5 tracking ROI 只负责提取亮斑轨迹
-和提出物理顶点候选，绝不进入 M14i/M12a。V7 的更保守完整点阵框只保存在
-session 里作为审计边界，不在主界面叠加，避免把三个用途不同的矩形误解成
-两个模型输入。
+R3D 和 M12a 的全部帧都使用青色的 **V8 R3D / 生成模型 ROI** 转为亮度图，
+再保持纵横比缩放、零填充到 `224×224`。粉色虚线 **Q50 物理特征 ROI**
+只用于诊断性手工物理特征；M15b 最终标量头也是 R3D，因此它不会改变最终
+图像输入。内部 V5 tracking ROI 只负责亮斑轨迹，V7 框只作审计；二者均不
+进入 M15b/M12a。每一种矩形的角色都会写入 session provenance。
 
 V8 的四边界来自 25 个 removelist-compliant 视频的 20%/80% 稳健分位校准。
 严格 leave-one-video-out 中，held-video overlap 为 0，点阵峰覆盖率中位数
@@ -75,12 +76,20 @@ V8 的四边界来自 25 个 removelist-compliant 视频的 20%/80% 稳健分位
 展宽，排除“少数亮点很亮、但阵列不完整”的帧。6056 从 V5 候选 146 细化到
 160，人工参考为 161。
 
+为检验“前后帧数量不一致”这个假设，对人工和机器两套 23 样品缓存逐项审计：
+两者都严格使用 `keyframe_1=k`、`causal_8=k-7..k` 和
+`selected_16=k-7..k+8`，关键帧固定为 selected-16 的下标 7，且全部连续。
+因此自动输入性能差异不是帧数或 off-by-one 错误。
+
 ## 4. 模型
 
-标量端使用 `MorphMBE-M14i-Full23-OODAware-v1` 的固定方法：
+标量端使用
+`MorphMBE-M15b-AutoR3D-AngularTTA + M12a-RangeTerrace-live-v3`：
 
-- Rq：`M14g_multiview_curated60_r3d40`；
-- FSMI：`M14b_rheed_density_weighted`。
+- Rq：自动输入域 `M14d_r3d_causal_temporal`；
+- FSMI：自动输入域 `M14d_r3d_causal_temporal`；
+- 在 23 个外层 held fold 内，两项目标的内层选择都 23/23 次选择该时序头；
+- 论文验证使用严格 23-fold LOO；UI 部署缓存则在全部 23 个允许样品上重拟合。
 
 图像端使用 `MorphMBE-M12a-Strict15-RangeTerrace-v1` 的
 `M12a_edge_preserving_terrace` 生成器：
@@ -96,10 +105,16 @@ V8 的四边界来自 25 个 removelist-compliant 视频的 20%/80% 稳健分位
 
 ## 5. 置信度与支持范围
 
-界面主卡片和时间曲线中的 confidence 是 M14i 的“误差相关模型支持指数”，
+界面主卡片和时间曲线中的 confidence 是 M15b 的“误差相关可靠性指数”，
 不是正确概率：
 
-- M14i 使用训练域时序支持、外推风险和历史 LOO 误差估计 Rq/FSMI 置信度；
+- 围绕同一自动关键帧建立 11 个 target-blind 输入视图：`k-2...k+2`
+  五个 causal-8 结束位置、ROI 上下左右各 3% 平移和 ±6% 尺度；
+- 主风险是 base 预测偏离 11 个视图中位数的程度，而不是简单 TTA 方差；
+- 固定 8 帧在不同旋转周期下覆盖不同转角，因此加入从 RHEED 轨迹估计的
+  period/angular-coverage empirical risk，并与 TTA centrality 风险取几何平均；
+- 当 causal R3D 与独立物理头的 disagreement 进入训练参照最极端 5% 时，
+  启用 veto，取 TTA 与 head-agreement confidence 的较小值；
 - 主 confidence 是 Rq/FSMI 置信度的几何平均，因此与冻结 LOO 图表中的
   模型置信度定义一致；
 - V5/V8 给出独立的输入质量；
@@ -115,15 +130,18 @@ V8 的四边界来自 25 个 removelist-compliant 视频的 20%/80% 稳健分位
 4. 再降低置信度。
 
 这样低支持事件仍显示有 AFM 纹理的保守边界结果，而不会把接近 0 nm 的无支持
-外推伪装成一张可信的平面 AFM。
+外推伪装成一张可信的平面 AFM。该 confidence 是小样本严格 LOO 下验证的排序
+指数，不应解释为“85% 概率正确”；95th-percentile veto 仍需要未来前瞻性
+样品再验证。
 
 ## 6. 实时调度
 
 默认 `1.67× 时长` 对应把 15 秒视频约放慢到 25 秒。视频解码和 AFM 预测运行
 在不同后台线程：
 
-- 视频线程持续回放并维持 16 帧环形缓存；
-- 推理线程按事件处理约 3.8–4.3 秒；
+- 视频线程持续回放并维持 18 帧环形缓存；
+- 推理线程按事件处理 base + 10 个 TTA causal-8 视图，当前 M1 Pro 实测约
+  6.3–7.2 秒；
 - 推理队列最多保留一个待处理事件；
 - 队列满时跳过该旋转周期并在日志中明确记录，防止越积越慢；
 - 当前 replay 只保留全视频中最可信的周期，并在完整点阵 ROI 内局部细化；
@@ -143,9 +161,11 @@ outputs/rheed_realtime_ui/sessions/
 ```
 
 `session.json` 明确保存 `model_input_roi`、
+`physics_feature_roi_not_generator_input`、
 `internal_tracking_roi_not_model_input` 和
-`conservative_audit_roi_not_model_input` 三种角色。CSV 保存时间、Rq/FSMI、
-预计误差、区间、三种置信度、推理延迟、支持约束标记和生成文件路径。NPZ
+`conservative_audit_roi_not_model_input` 四种角色。CSV 保存时间、Rq/FSMI、
+预计误差、区间、TTA/head/模型/综合置信度、推理延迟、支持约束标记和生成
+文件路径。NPZ
 保存真实 nm 高度场和无量纲单位-Rq 形貌。
 
 ## 8. 当前边界
@@ -155,7 +175,11 @@ outputs/rheed_realtime_ui/sessions/
 - 工业相机选项已在 UI 中预留，但真正的相机部署还需把 V5 候选排序改成因果
   滑动窗口，并接入相机 SDK/帧时间戳。
 - 23 样品部署缓存使用全部允许样品拟合。回放这些历史样品用于工程演示，不是
-  新的 held-out 性能证据；模型能力仍应引用冻结 M12a/M14i 的 LOO 结果。
+  新的 held-out 性能证据；标量能力应引用 M15b 严格 LOO 报告，图像生成能力
+  则仍引用冻结 M12a 报告。
+- 自动 ROI 会改变按百分位阈值计算的 connected-component/skeleton 特征域。
+  Q50 专用物理 ROI 缓解了该问题，但最终 M15b 选择 R3D 时序头，避免让不稳健
+  的手工特征控制 FSMI 点预测。
 - 新样品第一次进入系统时才是前瞻性部署测试，应保留 session 并在看到 AFM
   之前登记样品编号。
 
@@ -166,7 +190,7 @@ PYTHONPATH=src:. .venv/bin/python \
   scripts/smoke_rheed_realtime_pipeline.py \
   "data/raw/raw_RHEED/N6056 - Copy/After rampdown to 200 C.MOV" \
   --sample-id 6056 \
-  --output-dir outputs/rheed_realtime_ui/20260729_6056_roi_alignment_fix_v8_final
+  --output-dir outputs/rheed_realtime_ui/20260729_6056_m15b_auto_robustness_v3
 ```
 
 该命令保存自动 ROI、全部保留事件、选定关键帧、多帧模型输入、生成 AFM、

@@ -15,7 +15,7 @@ from PySide6.QtCore import QThread, Signal
 
 from rheed2morph.rheed.automatic_roi_keyframe import _rgb_uint8
 
-from .clips import build_model_clip
+from .clips import build_causal_perturbation_clips, build_model_clip
 from .model import MorphologyPrediction, RealtimeMorphologyPredictor
 from .selector import ReplayEvent, ReplaySelection, analyze_replay
 
@@ -27,6 +27,10 @@ class PredictionJob:
     event: ReplayEvent
     event_time_seconds: float
     selected_16: np.ndarray
+    physics_selected_16: np.ndarray | None = None
+    causal_view_names: tuple[str, ...] = ()
+    causal_8_views: np.ndarray | None = None
+    estimated_period_frames: float | None = None
 
 
 @dataclass(frozen=True)
@@ -89,6 +93,10 @@ class PredictionWorker(QThread):
                 ) % (2**31 - 1)
                 prediction = predictor.predict(
                     job.selected_16,
+                    physics_selected_16=job.physics_selected_16,
+                    causal_view_names=list(job.causal_view_names),
+                    causal_8_views=job.causal_8_views,
+                    estimated_period_frames=job.estimated_period_frames,
                     keyframe_quality=job.event.keyframe_quality,
                     seed=seed,
                 )
@@ -153,6 +161,11 @@ class ReplayWorker(QThread):
                 full_lattice_calibration_path=(
                     repository / self.config["full_lattice_roi_calibration"]
                 ),
+                physics_calibration_path=(
+                    repository / self.config["physics_roi_calibration"]
+                    if self.config.get("physics_roi_calibration")
+                    else None
+                ),
                 foundation_cache_dir=(
                     repository / self.config["foundation_cache_dir"]
                 ),
@@ -196,7 +209,7 @@ class ReplayWorker(QThread):
                 + int(self.config.get("prediction_trigger_delay_frames", 8)): event
                 for event in selection.events
             }
-            ring: deque[np.ndarray] = deque(maxlen=16)
+            ring: deque[np.ndarray] = deque(maxlen=18)
             start = time.perf_counter()
             pause_started: float | None = None
             paused_total = 0.0
@@ -223,21 +236,41 @@ class ReplayWorker(QThread):
                             is_event,
                         )
                     if event is not None:
-                        if len(ring) != 16:
+                        if len(ring) != 18:
                             self.log.emit(
                                 f"帧 {event.frame_index}: 时序缓存不足，跳过"
                             )
                         else:
+                            ring_frames = list(ring)
+                            selected_frames = ring_frames[2:]
                             clip = build_model_clip(
-                                list(ring),
+                                selected_frames,
                                 selection.model_input_roi.rect,
                                 output_size=int(
                                     self.config.get("model_image_size", 224)
                                 ),
                             )
+                            physics_clip = build_model_clip(
+                                selected_frames,
+                                selection.physics_roi.rect,
+                                output_size=int(
+                                    self.config.get("model_image_size", 224)
+                                ),
+                            )
+                            view_names, causal_views = (
+                                build_causal_perturbation_clips(
+                                    ring_frames,
+                                    selection.model_input_roi.rect,
+                                    output_size=int(
+                                        self.config.get(
+                                            "model_image_size", 224
+                                        )
+                                    ),
+                                )
+                            )
                             self.log.emit(
                                 f"帧 {event.frame_index}: 完整点阵顶点确认，"
-                                "已用模型输入 ROI 收齐 16 帧"
+                                "已收齐 16 帧及 confidence 扰动视图"
                             )
                             self.prediction_job.emit(
                                 PredictionJob(
@@ -248,6 +281,12 @@ class ReplayWorker(QThread):
                                         event.frame_index / fps
                                     ),
                                     selected_16=clip,
+                                    physics_selected_16=physics_clip,
+                                    causal_view_names=tuple(view_names),
+                                    causal_8_views=causal_views,
+                                    estimated_period_frames=(
+                                        selection.estimated_period_frames
+                                    ),
                                 )
                             )
                     target = start + paused_total + (index + 1) * interval

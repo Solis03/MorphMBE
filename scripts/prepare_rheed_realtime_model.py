@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare the full-23 deployment refit of frozen M14i + M12a."""
+"""Prepare the full-23 deployment refit of M15b + frozen M12a."""
 
 from __future__ import annotations
 
@@ -72,7 +72,14 @@ def main() -> None:
             "FSMI_nm": bundle.fsmi_reference.method,
             "image_generator": bundle.generation_config["selected_method"],
             "retrieval_at_inference": False,
-            "measured_afm_patch_at_inference": False
+            "measured_afm_patch_at_inference": False,
+            "confidence": (
+                "rotation-angular-coverage x keyframe/ROI TTA centrality "
+                "with extreme head-conflict diagnostic"
+            ),
+            "rotation_period_reference_available": (
+                bundle.period_frames_reference is not None
+            )
         },
         "runtime": {
             "python": sys.version,

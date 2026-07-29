@@ -15,7 +15,11 @@ from rheed2morph.realtime.catalog import (
     group_by_sample,
     read_removelist,
 )
-from rheed2morph.realtime.clips import build_model_clip, live_physics_row
+from rheed2morph.realtime.clips import (
+    build_causal_perturbation_clips,
+    build_model_clip,
+    live_physics_row,
+)
 from rheed2morph.realtime.model import MODEL_ID, load_deployment_bundle
 from rheed2morph.realtime.selector import _event_rows, _lattice_vertex_scores
 from rheed2morph.realtime.workers import ReplayWorker
@@ -63,6 +67,33 @@ def test_selected_16_clip_preserves_keyframe_position() -> None:
     # The frozen selected-16 convention places the keyframe at zero-based 7.
     assert int(clip[7].max()) == 7
     assert int(clip[8].max()) == 8
+
+
+def test_causal_tta_views_match_k_plus_8_replay_ring() -> None:
+    frames = [
+        np.full((24, 32, 3), value, dtype=np.uint8)
+        for value in range(18)
+    ]
+    roi = Rect(
+        x=0,
+        y=0,
+        width=32,
+        height=24,
+        source_width=32,
+        source_height=24,
+    )
+    names, views = build_causal_perturbation_clips(
+        frames,
+        roi,
+        output_size=32,
+    )
+    lookup = {name: views[index] for index, name in enumerate(names)}
+    # Input values 0..17 represent k-9..k+8.
+    assert lookup["frame_m2"][:, 16, 16].tolist() == list(range(0, 8))
+    assert lookup["frame_m1"][:, 16, 16].tolist() == list(range(1, 9))
+    assert lookup["base"][:, 16, 16].tolist() == list(range(2, 10))
+    assert lookup["frame_p1"][:, 16, 16].tolist() == list(range(3, 11))
+    assert lookup["frame_p2"][:, 16, 16].tolist() == list(range(4, 12))
 
 
 def test_live_physics_matches_frozen_m14_schema() -> None:
@@ -161,6 +192,8 @@ def test_replay_worker_never_uses_tracking_roi_as_model_input() -> None:
         "                                selection.tracking_roi.rect"
     )
     assert "selection.model_input_roi.rect" in source
+    assert "selection.physics_roi.rect" in source
+    assert "deque(maxlen=18)" in source
     assert forbidden not in source
 
 

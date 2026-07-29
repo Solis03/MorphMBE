@@ -115,6 +115,24 @@ class VideoCanvas(QWidget):
                 rect.adjusted(4, 16, 0, 0),
                 "模型输入 / 完整点阵 ROI",
             )
+            physics_roi = self._selection.physics_roi.rect
+            physics_color = QColor("#f472b6")
+            physics_rect = QRectF(
+                target.x() + physics_roi.x * scale,
+                target.y() + physics_roi.y * scale,
+                physics_roi.width * scale,
+                physics_roi.height * scale,
+            )
+            physics_pen = QPen(physics_color, 2)
+            physics_pen.setStyle(Qt.PenStyle.DashLine)
+            painter.setPen(physics_pen)
+            painter.drawRect(physics_rect)
+            painter.setPen(physics_color)
+            painter.setFont(QFont("Arial", 9, QFont.Weight.Bold))
+            painter.drawText(
+                physics_rect.adjusted(4, 32, 0, 0),
+                "物理特征 ROI（不用于生成器）",
+            )
         banner = (
             f"frame {self._frame_index:05d}   t = {self._seconds:6.2f} s"
         )
@@ -329,7 +347,8 @@ class RealtimeMainWindow(QMainWindow):
         title = QLabel("MorphMBE  实时表面形貌监测")
         title.setObjectName("appTitle")
         subtitle = QLabel(
-            "自动 ROI / 旋转顶点 · M14i 鲁棒标量头 · M12a 非检索式 AFM 生成"
+            "双 ROI / 自动旋转顶点 · M15b causal R3D + 角覆盖 TTA · "
+            "M12a 非检索式 AFM 生成"
         )
         subtitle.setObjectName("appSubtitle")
         title_block.addWidget(title)
@@ -558,7 +577,7 @@ class RealtimeMainWindow(QMainWindow):
 
     def _model_loaded(self, model_id: str) -> None:
         self._model_ready = True
-        self.model_badge.setText("M14i + M12a · READY")
+        self.model_badge.setText("M15b + M12a · READY")
         self.model_badge.setToolTip(model_id)
         self.start_button.setEnabled(
             self.mode_combo.currentData() == "video"
@@ -659,7 +678,8 @@ class RealtimeMainWindow(QMainWindow):
         percent = int(round(prediction.model_confidence * 100))
         self.confidence_card.value.setText(f"{percent}%")
         self.confidence_card.detail.setText(
-            f"输入质量 {prediction.keyframe_quality * 100:.0f}%  ·  "
+            f"角覆盖+TTA {min(prediction.rq.tta_confidence, prediction.fsmi.tta_confidence) * 100:.0f}%  ·  "
+            f"多头一致 {min(prediction.rq.head_agreement_confidence, prediction.fsmi.head_agreement_confidence) * 100:.0f}%  ·  "
             f"保守综合 {prediction.combined_confidence * 100:.0f}%"
         )
         self.confidence_bar.setValue(percent)

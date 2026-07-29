@@ -41,6 +41,7 @@ class ReplaySelection:
     frame_count: int
     tracking_roi: ROIPrediction
     model_input_roi: ROIPrediction
+    physics_roi: ROIPrediction
     audit_full_lattice_roi: ROIPrediction
     events: tuple[ReplayEvent, ...]
     estimated_period_frames: float | None
@@ -153,6 +154,7 @@ def analyze_replay(
     deep_visibility_ranker_path: str | Path,
     model_input_calibration_path: str | Path,
     full_lattice_calibration_path: str | Path,
+    physics_calibration_path: str | Path | None = None,
     foundation_cache_dir: str | Path | None = None,
     device: str | None = None,
     roi_sample_count: int = 48,
@@ -193,6 +195,14 @@ def analyze_replay(
         analysis=aperture,
         lattice_calibration=full_lattice_calibration_path,
     )
+    physics_roi = model_input_roi
+    if physics_calibration_path is not None:
+        physics_roi, _ = predict_roi(
+            sampled,
+            method="full_lattice",
+            analysis=aperture,
+            lattice_calibration=physics_calibration_path,
+        )
     log("提取亮斑轨迹与旋转顶点候选")
     factory, known_count, _ = _source_factory(source_path)
     trajectory = extract_spot_trajectory(factory(), tracking_roi.rect)
@@ -334,6 +344,7 @@ def analyze_replay(
         frame_count=frame_count,
         tracking_roi=tracking_roi,
         model_input_roi=model_input_roi,
+        physics_roi=physics_roi,
         audit_full_lattice_roi=audit_full_lattice_roi,
         events=tuple(events),
         estimated_period_frames=estimated_period,

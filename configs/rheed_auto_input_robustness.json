@@ -1,0 +1,20 @@
+{
+  "experiment_id": "20260729_auto_input_robustness_v2",
+  "cohort_count": 23,
+  "excluded_growths": ["6043", "6055"],
+  "selection_table": "outputs/rheed_manual_vs_auto_selection/20260729_m14i_human_vs_auto_full23_v1/machine_dataset/selection_comparison.csv",
+  "machine_manifest": "outputs/rheed_manual_vs_auto_selection/20260729_m14i_human_vs_auto_full23_v1/machine_dataset/modeling_manifest.csv",
+  "human_manifest": "outputs/rheed_video_afm_story/phase1/modeling_manifest.csv",
+  "machine_physics": "outputs/rheed_manual_vs_auto_selection/20260729_m14i_human_vs_auto_full23_v1/machine_dataset/rheed_physics_features.csv",
+  "machine_embedding_registry": "outputs/rheed_manual_vs_auto_selection/20260729_m14i_human_vs_auto_full23_v1/machine_dataset/embedding_registry.csv",
+  "human_physics": "outputs/rheed_video_afm_story/phase4a/rheed_physics_features.csv",
+  "target_parameters": "paper_freeze/rheed_to_afm_dual_generative_models_v1_20260728/03_MODEL_M14I_FULL23/target_head_parameters.json",
+  "prior_comparison_report": "reports/rheed_manual_vs_auto_selection/20260729_m14i_human_vs_auto_full23_v1",
+  "head_diagnostics_predictions": "reports/rheed_auto_input_robustness/20260729_auto_input_robustness_v2/q50_physics_robust_candidates.csv",
+  "output_root": "outputs/rheed_auto_input_robustness/20260729_auto_input_robustness_v2",
+  "report_root": "reports/rheed_auto_input_robustness/20260729_auto_input_robustness_v2",
+  "r3d_device": "cpu",
+  "random_seed": 271828,
+  "raw_data_policy": "read_only",
+  "standalone_policy": "read_only"
+}

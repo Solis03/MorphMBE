@@ -1,0 +1,9 @@
+target,input_factor,frame_source,roi_source,mae_nm,median_absolute_error_nm,pearson_r,spearman_rho,interpretation
+Rq_nm,human_frame_human_roi,human,human,1.4961,0.9739,0.372,0.474,recomputed physics-head reference
+Rq_nm,machine_frame_machine_v8_roi,machine,machine_v8,1.7929,1.2968,-0.065,-0.101,full-pattern ROI destabilizes handcrafted physics
+Rq_nm,machine_frame_human_roi,machine,human,1.3655,1.0569,0.630,0.660,diagnostic upper bound; human ROI is not deployable
+Rq_nm,human_frame_machine_v8_roi,human,machine_v8,23.2215,1.1876,-0.233,-0.275,catastrophic extrapolation confirms ROI-domain mismatch
+FSMI_nm,human_frame_human_roi,human,human,1.3159,0.7713,0.281,0.430,recomputed frozen physics-head reference
+FSMI_nm,machine_frame_machine_v8_roi,machine,machine_v8,1.6247,1.0579,-0.130,-0.208,observed automatic-domain FSMI failure
+FSMI_nm,machine_frame_human_roi,machine,human,1.2246,0.9874,0.544,0.475,machine keyframe itself is not the failure
+FSMI_nm,human_frame_machine_v8_roi,human,machine_v8,13.4759,0.7138,-0.239,-0.139,catastrophic extrapolation confirms ROI-domain mismatch
