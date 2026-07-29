@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 from pathlib import Path
 
@@ -16,7 +17,8 @@ from rheed2morph.realtime.catalog import (
 )
 from rheed2morph.realtime.clips import build_model_clip, live_physics_row
 from rheed2morph.realtime.model import MODEL_ID, load_deployment_bundle
-from rheed2morph.realtime.selector import _event_rows
+from rheed2morph.realtime.selector import _event_rows, _lattice_vertex_scores
+from rheed2morph.realtime.workers import ReplayWorker
 from rheed2morph.rheed.automatic_roi_keyframe import Rect
 
 
@@ -126,6 +128,42 @@ def test_event_clustering_keeps_one_tracker_per_rotation_vertex() -> None:
     assert all(0.0 <= event.keyframe_quality <= 1.0 for event in events)
 
 
+def test_lattice_vertex_score_rejects_sparse_bright_phase() -> None:
+    common = {
+        "spot_energy_concentration": 0.45,
+        "raw_std": 0.05,
+        "spot_peak_count": 10.0,
+        "haze_dominance": 5.0,
+    }
+    rows = [
+        {
+            **common,
+            "spot_peak_top8_mass": 1.5,
+            "spot_column_alignment": 2.8,
+            "spot_horizontal_spread": 0.24,
+        },
+        {
+            **common,
+            "spot_peak_top8_mass": 1.9,
+            "spot_column_alignment": 5.9,
+            "spot_horizontal_spread": 0.09,
+        },
+    ]
+    scores = _lattice_vertex_scores(rows)
+    assert int(np.argmax(scores)) == 1
+
+
+def test_replay_worker_never_uses_tracking_roi_as_model_input() -> None:
+    source = inspect.getsource(ReplayWorker.run)
+    forbidden = (
+        "build_model_clip(\n"
+        "                                list(ring),\n"
+        "                                selection.tracking_roi.rect"
+    )
+    assert "selection.model_input_roi.rect" in source
+    assert forbidden not in source
+
+
 def test_deployment_cache_identifies_frozen_nonretrieval_pipeline() -> None:
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     bundle_path = REPOSITORY / config["deployment_bundle"]
@@ -139,3 +177,18 @@ def test_deployment_cache_identifies_frozen_nonretrieval_pipeline() -> None:
     )
     assert bundle.retrieval_at_inference is False
     assert bundle.measured_afm_patch_at_inference is False
+
+
+def test_v8_model_input_roi_bundle_has_strict_loo_provenance() -> None:
+    import joblib
+
+    config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
+    bundle_path = REPOSITORY / config["model_input_roi_calibration"]
+    if not bundle_path.exists():
+        return
+    bundle = joblib.load(bundle_path)
+    assert bundle["validation_method"] == (
+        "v8_orientation_model_input_q20_q80"
+    )
+    assert bundle["validation_protocol"] == "strict_leave_one_video_out"
+    assert bundle["held_video_overlap_sum"] == 0

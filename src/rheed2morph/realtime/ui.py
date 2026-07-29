@@ -99,31 +99,22 @@ class VideoCanvas(QWidget):
         )
         painter.drawPixmap(target, QPixmap.fromImage(image), QRectF(image.rect()))
         if self._selection is not None:
-            for roi, color, width_px, label in (
-                (
-                    self._selection.display_roi.rect,
-                    QColor("#22d3a6"),
-                    3,
-                    "完整点阵 ROI",
-                ),
-                (
-                    self._selection.tracking_roi.rect,
-                    QColor("#ffb454"),
-                    2,
-                    "模型输入 ROI",
-                ),
-            ):
-                rect = QRectF(
-                    target.x() + roi.x * scale,
-                    target.y() + roi.y * scale,
-                    roi.width * scale,
-                    roi.height * scale,
-                )
-                painter.setPen(QPen(color, width_px))
-                painter.drawRect(rect)
-                painter.setPen(color)
-                painter.setFont(QFont("Arial", 10, QFont.Weight.Bold))
-                painter.drawText(rect.adjusted(4, 16, 0, 0), label)
+            roi = self._selection.model_input_roi.rect
+            color = QColor("#22d3a6")
+            rect = QRectF(
+                target.x() + roi.x * scale,
+                target.y() + roi.y * scale,
+                roi.width * scale,
+                roi.height * scale,
+            )
+            painter.setPen(QPen(color, 3))
+            painter.drawRect(rect)
+            painter.setPen(color)
+            painter.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+            painter.drawText(
+                rect.adjusted(4, 16, 0, 0),
+                "模型输入 / 完整点阵 ROI",
+            )
         banner = (
             f"frame {self._frame_index:05d}   t = {self._seconds:6.2f} s"
         )
@@ -182,7 +173,7 @@ class AFMCanvas(FigureCanvasQTAgg):
             title=(
                 f"Generated AFM · frame {result.job.event.frame_index}\n"
                 f"Rq {prediction.rq.value:.2f} nm · "
-                f"confidence {prediction.combined_confidence * 100:.0f}%"
+                f"model confidence {prediction.model_confidence * 100:.0f}%"
             ),
         )
         colorbar = self.figure.colorbar(
@@ -231,7 +222,7 @@ class TrendCanvas(FigureCanvasQTAgg):
         self.rq.append(prediction.rq.value)
         self.lower.append(prediction.rq.interval_lower)
         self.upper.append(prediction.rq.interval_upper)
-        self.confidence.append(prediction.combined_confidence)
+        self.confidence.append(prediction.model_confidence)
         self.refresh()
 
     def refresh(self) -> None:
@@ -414,7 +405,8 @@ class RealtimeMainWindow(QMainWindow):
         self.video_canvas = VideoCanvas()
         left_layout.addWidget(self.video_canvas, 1)
         self.roi_note = QLabel(
-            "绿色：完整点阵显示 ROI    橙色：与冻结模型输入一致的 tracking ROI"
+            "青色实框：真正送入 M14i/M12a 的 16 帧完整点阵裁剪；"
+            "内部 tracking ROI 只定位旋转顶点，不参与生成"
         )
         self.roi_note.setObjectName("note")
         left_layout.addWidget(self.roi_note)
@@ -430,7 +422,7 @@ class RealtimeMainWindow(QMainWindow):
         metrics = QGridLayout()
         self.rq_card = MetricCard("粗糙度 Rq", "— nm")
         self.fsmi_card = MetricCard("表面形貌复杂度 FSMI", "— nm")
-        self.confidence_card = MetricCard("综合置信度", "— %")
+        self.confidence_card = MetricCard("预测置信度（误差相关）", "— %")
         metrics.addWidget(self.rq_card, 0, 0)
         metrics.addWidget(self.fsmi_card, 0, 1)
         metrics.addWidget(self.confidence_card, 0, 2)
@@ -438,7 +430,7 @@ class RealtimeMainWindow(QMainWindow):
         self.confidence_bar = QProgressBar()
         self.confidence_bar.setRange(0, 100)
         self.confidence_bar.setValue(0)
-        self.confidence_bar.setFormat("confidence index  %p%")
+        self.confidence_bar.setFormat("model confidence  %p%")
         right_layout.addWidget(self.confidence_bar)
         split.addWidget(left)
         split.addWidget(right)
@@ -634,6 +626,8 @@ class RealtimeMainWindow(QMainWindow):
             f"源视频 {fps:.2f} fps / {duration:.1f} s；"
             f"模拟回放约 {slowed:.1f} s；预测事件 {len(selection.events)} 个"
         )
+        if self.recorder is not None:
+            self.recorder.record_selection(selection, fps=fps)
 
     def _submit_prediction(self, job: PredictionJob) -> None:
         if self.prediction_worker is not None:
@@ -662,11 +656,11 @@ class RealtimeMainWindow(QMainWindow):
             f"{prediction.fsmi.interval_upper:.2f}]"
             + ("  ·  SUPPORT CLIP" if prediction.fsmi.support_clipped else "")
         )
-        percent = int(round(prediction.combined_confidence * 100))
+        percent = int(round(prediction.model_confidence * 100))
         self.confidence_card.value.setText(f"{percent}%")
         self.confidence_card.detail.setText(
-            f"模型 {prediction.model_confidence * 100:.0f}%  ·  "
-            f"关键帧 {prediction.keyframe_quality * 100:.0f}%"
+            f"输入质量 {prediction.keyframe_quality * 100:.0f}%  ·  "
+            f"保守综合 {prediction.combined_confidence * 100:.0f}%"
         )
         self.confidence_bar.setValue(percent)
         if percent < 40:

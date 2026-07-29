@@ -1,0 +1,4 @@
+variant,evidence_protocol,keyframe_index,manual_keyframe_index,model_input_roi_xywh,predicted_rq_nm,true_rq_nm,absolute_rq_error_nm,predicted_fsmi_nm,rq_confidence,fsmi_confidence,model_confidence,keyframe_quality,combined_confidence,rq_support_clipped,fsmi_support_clipped
+frozen_manual_reference,strict_loo_22_fit_1_held,161,161,"684 111 599 894",3.2548719335,3.2253758907,0.0294960427,2.4982403380,0.9082138096,1.0000000000,0.9530035727,NA,NA,False,False
+realtime_ui_before_fix,deployment_replay_diagnostic,203,161,"774 174 336 516",1.2270276091,3.2253758907,1.9983482816,0.8380821497,NA,NA,0.0102899212,0.6256527219,0.0404624782,True,True
+realtime_ui_v8_fixed,deployment_replay_diagnostic,160,161,"594 114 648 888",3.0483576045,3.2253758907,0.1770182862,2.9171588639,1.0000000000,0.8163730446,0.9035336433,0.7309908527,0.8419123230,False,False

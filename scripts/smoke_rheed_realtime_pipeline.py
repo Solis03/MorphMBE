@@ -50,6 +50,9 @@ def main() -> None:
         deep_visibility_ranker_path=(
             repository / config["deep_visibility_ranker"]
         ),
+        model_input_calibration_path=(
+            repository / config["model_input_roi_calibration"]
+        ),
         full_lattice_calibration_path=(
             repository / config["full_lattice_roi_calibration"]
         ),
@@ -59,6 +62,12 @@ def main() -> None:
         device=config.get("selector_device"),
         roi_sample_count=int(config["roi_sample_count"]),
         minimum_event_quality=float(config["minimum_keyframe_quality"]),
+        event_policy=str(
+            config.get("replay_event_policy", "best_visible_cycle")
+        ),
+        refinement_period_fraction=float(
+            config.get("keyframe_refinement_period_fraction", 0.45)
+        ),
         progress=lambda message: print(f"[selector] {message}", flush=True),
     )
     event = max(selection.events, key=lambda item: item.selector_score)
@@ -77,7 +86,7 @@ def main() -> None:
         raise RuntimeError("could not decode the selected temporal window")
     clip = build_model_clip(
         frames,
-        selection.tracking_roi.rect,
+        selection.model_input_roi.rect,
         output_size=int(config["model_image_size"]),
     )
     predictor = RealtimeMorphologyPredictor.from_path(
@@ -104,8 +113,13 @@ def main() -> None:
         "source": str(source),
         "sample_id": str(args.sample_id),
         "frame_count": selection.frame_count,
-        "tracking_roi": asdict(selection.tracking_roi.rect),
-        "display_roi": asdict(selection.display_roi.rect),
+        "model_input_roi": asdict(selection.model_input_roi.rect),
+        "internal_tracking_roi_not_model_input": asdict(
+            selection.tracking_roi.rect
+        ),
+        "conservative_audit_roi_not_model_input": asdict(
+            selection.audit_full_lattice_roi.rect
+        ),
         "estimated_period_frames": selection.estimated_period_frames,
         "retained_event_count": len(selection.events),
         "events": [asdict(item) for item in selection.events],
@@ -132,28 +146,16 @@ def main() -> None:
         1, 3, figsize=(14.5, 4.5), constrained_layout=True
     )
     axes[0].imshow(keyframe)
-    display = selection.display_roi.rect
-    tracking = selection.tracking_roi.rect
+    model_input = selection.model_input_roi.rect
     axes[0].add_patch(
         Rectangle(
-            (display.x, display.y),
-            display.width,
-            display.height,
+            (model_input.x, model_input.y),
+            model_input.width,
+            model_input.height,
             fill=False,
             color="#00d2a0",
             linewidth=2,
-            label="full lattice",
-        )
-    )
-    axes[0].add_patch(
-        Rectangle(
-            (tracking.x, tracking.y),
-            tracking.width,
-            tracking.height,
-            fill=False,
-            color="#ff9f43",
-            linewidth=2,
-            label="model input",
+            label="model input / full lattice",
         )
     )
     axes[0].set_title(
@@ -176,7 +178,7 @@ def main() -> None:
         title=(
             f"Generated AFM · Rq {prediction.rq.value:.2f} nm\n"
             f"FSMI {prediction.fsmi.value:.2f} nm · "
-            f"confidence {prediction.combined_confidence:.0%}"
+            f"model confidence {prediction.model_confidence:.0%}"
         ),
     )
     figure.colorbar(image, ax=axes[2], label="Relative height (nm)")

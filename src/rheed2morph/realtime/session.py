@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 import csv
+from dataclasses import asdict
 import json
 from pathlib import Path
 import time
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from .workers import PredictionResult
+
+if TYPE_CHECKING:
+    from .selector import ReplaySelection
 
 
 class SessionRecorder:
@@ -43,6 +48,32 @@ class SessionRecorder:
             "source_video_read_only": True,
             "playback_duration_ratio": float(playback_ratio),
             "created_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        }
+        (self.root / "session.json").write_text(
+            json.dumps(self.metadata, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+    def record_selection(
+        self,
+        selection: "ReplaySelection",
+        *,
+        fps: float,
+    ) -> None:
+        """Persist explicit ROI roles so tracking can never mimic model input."""
+
+        self.metadata["selector"] = {
+            "fps": float(fps),
+            "frame_count": int(selection.frame_count),
+            "estimated_period_frames": selection.estimated_period_frames,
+            "model_input_roi": asdict(selection.model_input_roi.rect),
+            "internal_tracking_roi_not_model_input": asdict(
+                selection.tracking_roi.rect
+            ),
+            "conservative_audit_roi_not_model_input": asdict(
+                selection.audit_full_lattice_roi.rect
+            ),
+            "events": [asdict(event) for event in selection.events],
         }
         (self.root / "session.json").write_text(
             json.dumps(self.metadata, indent=2, ensure_ascii=False) + "\n",

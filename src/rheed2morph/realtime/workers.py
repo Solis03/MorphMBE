@@ -147,6 +147,9 @@ class ReplayWorker(QThread):
                 deep_visibility_ranker_path=(
                     repository / self.config["deep_visibility_ranker"]
                 ),
+                model_input_calibration_path=(
+                    repository / self.config["model_input_roi_calibration"]
+                ),
                 full_lattice_calibration_path=(
                     repository / self.config["full_lattice_roi_calibration"]
                 ),
@@ -157,6 +160,18 @@ class ReplayWorker(QThread):
                 roi_sample_count=int(self.config["roi_sample_count"]),
                 minimum_event_quality=float(
                     self.config.get("minimum_keyframe_quality", 0.0)
+                ),
+                event_policy=str(
+                    self.config.get(
+                        "replay_event_policy",
+                        "best_visible_cycle",
+                    )
+                ),
+                refinement_period_fraction=float(
+                    self.config.get(
+                        "keyframe_refinement_period_fraction",
+                        0.45,
+                    )
                 ),
                 progress=self.log.emit,
             )
@@ -215,13 +230,14 @@ class ReplayWorker(QThread):
                         else:
                             clip = build_model_clip(
                                 list(ring),
-                                selection.tracking_roi.rect,
+                                selection.model_input_roi.rect,
                                 output_size=int(
                                     self.config.get("model_image_size", 224)
                                 ),
                             )
                             self.log.emit(
-                                f"帧 {event.frame_index}: 顶点确认，已收齐后续 8 帧"
+                                f"帧 {event.frame_index}: 完整点阵顶点确认，"
+                                "已用模型输入 ROI 收齐 16 帧"
                             )
                             self.prediction_job.emit(
                                 PredictionJob(

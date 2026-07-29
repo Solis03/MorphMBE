@@ -2,6 +2,45 @@
 
 Last updated: 2026-07-29 (America/Detroit)
 
+## Realtime ROI/model-input alignment correction (2026-07-29)
+
+- User review of 6056 exposed a real implementation defect: the compact V5
+  tracking ROI was both mislabeled and passed to `build_model_clip`, while the
+  complete-lattice rectangle was display-only. Secondary dark-cycle events
+  could then overwrite a supported prediction. The supplied 4%-confidence
+  screenshot is consistent with session frame 203.
+- Raw and curated 6056 MOV files have identical SHA-256. The manually curated
+  frame-161 clip is reproduced byte-for-byte by the current preprocessing
+  code, isolating the fault to runtime ROI/event routing rather than source
+  video, decoding or luminance conversion.
+- Added a role-specific V8 model-input ROI, fitted on 25 removelist-compliant
+  videos with orientation-conditioned q20/q80 boundaries and strict
+  leave-one-video-out evaluation. Held-video overlap is zero; median IoU is
+  0.727, manual-area coverage 0.986, compact-spot energy coverage 1.000 and
+  circular-edge intrusion 0.
+- V5 tracking remains internal. The best V5 physical-cycle candidate is
+  locally refined in the actual model-input ROI using compact spot energy,
+  column alignment and horizontal spread. For 6056 this changes candidate
+  frame 146 to frame 160, versus human frame 161. Only this supported cycle
+  is predicted during complete-video replay.
+- ReplayWorker now constructs the 16-frame clip only from
+  `selection.model_input_roi`. The UI shows one cyan
+  `模型输入 / 完整点阵 ROI`; tracking and conservative audit ROIs remain
+  explicit in session provenance but are not presented as model inputs.
+- UI main confidence now reports the error-related M14i model confidence,
+  comparable in definition to the frozen LOO confidence. Input quality and
+  the more conservative combined score remain separately visible.
+- Corrected 6056 raw-video smoke: Rq 3.0484 nm versus measured 3.2254
+  (absolute error 0.1770), FSMI 2.9172 nm, model confidence 90.4%,
+  non-clipped support and generated-map Rq 3.0484 nm. The prior faulty frame
+  203 gave Rq 1.2270 nm, model confidence 1.0% and combined confidence 4.0%.
+- Cross-sample 6063 sanity: refined frame 187 versus human 186, Rq
+  5.3935 nm and model confidence 45.9%, versus the initial tracking-input
+  smoke's 5.2082 nm and 38.2%.
+- Realtime/selector tests pass 16/16. Corrected 1540x980 Qt offscreen
+  rendering and headless 6056/6063 raw-MOV runs pass. No raw or standalone
+  file was modified.
+
 ## Simulated real-time RHEED→AFM UI (2026-07-29)
 
 - Working branch:

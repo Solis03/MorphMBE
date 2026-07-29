@@ -7,7 +7,8 @@
 
 1. 从 `data/raw/raw_RHEED` 只读发现原始视频；
 2. 在下拉菜单中选择样品编号和视频；
-3. V7 估计完整点阵 ROI，V5 DINOv2-S 排除阴影和模糊旋转顶点；
+3. V5 DINOv2-S 在内部 tracking ROI 中定位旋转周期，V8 在完整点阵区域
+   细化顶点并给出模型输入 ROI；
 4. 在顶点之后等待 8 帧，构造与冻结模型一致的时序输入；
 5. M14i 输出 Rq、FSMI、经验预测区间和误差相关置信度；
 6. M12a 随机岛屿/台阶生成器输出新的 AFM 高度场；
@@ -58,9 +59,21 @@ outputs/rheed_realtime_ui/morphmbe_m14i_m12a_live_v1.joblib
 - `selected_16`：`k-7 ... k+8`，用于 M12a 的形貌条件分支；
 - 预测触发时刻为收到 `k+8` 后，因此没有偷看尚未进入模拟流的图像。
 
-所有帧都使用内部 tracking ROI 转为亮度图，再保持纵横比缩放、零填充到
-`224×224`。绿色完整点阵 ROI 用于 UI 显示；橙色 tracking ROI 用于模型，
-因为它更接近冻结训练数据的裁剪分布。
+所有帧都使用青色的 **V8 模型输入 / 完整点阵 ROI** 转为亮度图，再保持
+纵横比缩放、零填充到 `224×224`。内部 V5 tracking ROI 只负责提取亮斑轨迹
+和提出物理顶点候选，绝不进入 M14i/M12a。V7 的更保守完整点阵框只保存在
+session 里作为审计边界，不在主界面叠加，避免把三个用途不同的矩形误解成
+两个模型输入。
+
+V8 的四边界来自 25 个 removelist-compliant 视频的 20%/80% 稳健分位校准。
+严格 leave-one-video-out 中，held-video overlap 为 0，点阵峰覆盖率中位数
+为 100%，目镜圆边侵入率为 0。它在“完整点阵覆盖”和“匹配冻结模型的人工
+裁剪分布”之间做了专门的部署折中。
+
+关键帧也不再直接等同于内部 V5 候选。程序先选最可信的旋转周期，再在一个
+周期的局部邻域内按完整点阵质量细化：奖励高点状能量、纵向列对齐和低水平
+展宽，排除“少数亮点很亮、但阵列不完整”的帧。6056 从 V5 候选 146 细化到
+160，人工参考为 161。
 
 ## 4. 模型
 
@@ -83,11 +96,14 @@ outputs/rheed_realtime_ui/morphmbe_m14i_m12a_live_v1.joblib
 
 ## 5. 置信度与支持范围
 
-界面中的 confidence 是“误差相关支持指数”，不是正确概率：
+界面主卡片和时间曲线中的 confidence 是 M14i 的“误差相关模型支持指数”，
+不是正确概率：
 
 - M14i 使用训练域时序支持、外推风险和历史 LOO 误差估计 Rq/FSMI 置信度；
-- V5 给出关键帧可见度质量；
-- 综合置信度是两类标量置信度和关键帧质量的几何平均；
+- 主 confidence 是 Rq/FSMI 置信度的几何平均，因此与冻结 LOO 图表中的
+  模型置信度定义一致；
+- V5/V8 给出独立的输入质量；
+- 指标卡小字另列包含输入质量的保守综合 confidence；
 - 点的颜色从红到绿表示低到高置信度；
 - 指标卡同时显示预计绝对误差和经验 90% 区间。
 
@@ -110,7 +126,8 @@ outputs/rheed_realtime_ui/morphmbe_m14i_m12a_live_v1.joblib
 - 推理线程按事件处理约 3.8–4.3 秒；
 - 推理队列最多保留一个待处理事件；
 - 队列满时跳过该旋转周期并在日志中明确记录，防止越积越慢；
-- V5 可见度质量低于配置阈值的周期不会触发预测。
+- 当前 replay 只保留全视频中最可信的周期，并在完整点阵 ROI 内局部细化；
+  阴影周期不再覆盖已经得到的高支持结果。
 
 ## 7. Session 输出
 
@@ -125,13 +142,16 @@ outputs/rheed_realtime_ui/sessions/
       event_XXXXXX.npz
 ```
 
-CSV 保存时间、Rq/FSMI、预计误差、区间、三种置信度、推理延迟、支持约束标记和
-生成文件路径。NPZ 保存真实 nm 高度场和无量纲单位-Rq 形貌。
+`session.json` 明确保存 `model_input_roi`、
+`internal_tracking_roi_not_model_input` 和
+`conservative_audit_roi_not_model_input` 三种角色。CSV 保存时间、Rq/FSMI、
+预计误差、区间、三种置信度、推理延迟、支持约束标记和生成文件路径。NPZ
+保存真实 nm 高度场和无量纲单位-Rq 形貌。
 
 ## 8. 当前边界
 
 - 当前版本是完整的 raw-video 模拟实时界面。为了复用已经严格验证的 V5
-  “全视频中选清晰周期”能力，播放前有一次约 28 秒的分析通道。
+  “全视频中选清晰周期”能力，播放前有一次约 20–30 秒的分析通道。
 - 工业相机选项已在 UI 中预留，但真正的相机部署还需把 V5 候选排序改成因果
   滑动窗口，并接入相机 SDK/帧时间戳。
 - 23 样品部署缓存使用全部允许样品拟合。回放这些历史样品用于工程演示，不是
@@ -144,9 +164,9 @@ CSV 保存时间、Rq/FSMI、预计误差、区间、三种置信度、推理延
 ```bash
 PYTHONPATH=src:. .venv/bin/python \
   scripts/smoke_rheed_realtime_pipeline.py \
-  "data/raw/raw_RHEED/N6063/rampdown to 300C.MOV" \
-  --sample-id 6063 \
-  --output-dir outputs/rheed_realtime_ui/20260729_6063_end_to_end
+  "data/raw/raw_RHEED/N6056 - Copy/After rampdown to 200 C.MOV" \
+  --sample-id 6056 \
+  --output-dir outputs/rheed_realtime_ui/20260729_6056_roi_alignment_fix_v8_final
 ```
 
 该命令保存自动 ROI、全部保留事件、选定关键帧、多帧模型输入、生成 AFM、

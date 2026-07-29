@@ -55,6 +55,18 @@ METHODS = {
         "grouped": False,
         "quantiles": (0.50, 0.50, 0.50, 0.50),
     },
+    "v8_orientation_model_input_q25_q75": {
+        "grouped": True,
+        "quantiles": (0.25, 0.75, 0.25, 0.75),
+    },
+    "v8_orientation_model_input_q20_q80": {
+        "grouped": True,
+        "quantiles": (0.20, 0.80, 0.20, 0.80),
+    },
+    "v8_orientation_model_input_q15_q85": {
+        "grouped": True,
+        "quantiles": (0.15, 0.85, 0.15, 0.85),
+    },
     "v7_global_conservative_q10_q90": {
         "grouped": False,
         "quantiles": (0.10, 0.90, 0.10, 0.90),
