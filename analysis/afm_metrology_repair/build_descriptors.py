@@ -19,8 +19,11 @@ def run(config_path: str | Path) -> dict[str, object]:
     manifest, audit, descriptors = build_afm_manifest(config)
     folds = make_group_folds(manifest, config)
     groups = sorted(manifest["growth_run_id"].astype(str).unique())
-    if len(groups) != 23:
-        raise RuntimeError(f"expected 23 corrected groups, found {len(groups)}")
+    expected = int(config.get("expected_growth_count", 23))
+    if len(groups) != expected:
+        raise RuntimeError(
+            f"expected {expected} corrected groups, found {len(groups)}"
+        )
     if manifest["afm_file_id"].duplicated().any():
         raise RuntimeError("duplicate AFM file IDs remain after metrology audit")
     if manifest["source_array_hash"].duplicated().any():

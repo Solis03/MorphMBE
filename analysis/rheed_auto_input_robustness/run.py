@@ -14,9 +14,19 @@ import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
 from analysis.rheed_to_afm_functional_morphology.run import _physics_table
+from analysis.rheed_to_afm_functional_morphology.metrics import (
+    group_metric_table,
+    scan_metric_table,
+)
+from analysis.rheed_to_afm_full_cohort_loo.run import (
+    _target_series,
+    prepare_full_cohort,
+)
+from analysis.rheed_to_afm_generation.run import _load_tables
 from analysis.rheed_to_afm_ood_robust.prediction import (
     R3D_TEMPORAL,
     CandidateConfig,
+    crossfit_robust_candidates,
 )
 from analysis.rheed_video_afm_story.publication_style import (
     set_publication_style,
@@ -145,6 +155,7 @@ def _plot_predictions(
     predictions: pd.DataFrame,
     figure_root: Path,
 ) -> None:
+    cohort_count = int(predictions["growth_run_id"].nunique())
     figure, axes = plt.subplots(
         1, 2, figsize=(8.4, 3.8), constrained_layout=True
     )
@@ -188,7 +199,7 @@ def _plot_predictions(
         axis.set_xlabel(f"Measured {display} (nm)")
         axis.set_ylabel(f"Predicted {display} (nm)")
         axis.set_title(
-            f"{display}: strict 23-fold automatic-input LOO"
+            f"{display}: strict {cohort_count}-fold automatic-input LOO"
         )
         axis.grid(alpha=0.18)
     assert scatter is not None
@@ -358,8 +369,12 @@ def _plot_all_sample_predictions(
 ) -> None:
     """Show every held growth in fixed measured-value order."""
 
+    cohort_count = int(predictions["growth_run_id"].nunique())
     figure, axes = plt.subplots(
-        2, 1, figsize=(9.4, 6.5), constrained_layout=True
+        2,
+        1,
+        figsize=(max(9.4, 0.34 * cohort_count), 6.5),
+        constrained_layout=True,
     )
     scatter = None
     for axis, target in zip(axes, ("Rq_nm", "FSMI_nm")):
@@ -417,7 +432,7 @@ def _plot_all_sample_predictions(
         )
         axis.set_ylabel(f"{display} (nm)")
         axis.set_title(
-            f"{display}: all 23 automatic-input held folds"
+            f"{display}: all {cohort_count} automatic-input held folds"
         )
         axis.grid(axis="y", alpha=0.18)
     axes[0].legend(loc="upper left", ncols=2, fontsize=8)
@@ -433,8 +448,74 @@ def _plot_all_sample_predictions(
     )
     _save_figure(
         figure,
-        figure_root / "Fig6_all23_ordered_predictions",
+        figure_root / f"Fig6_all{cohort_count}_ordered_predictions",
     )
+
+
+def _expanded_prior_and_targets(
+    *,
+    config: dict[str, Any],
+    payload: Any,
+    groups: list[str],
+    view_names: list[str],
+    physics: pd.DataFrame,
+    candidate_config: CandidateConfig,
+    report_root: Path,
+) -> tuple[pd.DataFrame, dict[str, pd.Series]]:
+    """Build same-cohort strict LOO baselines and targets for an expansion.
+
+    This path avoids importing the historical human-selection comparison,
+    which cannot cover newly acquired automatic-only growths.  Method
+    hyperparameters remain frozen; every candidate head is refit on the other
+    growths inside each outer fold.
+    """
+
+    cohort_config = _load_config(config["cohort_config"])
+    tables = _load_tables(cohort_config)
+    descriptors, _ = prepare_full_cohort(tables, cohort_config)
+    scan_metrics = scan_metric_table(
+        descriptors,
+        scan_size_nm=float(cohort_config["scan_size_nm"]),
+        analysis_scale_nm=float(cohort_config["analysis_scale_nm"]),
+    )
+    group_metrics = group_metric_table(scan_metrics)
+    log_rq, log_fsmi = _target_series(descriptors, group_metrics)
+    targets = {"Rq_nm": log_rq, "FSMI_nm": log_fsmi}
+    if set(log_rq.index) != set(groups) or set(log_fsmi.index) != set(groups):
+        raise RuntimeError("expanded AFM targets do not match perturbation groups")
+    base_index = view_names.index("base")
+    embeddings = pd.DataFrame(
+        np.asarray(payload["embeddings"][:, base_index], dtype=np.float32),
+        index=groups,
+    )
+    frames: list[pd.DataFrame] = []
+    target_records: list[dict[str, Any]] = []
+    for target_name, log_target in targets.items():
+        log_target = log_target.loc[groups]
+        baseline, _, _ = crossfit_robust_candidates(
+            physics=physics,
+            embeddings=embeddings,
+            log_target=log_target,
+            config=candidate_config,
+            confidence_alpha=float(config.get("confidence_alpha", 0.10)),
+        )
+        baseline.insert(0, "target", target_name)
+        frames.append(baseline)
+        for group in groups:
+            target_records.append(
+                {
+                    "growth_run_id": group,
+                    "target": target_name,
+                    "true_target": float(np.exp(log_target.loc[group])),
+                    "outer_fold_unit": "growth_run_id",
+                }
+            )
+    prior = pd.concat(frames, ignore_index=True)
+    prior.to_csv(report_root / "expanded_head_baselines.csv", index=False)
+    pd.DataFrame(target_records).to_csv(
+        report_root / "expanded_afm_targets.csv", index=False
+    )
+    return prior, targets
 
 
 def main() -> None:
@@ -463,11 +544,6 @@ def main() -> None:
     if set(groups) & set(map(str, config["excluded_growths"])):
         raise RuntimeError("excluded growth entered robustness cohort")
 
-    prior = pd.read_csv(
-        ROOT / config["prior_comparison_report"]
-        / "machine_robust_crossfit_predictions.csv",
-        dtype={"growth_run_id": str},
-    )
     target_parameters = json.loads(
         (ROOT / config["target_parameters"]).read_text(encoding="utf-8")
     )
@@ -483,12 +559,44 @@ def main() -> None:
             target_parameters["baseline_morphology_weight"]
         ),
     )
+    physics_path = config.get("confidence_physics")
+    if physics_path is None:
+        physics_path = output_root / "physics_roi_strict_loo_features.csv"
     physics = _physics_table(
         pd.read_csv(
-            output_root / "physics_roi_strict_loo_features.csv",
+            ROOT / physics_path
+            if isinstance(physics_path, str)
+            else physics_path,
             dtype={"sample_id": str, "growth_run_id": str},
         )
     ).loc[groups]
+    if config.get("cohort_config"):
+        prior, target_series = _expanded_prior_and_targets(
+            config=config,
+            payload=payload,
+            groups=groups,
+            view_names=view_names,
+            physics=physics,
+            candidate_config=candidate_config,
+            report_root=report_root,
+        )
+    else:
+        prior = pd.read_csv(
+            ROOT / config["prior_comparison_report"]
+            / "machine_robust_crossfit_predictions.csv",
+            dtype={"growth_run_id": str},
+        )
+        target_series = {
+            target: np.log(
+                prior.loc[
+                    (prior["target"] == target)
+                    & (prior["method"] == R3D_TEMPORAL)
+                ]
+                .set_index("growth_run_id")
+                .loc[groups, "true_target"]
+            )
+            for target in ("Rq_nm", "FSMI_nm")
+        }
     selection = pd.read_csv(
         ROOT / config["selection_table"],
         dtype={"growth_run_id": str},
@@ -501,7 +609,7 @@ def main() -> None:
             (prior["target"] == target)
             & (prior["method"] == R3D_TEMPORAL)
         ].set_index("growth_run_id").loc[groups]
-        log_target = np.log(target_rows["true_target"])
+        log_target = target_series[target].loc[groups]
         outer_rows, inner_rows = crossfit_r3d_stability_confidence(
             perturbation_embeddings=payload["embeddings"],
             view_names=view_names,
@@ -661,8 +769,9 @@ def main() -> None:
         "groups": groups,
         "excluded_growths": config["excluded_growths"],
         "point_prediction_method": R3D_TEMPORAL,
-        "selection_evidence": (
-            "selected by inner CV in all 23 outer folds for both targets"
+        "selection_evidence": config.get(
+            "selection_evidence",
+            "selected by inner CV in all outer folds for both targets",
         ),
         "confidence_method": (
             "strictly nested 75% predicted-amplitude support + 25% "

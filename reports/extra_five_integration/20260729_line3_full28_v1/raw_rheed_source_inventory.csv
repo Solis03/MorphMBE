@@ -1,0 +1,29 @@
+sample_id,raw_rheed_video,raw_rheed_sha256,size_bytes,mtime_ns,selected_for_modeling,selection_reason,integrity_scope,raw_data_modified
+N6342,data/compressedfile/N6342/End of GaSb and AlGaSb 2 min.imm,,9994899840,1755475882000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6342,data/compressedfile/N6342/Ramp down to 200C.avi,44d5fd8442380d2e8cbbc7481461c104b6645160518de557da841f760c659986,3331455488,1783805054000000000,True,lossless final rampdown recording selected,full_sha256,False
+N6342,data/compressedfile/N6342/Ramp down to 200C.imm,,6664275840,1755476110000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6342,data/compressedfile/N6342/Ramp down to 200C.mpg,,59848230,1784131356000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6358,data/compressedfile/N6358/After rampdown to 200C.imm,,3333651840,1757351922000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6358,data/compressedfile/N6358/After rampdown to 200C.mpg,d619da57a111b1cfbdd226181550aa782b40646e6bd88b35fbb64e3c940a86c4,29775164,1784131476000000000,True,only directly decodable final rampdown recording,full_sha256,False
+N6358,data/compressedfile/N6358/End of AlSb.imm,,3333651840,1757347684000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6358,data/compressedfile/N6358/Movie1.imm,,2281282349,1779228634000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6358,data/compressedfile/N6358/at 300C after oxide desorption.imm,,6664275840,1757345762000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6358,data/compressedfile/N6358/at 900C CAR.imm,,6664275840,1757342632000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6382,data/compressedfile/N6382/AlSb_5 min.imm,,16656147840,1765478960000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6382,data/compressedfile/N6382/Before GaSb growth.imm,,3333651840,1765480158000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6382,data/compressedfile/N6382/GaSb 5 min.imm,,16656147840,1765480522000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6382,data/compressedfile/N6382/N6382 - Rampdown to 200C.avi,8b160e37cd9622341f6cc92d83f9246246878cda262dd5561d4821533db5245a,1666504192,1783805398000000000,True,lossless final rampdown recording selected,full_sha256,False
+N6382,data/compressedfile/N6382/Rampdown to 200C.imm,,3333651840,1765481818000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6382,data/compressedfile/N6382/Rampdown to 200C.mpg,,31023580,1784131546000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6382,data/compressedfile/N6382/after 14 min of GaSb.imm,,3294289920,1765481136000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6382,data/compressedfile/N6382/last 1 min of AlSb.imm,,3333651840,1765479380000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6389,data/compressedfile/N6389/2minRamp_3 minGaSb.imm,,16653120000,1765906028000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6389,data/compressedfile/N6389/AlSb_last 3 min.imm,,9994899840,1765904868000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6389,data/compressedfile/N6389/Rampdown to 300C.avi,df4437c08ecd81966f5bb0cc56faa2715b0a5fa6106ef9e0c3c1146db0d857cc,2620059648,1783805510000000000,True,lossless final rampdown recording selected,full_sha256,False
+N6389,data/compressedfile/N6389/Rampdown to 300C.imm,,5241191040,1765907272000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6389,data/compressedfile/N6389/Rampdown to 300C.mpg,,45732938,1784131802000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6390,data/compressedfile/N6390/AlSb_4 min.imm,,16656147840,1765916384000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6390,data/compressedfile/N6390/Started before 1 min of GaSb.imm,,16653120000,1765917874000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6390,data/compressedfile/N6390/rampdon to 200c.avi,429ba621d446d3726f5a39225957838da3cceb103facf51039d206a6410ec849,1666504192,1783805546000000000,True,lossless final rampdown recording selected,full_sha256,False
+N6390,data/compressedfile/N6390/rampdon to 200c.imm,,3333651840,1765920836000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False
+N6390,data/compressedfile/N6390/rampdon to 200c.mpg,,29972688,1784131940000000000,False,retained raw alternative; not used,inventory_only_size_and_mtime,False

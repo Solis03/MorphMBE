@@ -1066,3 +1066,110 @@ is retrospective cross-validation rather than a prospective external test.
   `reports/afm_metrology_line3_v1/FINAL_RETRAIN_REPORT.md`.
 - Local implementation/results commit:
   `b063d5e` (`repair AFM metrology and retrain corrected models`).
+
+---
+
+## Extra-five line-3 expansion and generated AFM audit — 2026-07-29
+
+Status: completed locally on branch
+`codex/afm-extra-five-line3-20260729`.
+
+### Requested scope
+
+- [x] Preserve all prior freezes and the completed 23-growth metrology repair.
+- [x] Consolidate the second-batch RHEED/AFM sources without modifying raw data.
+- [x] Explicitly exclude N6324; include N6342, N6358, N6382, N6389 and N6390.
+- [x] Resolve the `M6358` source-folder alias to canonical sample ID `N6358`.
+- [x] Harmonize each 2 × 2 µm AFM scan to non-overlapping 1 × 1 µm subfields
+  before third-order per-scan-line flattening; keep all subfields within their
+  growth group for every split.
+- [x] Rebuild AFM descriptors, automatic RHEED clips, embeddings and manifests
+  for the combined cohort.
+- [x] Re-run strict leave-one-growth-out Sq/FSMI prediction and confidence.
+- [x] Re-fit M10 and M12a inside every outer fold and save generated AFM maps.
+- [x] Produce all-sample and extra-five-specific AFM visualizations, scalar
+  plots, failure panels and an auditable final report.
+- [x] Update the realtime UI deployment bundle only after the expanded
+  experiment passes integrity checks.
+- [x] Verify raw-source hashes, tests, leakage boundaries and the final diff;
+  create local commits only and do not push.
+
+### Safety decisions
+
+- `data/compressedfile` and `data/AFM-extra-five` are immutable raw-source
+  roots for this task.
+- Existing `*_extra_five` folders are retained as historical derived data.
+  Cleanup is additive: a canonical versioned derived root and a provenance
+  manifest will supersede the scattered folders without deleting them.
+- N6324 may appear only in the exclusion/provenance audit and must never enter
+  descriptors, training, validation, generation, confidence calibration or UI
+  deployment.
+
+### Final cohort and metrology
+
+- Canonical derived root: `data/extra_five_consolidated_v1`.
+- Accepted extra growths: N6342, N6358, N6382, N6389 and N6390.
+- Extra AFM inputs: 26 raw 2 × 2 µm ZSensor scans, yielding 104
+  non-overlapping 1 × 1 µm subfields after line-3 flattening.
+- Combined AFM cohort: 214 1 × 1 µm scans across 28 growth groups.
+- N6324's five raw AFM scans remain in the source inventory with decision
+  `excluded`; N6324 is absent from all 28-group modeling artifacts.
+- The legacy machine-readable key `Rq_nm` is retained only for API
+  compatibility; its audited line-3 value is the areal RMS height Sq. Figures,
+  report prose and the UI label it Sq.
+
+### Strict full-28 evidence
+
+- Outer protocol: leave one complete growth out, fit 27, repeat 28 times.
+- M15b Sq: MAE 1.284 nm, Pearson r 0.661 (p=0.000130),
+  Spearman rho 0.506 (p=0.00598).
+- M15b FSMI: MAE 1.134 nm, Pearson r 0.661 (p=0.000128),
+  Spearman rho 0.499 (p=0.00692).
+- Sq confidence versus absolute error: Spearman rho -0.529 (p=0.00381).
+  FSMI has the expected negative direction (-0.362) but is only borderline
+  at p=0.0581.
+- Extra-five-only MAE is 0.585 nm for Sq and 0.536 nm for FSMI, but
+  within-five Pearson correlations are negative because this small batch has a
+  narrow low-roughness range. This limitation is reported explicitly.
+- Adding the extra batch does not improve the original-23 subset:
+  Sq/FSMI MAE becomes 1.436/1.265 nm versus 1.090/0.980 nm in the prior
+  23-only M15b run.
+
+### Generated AFM evidence
+
+- Both fixed generators save four 128 × 128 draws for every held growth.
+- M10 full-28 texture-gate pass is 96.4%, median sharpness ratio 0.821,
+  median island-feature MAE 1.421 z.
+- M12a full-28 texture-gate pass is 78.6%, median sharpness ratio 0.724,
+  median island-feature MAE 1.772 z.
+- M10 is therefore the stronger expanded-cohort image-metric comparator.
+  M12a remains in the live UI for frozen-version continuity; both result
+  families and a direct extra-five comparison figure are preserved.
+- Exact training-pixel equality is zero; retrieval and measured AFM patch use
+  at inference are false for all maps.
+- High-Sq amplitude compression and failure to resolve the fine ordering of
+  the extra five remain scientific limitations.
+
+### Final verification and deployment
+
+- Raw integrity: 31/31 extra AFM files match full SHA-256; five selected RHEED
+  videos match full SHA-256; all 28 RHEED inventory entries match size/mtime.
+- Leakage/integrity: 28 folds, 27 fit growths per fold, zero held overlap;
+  28 generated map files and 56 scalar target rows; N6324 absent everywhere.
+- Rebuilt M15b prediction SHA-256:
+  `b7da65b1bd73516ad50fd0a21f6aed9570e7da0fc3380fe14f2922fb9453deb7`.
+- Changed-component test suite: 29/29 passed. The broader historical
+  `tests/` collection reports 366 passes, 24 failures and 6 errors. All
+  non-passing cases are outside this change and are attributable to missing
+  historical paper-freeze manifests, missing peak/saddle and human-review
+  checkpoints, or the optional unavailable Parquet reader dependency; none
+  is suppressed or represented as passing.
+- All 24 delivered full-28 PDF figures are valid one-page PDFs; representative
+  rasterized PDF inspection has no clipped or overlapping labels.
+- Default UI now uses the additive 28-growth v5 deployment bundle; the prior
+  full-23 v4 config remains at
+  `configs/rheed_realtime_ui_line3_full23_v4.json`.
+- Real 6056 replay smoke: frame 160, Sq 1.66 nm, FSMI 1.39 nm,
+  model confidence 72%, inference 6.52 s, retrieval false.
+- Final report:
+  `reports/extra_five_integration/20260729_line3_full28_v1/FULL28_GENERATION_REPORT.md`.

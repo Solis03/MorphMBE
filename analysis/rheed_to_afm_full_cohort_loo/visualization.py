@@ -36,11 +36,14 @@ from .run import load_config, load_source_tables
 
 
 SOURCE_COLORS = {
-    "train": "#0072B2",
-    "val": "#E69F00",
-    "test": "#CC79A7",
+    "original_23_batch": "#0072B2",
+    "extra_five_batch": "#E69F00",
 }
-SOURCE_MARKERS = {"train": "o", "val": "s", "test": "^"}
+SOURCE_MARKERS = {"original_23_batch": "o", "extra_five_batch": "D"}
+SOURCE_LABELS = {
+    "original_23_batch": "original 23-sample batch",
+    "extra_five_batch": "second-batch extra five",
+}
 
 
 def _read(path: Path) -> pd.DataFrame:
@@ -88,9 +91,11 @@ def _external_target_confidence(
     fsmi = selected.loc[selected["target"] == "FSMI_nm"].set_index(
         "growth_run_id"
     )
-    if set(rq.index) != set(fsmi.index) or len(rq) != 23:
+    expected = int(fallback["growth_run_id"].astype(str).nunique())
+    if set(rq.index) != set(fsmi.index) or len(rq) != expected:
         raise RuntimeError(
-            "external target confidence does not cover all 23 growths"
+            "external target confidence does not cover the full cohort: "
+            f"expected {expected}, found Sq={len(rq)}, FSMI={len(fsmi)}"
         )
     result = fallback.set_index("growth_run_id").loc[rq.index].copy()
     result["joint_confidence_index"] = (
@@ -124,7 +129,7 @@ def _source_scatter(
     confidence: pd.Series,
 ) -> mpl.collections.PathCollection:
     last: mpl.collections.PathCollection | None = None
-    for source, rows in table.groupby("source_split"):
+    for source, rows in table.groupby("cohort_origin"):
         last = axis.scatter(
             rows["true_target"],
             rows["predicted_target"],
@@ -136,7 +141,7 @@ def _source_scatter(
             s=52,
             edgecolor=SOURCE_COLORS.get(str(source), "black"),
             linewidth=1.2,
-            label=f"old {source} provenance",
+            label=SOURCE_LABELS.get(str(source), str(source)),
             zorder=3,
         )
     if last is None:
@@ -153,6 +158,7 @@ def plot_full_atlas(
     fsmi: pd.DataFrame,
     confidence: pd.DataFrame,
     method: str,
+    cohort_count: int,
 ) -> list[str]:
     groups = list(
         rq.sort_values("true_target")["growth_run_id"].astype(str)
@@ -171,11 +177,12 @@ def plot_full_atlas(
             confidence=confidence,
             method=method,
             title=(
-                "Full 23-growth retrospective LOO: RHEED → generated AFM "
+                f"Full {cohort_count}-growth retrospective LOO: "
+                "RHEED → generated AFM "
                 f"→ measured AFM ({page}/{pages}; C is relative, not a probability)"
             ),
         )
-        stem = f"Fig1{chr(96 + page)}_full23_loo_atlas"
+        stem = f"Fig1{chr(96 + page)}_full{cohort_count}_loo_atlas"
         _save(figure, figure_dir / stem)
         stems.append(stem)
     return stems
@@ -188,11 +195,12 @@ def plot_target_scatter(
     fsmi: pd.DataFrame,
     confidence: pd.DataFrame,
     source: pd.DataFrame,
+    cohort_count: int,
 ) -> None:
     conf = confidence.set_index("growth_run_id")[
         "joint_confidence_index"
     ]
-    source_map = source.set_index("growth_run_id")["source_split"]
+    source_map = source.set_index("growth_run_id")["cohort_origin"]
     figure, axes = plt.subplots(
         1, 2, figsize=(9.0, 4.0), constrained_layout=True
     )
@@ -200,7 +208,7 @@ def plot_target_scatter(
         (axes[0], rq.copy(), "Sq (nm)"),
         (axes[1], fsmi.copy(), "FSMI (nm)"),
     ):
-        values["source_split"] = values["growth_run_id"].map(source_map)
+        values["cohort_origin"] = values["growth_run_id"].map(source_map)
         scatter = _source_scatter(axis, values, conf)
         lower = (
             values["predicted_target"] - values["interval_lower"]
@@ -252,11 +260,15 @@ def plot_target_scatter(
     colorbar = figure.colorbar(scatter, ax=axes, shrink=0.82)
     colorbar.set_label("cross-fitted confidence index (0–100)")
     figure.suptitle(
-        "Every point is held out once (22 growths fit, one predicted)",
+        f"Every point is held out once ({cohort_count - 1} growths fit, "
+        "one predicted)",
         fontsize=11,
         fontweight="bold",
     )
-    _save(figure, figure_dir / "Fig2_full23_target_scatter")
+    _save(
+        figure,
+        figure_dir / f"Fig2_full{cohort_count}_target_scatter",
+    )
 
 
 def plot_protocol_comparison(
@@ -264,14 +276,17 @@ def plot_protocol_comparison(
     figure_dir: Path,
     comparison: pd.DataFrame,
     current_method_label: str = "M13",
+    cohort_count: int = 23,
 ) -> None:
+    fit_count = cohort_count - 1
     labels = {
         "prior_M12_strict15_train14": "M12: 15-growth LOO\n(14 fit)",
-        "new_M13_full23_train22_same15": (
-            f"{current_method_label}: same 15 points\n(22 fit)"
+        f"new_M13_full{cohort_count}_train{fit_count}_same15": (
+            f"{current_method_label}: same 15 points\n({fit_count} fit)"
         ),
-        "new_M13_full23_train22_all23": (
-            f"{current_method_label}: all 23 points\n(22 fit)"
+        f"new_M13_full{cohort_count}_train{fit_count}_all{cohort_count}": (
+            f"{current_method_label}: all {cohort_count} points\n"
+            f"({fit_count} fit)"
         ),
     }
     metrics = [
@@ -332,6 +347,7 @@ def plot_rq_order(
     figure_dir: Path,
     rq: pd.DataFrame,
     confidence: pd.DataFrame,
+    cohort_count: int,
 ) -> None:
     conf = confidence.set_index("growth_run_id")[
         "joint_confidence_index"
@@ -390,7 +406,7 @@ def plot_rq_order(
     axis.legend(frameon=False, loc="upper left")
     colorbar = figure.colorbar(line, ax=axis, pad=0.02)
     colorbar.set_label("confidence index")
-    _save(figure, figure_dir / "Fig4_full23_rq_ordered")
+    _save(figure, figure_dir / f"Fig4_full{cohort_count}_rq_ordered")
 
 
 def plot_confidence_audit(
@@ -581,10 +597,134 @@ def plot_largest_failures(
     _save(figure, figure_dir / "Fig7_largest_error_cases")
 
 
+def plot_highlighted_growths(
+    *,
+    figure_dir: Path,
+    output: Path,
+    phase1: pd.DataFrame,
+    rq: pd.DataFrame,
+    fsmi: pd.DataFrame,
+    confidence: pd.DataFrame,
+    method: str,
+    groups: list[str],
+) -> None:
+    if not groups:
+        return
+    available = set(rq["growth_run_id"].astype(str))
+    missing = sorted(set(groups) - available)
+    if missing:
+        raise RuntimeError(
+            f"highlighted growths are absent from predictions: {missing}"
+        )
+    figure = _comparison_figure(
+        groups=groups,
+        split="crossfit",
+        output=output,
+        phase1=phase1,
+        rq_predictions=rq,
+        fsmi_predictions=fsmi,
+        confidence=confidence,
+        method=method,
+        title=(
+            "Second-batch extra-five strict LOO: automatic RHEED → "
+            "generated AFM → measured 1 µm AFM subfield"
+        ),
+    )
+    _save(figure, figure_dir / "Fig8_extra_five_generated_afm")
+
+
+def plot_highlighted_renderer_comparison(
+    *,
+    figure_dir: Path,
+    output: Path,
+    phase1: pd.DataFrame,
+    rq: pd.DataFrame,
+    groups: list[str],
+    selected_method: str,
+) -> None:
+    if not groups:
+        return
+    lookup = rq.set_index("growth_run_id")
+    figure, axes = plt.subplots(
+        len(groups),
+        4,
+        figsize=(11.0, 2.75 * len(groups)),
+        constrained_layout=True,
+        squeeze=False,
+    )
+    for row_index, group in enumerate(groups):
+        rheed = _rheed_keyframe(phase1, group)
+        m10, _ = _generated(
+            output, split="crossfit", method=M10, group=group
+        )
+        m12a, _ = _generated(
+            output,
+            split="crossfit",
+            method=selected_method,
+            group=group,
+        )
+        real = _real_afm(phase1, group)
+        real_label = _real_afm_label(phase1, group)
+        scale = np.concatenate([m10.ravel(), m12a.ravel(), real.ravel()])
+        vmin, vmax = np.quantile(scale, [0.01, 0.99])
+        axes[row_index, 0].imshow(rheed, cmap="gray")
+        axes[row_index, 0].set_xticks([])
+        axes[row_index, 0].set_yticks([])
+        axes[row_index, 0].set_title(
+            f"{group} RHEED\nmeasured median Sq="
+            f"{lookup.loc[group, 'true_target']:.2f} nm",
+            fontsize=8.2,
+        )
+        _surface_panel(
+            axes[row_index, 1],
+            m10,
+            vmin=float(vmin),
+            vmax=float(vmax),
+            title=(
+                "M10 dense-island spectral\n"
+                f"predicted Sq={lookup.loc[group, 'predicted_target']:.2f} nm"
+            ),
+        )
+        image = _surface_panel(
+            axes[row_index, 2],
+            m12a,
+            vmin=float(vmin),
+            vmax=float(vmax),
+            title="M12a edge-preserving terrace",
+        )
+        _surface_panel(
+            axes[row_index, 3],
+            real,
+            vmin=float(vmin),
+            vmax=float(vmax),
+            title=(
+                "measured AFM\n"
+                f"scan Sq={real_label['displayed_scan_sq_nm']:.2f} nm; "
+                f"median={real_label['sample_median_sq_nm']:.2f} ± "
+                f"{real_label['sample_sq_iqr_nm']:.2f} nm IQR"
+            ),
+        )
+        colorbar = figure.colorbar(
+            image,
+            ax=axes[row_index, 1:],
+            fraction=0.025,
+            pad=0.01,
+        )
+        colorbar.set_label("height (nm)")
+    figure.suptitle(
+        "Second-batch extra-five renderer comparison under identical "
+        "strict-LOO scalar conditioning",
+        fontsize=11,
+        fontweight="bold",
+    )
+    _save(figure, figure_dir / "Fig9_extra_five_renderer_comparison")
+
+
 def run(config: dict[str, Any]) -> None:
     _style()
-    output = repo_path(config["output_root"]) / "full23_loo"
-    report = repo_path(config["report_root"]) / "full23_loo"
+    suffix = str(config.get("full_run_suffix", "full23_loo"))
+    output = repo_path(config["output_root"]) / suffix
+    report = repo_path(config["report_root"]) / suffix
     figure_dir = report / "figures"
     tables = load_source_tables(config)
     phase1 = tables["phase1"].copy()
@@ -603,6 +743,16 @@ def run(config: dict[str, Any]) -> None:
             ),
         )
     cohort = _read(report / "cohort_manifest.csv")
+    cohort_count = int(cohort["growth_run_id"].nunique())
+    if "cohort_origin" not in cohort.columns:
+        extra_batch = set(
+            map(str, config.get("extra_batch_growths", []))
+        )
+        cohort["cohort_origin"] = np.where(
+            cohort["growth_run_id"].astype(str).isin(extra_batch),
+            "extra_five_batch",
+            "original_23_batch",
+        )
     comparison = pd.read_csv(
         report / "comparison_to_prior15_targets.csv"
     )
@@ -616,6 +766,7 @@ def run(config: dict[str, Any]) -> None:
         fsmi=fsmi,
         confidence=confidence,
         method=selected,
+        cohort_count=cohort_count,
     )
     plot_target_scatter(
         figure_dir=figure_dir,
@@ -623,6 +774,7 @@ def run(config: dict[str, Any]) -> None:
         fsmi=fsmi,
         confidence=confidence,
         source=cohort,
+        cohort_count=cohort_count,
     )
     plot_protocol_comparison(
         figure_dir=figure_dir,
@@ -630,11 +782,13 @@ def run(config: dict[str, Any]) -> None:
         current_method_label=str(
             config.get("target_prediction_method", "M13")
         ).split("_", maxsplit=1)[0],
+        cohort_count=cohort_count,
     )
     plot_rq_order(
         figure_dir=figure_dir,
         rq=rq,
         confidence=confidence,
+        cohort_count=cohort_count,
     )
     plot_confidence_audit(
         figure_dir=figure_dir,
@@ -656,14 +810,32 @@ def run(config: dict[str, Any]) -> None:
         confidence=confidence,
         method=selected,
     )
+    plot_highlighted_growths(
+        figure_dir=figure_dir,
+        output=output,
+        phase1=phase1,
+        rq=rq,
+        fsmi=fsmi,
+        confidence=confidence,
+        method=selected,
+        groups=list(map(str, config.get("extra_batch_growths", []))),
+    )
+    plot_highlighted_renderer_comparison(
+        figure_dir=figure_dir,
+        output=output,
+        phase1=phase1,
+        rq=rq,
+        groups=list(map(str, config.get("extra_batch_growths", []))),
+        selected_method=selected,
+    )
     write_json(
         {
             "experiment_id": config["experiment_id"],
             "figure_directory": str(figure_dir),
             "atlas_stems": stems,
             "outer_growth_count": int(rq["growth_run_id"].nunique()),
-            "fit_growths_per_fold": 22,
-            "ordering": "ascending measured Sq for the five atlas pages",
+            "fit_growths_per_fold": cohort_count - 1,
+            "ordering": "ascending measured Sq across atlas pages",
             "png_count": len(list(figure_dir.glob("*.png"))),
             "pdf_count": len(list(figure_dir.glob("*.pdf"))),
             "height_units": "nm",

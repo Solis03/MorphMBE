@@ -1,0 +1,48 @@
+{
+  "experiment_id": "20260729_extra_five_line3_full28_v1",
+  "raw_afm_root": "data/AFM-extra-five",
+  "raw_rheed_root": "data/compressedfile",
+  "canonical_data_root": "data/extra_five_consolidated_v1",
+  "included_samples": ["N6342", "N6358", "N6382", "N6389", "N6390"],
+  "excluded_samples": ["N6324"],
+  "sample_directory_aliases": {
+    "M6358": "N6358"
+  },
+  "selected_videos": {
+    "N6342": "data/compressedfile/N6342/Ramp down to 200C.avi",
+    "N6358": "data/compressedfile/N6358/After rampdown to 200C.mpg",
+    "N6382": "data/compressedfile/N6382/N6382 - Rampdown to 200C.avi",
+    "N6389": "data/compressedfile/N6389/Rampdown to 300C.avi",
+    "N6390": "data/compressedfile/N6390/rampdon to 200c.avi"
+  },
+  "expected_included_raw_afm_scan_count": 26,
+  "expected_extra_growth_count": 5,
+  "expected_combined_growth_count": 28,
+  "orders": [0, 1, 2, 3],
+  "selected_order": 3,
+  "height_unit": "nm",
+  "base_primary_scan_table": "outputs/afm_metrology_line3_v1/primary_deduplicated_scans.csv",
+  "base_sample_target_table": "outputs/afm_metrology_line3_v1/sample_sq_targets.csv",
+  "base_automatic_manifest": "outputs/afm_metrology_line3_v1/automatic_modeling_manifest.csv",
+  "base_machine_dataset_root": "outputs/rheed_manual_vs_auto_selection/20260729_m14i_human_vs_auto_full23_v1/machine_dataset",
+  "deep_visibility_ranker": "outputs/rheed_auto_roi_keyframe/20260728_dinov2_spot_visibility_v5/dinov2_spot_visibility_ranker.joblib",
+  "model_input_roi_calibration": "outputs/rheed_auto_roi_keyframe/20260729_realtime_model_input_roi_v8/full_lattice_roi_calibration.joblib",
+  "full_lattice_roi_calibration": "outputs/rheed_auto_roi_keyframe/20260728_full_lattice_roi_v7/full_lattice_roi_calibration.joblib",
+  "foundation_cache_dir": "tmp/huggingface",
+  "roi_sample_count": 48,
+  "minimum_keyframe_quality": 0.58,
+  "keyframe_refinement_period_fraction": 0.45,
+  "model_image_size": 224,
+  "output_root": "outputs/extra_five_integration/20260729_line3_full28_v1",
+  "report_root": "reports/extra_five_integration/20260729_line3_full28_v1",
+  "expanded_m15_output_root": "outputs/rheed_auto_input_robustness/20260729_m15b_line3_full28_extra5_v1",
+  "base_perturbation_embeddings": "outputs/rheed_auto_input_robustness/20260729_auto_input_robustness_v2/r3d_causal8_input_perturbations.npz",
+  "historical_extra_five_derived_roots": [
+    "data/pair_afm_extra_five",
+    "data/processed_afm_extra_five",
+    "data/plane_corrected_afm_extra_five",
+    "data/afm_second_order_extra_five"
+  ],
+  "raw_data_policy": "read_only",
+  "standalone_policy": "read_only"
+}

@@ -1,0 +1,27 @@
+{
+  "combined_1um_scan_count": 214,
+  "combined_growth_count": 28,
+  "decoded_scan_count": 26,
+  "excluded_samples": [
+    "N6324"
+  ],
+  "experiment_id": "20260729_extra_five_line3_full28_v1",
+  "extra_growth_count": 5,
+  "group_boundary": "all subfields from one parent scan and sample remain in the same growth-run fold",
+  "harmonization": "each 2 \u00d7 2 \u00b5m 512 \u00d7 512 ZSensor map is split into four non-overlapping 1 \u00d7 1 \u00b5m 256 \u00d7 256 subfields before independent third-order per-row flattening",
+  "harmonized_1um_subfield_count": 104,
+  "historical_derived_deleted": false,
+  "included_samples": [
+    "N6342",
+    "N6358",
+    "N6382",
+    "N6389",
+    "N6390"
+  ],
+  "n6324_used": false,
+  "raw_afm_scan_count_excluded": 5,
+  "raw_afm_scan_count_included": 26,
+  "raw_data_modified": false,
+  "selected_flatten_order": 3,
+  "source_inventory_sha256": "c81e384eb7bc3723013012179ac1e5ddc2148c0a319547482916908a64affa24"
+}

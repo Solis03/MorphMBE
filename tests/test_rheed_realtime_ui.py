@@ -205,7 +205,12 @@ def test_deployment_cache_identifies_frozen_nonretrieval_pipeline() -> None:
         return
     bundle = load_deployment_bundle(bundle_path)
     assert bundle.model_id == MODEL_ID
-    assert len(bundle.groups) == 23
+    generation_config = json.loads(
+        (REPOSITORY / config["generation_config"]).read_text(
+            encoding="utf-8"
+        )
+    )
+    assert len(bundle.groups) == generation_config["expected_growth_count"]
     assert bundle.generation_config["selected_method"] == (
         "M12a_edge_preserving_terrace"
     )
@@ -221,7 +226,8 @@ def test_realtime_config_and_ui_identify_m15b_m12a_pipeline() -> None:
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     manifest_path = REPOSITORY / config["deployment_manifest"]
     assert "m15b_m12a" in Path(config["deployment_bundle"]).name
-    assert "line3_metrology" in Path(config["deployment_bundle"]).name
+    assert "line3" in Path(config["deployment_bundle"]).name
+    assert "full28_extra5" in Path(config["deployment_bundle"]).name
     assert "m15b_m12a" in manifest_path.name
     assert config["metrology_audited_mode"] is True
     assert "line3" in config["generation_config"]

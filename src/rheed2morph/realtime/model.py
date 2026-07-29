@@ -267,7 +267,7 @@ def build_deployment_bundle(
     *,
     progress: Callable[[str], None] | None = None,
 ) -> DeploymentBundle:
-    """Refit M15b and frozen M12a on all 23 allowed growths for deployment."""
+    """Refit M15b and frozen M12a on the configured allowed cohort."""
 
     log = progress or (lambda _: None)
     repository = Path(config.get("repository_root", ".")).resolve()
@@ -313,10 +313,17 @@ def build_deployment_bundle(
                 "the metrology repair changed frozen M12a architecture or "
                 f"hyperparameters: {mismatched}"
             )
+        metrology_variant = str(
+            model_config.get("afm_target_variant", "")
+        )
+        phase1_path = str(model_config.get("phase1_manifest", ""))
+        line3_phase1 = (
+            "afm_metrology_line3_v1" in phase1_path
+            or "line3_scanline_flatten" in metrology_variant
+        )
         if (
             "line3" not in str(model_config.get("afm_descriptors", ""))
-            or "afm_metrology_line3_v1"
-            not in str(model_config.get("phase1_manifest", ""))
+            or not line3_phase1
         ):
             raise RuntimeError(
                 "metrology-audited deployment must use the line-3 AFM "
@@ -329,7 +336,7 @@ def build_deployment_bundle(
             "deployment generation config differs from the frozen M14i "
             "generator parameters"
         )
-    log("读取冻结的 23 样本训练队列和 AFM 形貌描述符")
+    log("读取配置的训练队列和 AFM 形貌描述符")
     tables = _load_tables(model_config)
     descriptors, _ = prepare_full_cohort(tables, model_config)
     scan_metrics = scan_metric_table(

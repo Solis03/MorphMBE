@@ -54,6 +54,33 @@ def test_prepare_full_cohort_retains_source_split_and_excludes_requested() -> No
     assert not set(cohort["growth_run_id"]) & {"6043", "6055"}
 
 
+def test_prepare_expanded_cohort_accepts_configured_split_label() -> None:
+    groups = ["6022", "N6342", "N6390"]
+    tables = {
+        "descriptors": pd.DataFrame(
+            {
+                "sample_id": groups,
+                "growth_run_id": groups,
+                "split": ["train", "test", "val"],
+            }
+        ),
+        "physics": pd.DataFrame(
+            {"sample_id": groups, "growth_run_id": groups}
+        ),
+        "removelist": _RemovalAudit(),
+    }
+    config = {
+        "expected_growth_count": 3,
+        "explicitly_excluded_growths": ["N6324"],
+        "split_label": "retrospective_full28_loo",
+    }
+
+    cohort, source = prepare_full_cohort(tables, config)
+
+    assert set(cohort["split"]) == {"retrospective_full28_loo"}
+    assert source["N6342"] == "test"
+
+
 def test_amplitude_override_changes_only_log_rq_condition() -> None:
     columns = ["log_rq_nm", "shape_a", "shape_b"]
     scaler = ConditionScaler(

@@ -73,7 +73,17 @@ def _comparison_table(
     corrected_m14i_metrics: Path,
 ) -> pd.DataFrame:
     prior = pd.read_csv(corrected_m14i_metrics)
-    prior = prior.loc[prior["protocol"] == "auto→auto (strict LOO)"]
+    if "protocol" in prior.columns:
+        prior = prior.loc[prior["protocol"] == "auto→auto (strict LOO)"]
+        prior_label = "M14i corrected-target automatic input"
+        prior_protocol = "M14i_auto_input_line3"
+        mae_column = "mae"
+    else:
+        baseline_method = "M14b_rheed_density_weighted"
+        prior = prior.loc[prior["method"] == baseline_method]
+        prior_label = "M14b full-cohort physics baseline"
+        prior_protocol = "M14b_full_cohort_physics_baseline"
+        mae_column = "mae_nm"
     prior = prior.set_index("target")
     if set(prior.index) != {"Rq_nm", "FSMI_nm"}:
         raise RuntimeError("corrected M14i automatic-input metrics are missing")
@@ -84,13 +94,13 @@ def _comparison_table(
     return pd.DataFrame(
         [
             {
-                "protocol": "M14i_auto_input_line3",
-                "label": "M14i corrected-target automatic input",
-                "sq_mae_nm": float(prior.loc["Rq_nm", "mae"]),
+                "protocol": prior_protocol,
+                "label": prior_label,
+                "sq_mae_nm": float(prior.loc["Rq_nm", mae_column]),
                 "sq_pearson_r": float(
                     prior.loc["Rq_nm", "pearson_r"]
                 ),
-                "fsmi_mae_nm": float(prior.loc["FSMI_nm", "mae"]),
+                "fsmi_mae_nm": float(prior.loc["FSMI_nm", mae_column]),
                 "fsmi_pearson_r": float(
                     prior.loc["FSMI_nm", "pearson_r"]
                 ),
@@ -203,11 +213,12 @@ def _integrity_audit(
         raise RuntimeError("end-to-end map/target integrity check failed")
     if audit[required_false].any().any():
         raise RuntimeError("retrieval, measured patch or fold leakage detected")
+    expected_fit_count = int(len(expected) - 1)
     if not (
         (audit["draw_count"] == 4)
         & (audit["height"] == 128)
         & (audit["width"] == 128)
-        & (audit["generator_fit_growth_count"] == 22)
+        & (audit["generator_fit_growth_count"] == expected_fit_count)
     ).all():
         raise RuntimeError("generated ensemble geometry/fold size changed")
     return audit
@@ -278,8 +289,9 @@ def _overview_figure(
 
 def run(config_path: str | Path) -> None:
     config = load_config(config_path)
-    output = repo_path(config["output_root"]) / "full23_loo"
-    report = repo_path(config["report_root"]) / "full23_loo"
+    suffix = str(config.get("full_run_suffix", "full23_loo"))
+    output = repo_path(config["output_root"]) / suffix
+    report = repo_path(config["report_root"]) / suffix
     strict_path = repo_path(config["external_confidence_predictions"])
     strict = pd.read_csv(
         strict_path,
@@ -308,8 +320,9 @@ def run(config_path: str | Path) -> None:
         comparison["protocol"] == M15B
     ].iloc[0]
     prior = comparison.loc[
-        comparison["protocol"] == "M14i_auto_input_line3"
+        comparison["protocol"] != M15B
     ].iloc[0]
+    cohort_count = int(len(audit))
     manifest = {
         "experiment_id": config["experiment_id"],
         "model_id": (
@@ -317,7 +330,7 @@ def run(config_path: str | Path) -> None:
             "M12a-RangeTerrace"
         ),
         "outer_growth_count": int(len(audit)),
-        "outer_fit_growth_count": 22,
+        "outer_fit_growth_count": cohort_count - 1,
         "generated_draws_per_growth": 4,
         "generated_resolution": [128, 128],
         "strict_scalar_prediction_sha256": sha256_file(strict_path),
@@ -337,14 +350,15 @@ def run(config_path: str | Path) -> None:
         ),
         "overview_growths": groups,
         "overview_path": str(overview),
-        "sq_mae_improvement_vs_corrected_m14i_auto_nm": float(
+        "sq_mae_improvement_vs_same_cohort_physics_baseline_nm": float(
             prior["sq_mae_nm"] - current["sq_mae_nm"]
         ),
-        "fsmi_mae_improvement_vs_corrected_m14i_auto_nm": float(
+        "fsmi_mae_improvement_vs_same_cohort_physics_baseline_nm": float(
             prior["fsmi_mae_nm"] - current["fsmi_mae_nm"]
         ),
         "claim_boundary": (
-            "Strict outer target and generator-fold LOO over 23 growths. "
+            f"Strict outer target and generator-fold LOO over "
+            f"{cohort_count} growths. "
             "The M12a family was developed on earlier partitions, so this "
             "is retrospective validation rather than a prospective test."
         ),

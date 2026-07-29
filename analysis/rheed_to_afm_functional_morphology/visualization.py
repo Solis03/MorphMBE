@@ -76,6 +76,15 @@ def _rheed_keyframe(phase1: pd.DataFrame, group: str) -> np.ndarray:
     row = _phase_row(phase1, group)
     paths = json.loads(str(row["clip_frame_paths"]))
     offset = int(row.get("keyframe_offset_in_clip_x", len(paths) // 2))
+    if not paths:
+        cache = np.load(
+            repo_path(str(row["clip_cache_path"])),
+            allow_pickle=False,
+        )
+        frames = np.asarray(cache["frames_uint8"], dtype=float)
+        if frames.ndim != 3 or not len(frames):
+            raise ValueError(f"cached RHEED clip is empty for {group}")
+        return frames[int(np.clip(offset, 0, len(frames) - 1))]
     path = repo_path(paths[int(np.clip(offset, 0, len(paths) - 1))])
     return np.asarray(Image.open(path).convert("L"), dtype=float)
 
@@ -134,7 +143,7 @@ def _surface_panel(
         vmax=vmax,
         interpolation="nearest",
     )
-    axis.set_title(title)
+    axis.set_title(title, fontsize=8.2, linespacing=1.15)
     axis.set_xticks([])
     axis.set_yticks([])
     _scale_bar(axis, pixels=array.shape[1])
@@ -159,7 +168,7 @@ def _comparison_figure(
     figure, axes = plt.subplots(
         len(groups),
         3,
-        figsize=(8.4, 2.55 * len(groups)),
+        figsize=(10.6, 2.9 * len(groups)),
         constrained_layout=True,
         squeeze=False,
     )
@@ -178,7 +187,7 @@ def _comparison_figure(
         axes[row_index, 0].set_xticks([])
         axes[row_index, 0].set_yticks([])
         axes[row_index, 0].set_title(
-            f"{group}  RHEED key frame"
+            f"{group}  RHEED key frame", fontsize=8.5
         )
         image = _surface_panel(
             axes[row_index, 1],
@@ -187,8 +196,8 @@ def _comparison_figure(
             vmax=float(vmax),
             title=(
                 f"generated AFM\n"
-                f"predicted Sq={rq.loc[group, 'predicted_target']:.2f} nm, "
-                f"FSMI={fsmi.loc[group, 'predicted_target']:.2f} nm, "
+                f"predicted Sq={rq.loc[group, 'predicted_target']:.2f} nm; "
+                f"FSMI={fsmi.loc[group, 'predicted_target']:.2f} nm\n"
                 f"C={conf.loc[group, 'joint_confidence_index']:.0f}/100"
             ),
         )

@@ -1,0 +1,12 @@
+# Reproduction command history
+PYTHONPATH=src:. .venv/bin/python -m analysis.extra_five_integration.build_afm --config configs/extra_five_line3_full28_v1.json
+PYTHONPATH=src:. .venv/bin/python -m analysis.extra_five_integration.build_rheed --config configs/extra_five_line3_full28_v1.json --device mps
+PYTHONPATH=src:. .venv/bin/python -m analysis.extra_five_integration.build_perturbations --config configs/extra_five_line3_full28_v1.json --device cpu
+PYTHONPATH=src:. .venv/bin/python -m analysis.afm_metrology_repair.build_descriptors --config configs/rheed_video_afm_story_phase3a_line3_full28_v1.json
+PYTHONPATH=src:. .venv/bin/python -m analysis.rheed_auto_input_robustness.run --config configs/rheed_auto_input_robustness_line3_full28_v1.json
+PYTHONPATH=src:. .venv/bin/python -m analysis.rheed_to_afm_full_cohort_loo.run --config configs/rheed_m15b_end_to_end_generation_line3_full28_v1.json --device auto
+PYTHONPATH=src:. .venv/bin/python -m analysis.rheed_to_afm_full_cohort_loo.visualization --config configs/rheed_m15b_end_to_end_generation_line3_full28_v1.json
+PYTHONPATH=src:. .venv/bin/python scripts/prepare_rheed_realtime_model.py --config configs/rheed_realtime_ui_full28_line3_v5.json
+PYTHONPATH=src:. .venv/bin/python scripts/smoke_rheed_realtime_pipeline.py 'data/raw/raw_RHEED/N6056 - Copy/After rampdown to 200 C.MOV' --sample-id 6056 --config configs/rheed_realtime_ui_full28_line3_v5.json --output-dir outputs/rheed_realtime_ui/headless_smoke_full28_line3_v5_6056
+PYTHONPATH=src:. .venv/bin/python -m analysis.extra_five_integration.summarize --config configs/rheed_m15b_end_to_end_generation_line3_full28_v1.json
+PYTHONPATH=src:. .venv/bin/python -m analysis.extra_five_integration.verify_integrity --config configs/rheed_m15b_end_to_end_generation_line3_full28_v1.json

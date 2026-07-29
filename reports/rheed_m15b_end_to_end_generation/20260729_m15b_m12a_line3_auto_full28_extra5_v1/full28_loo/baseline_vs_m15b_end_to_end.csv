@@ -1,0 +1,3 @@
+protocol,label,sq_mae_nm,sq_pearson_r,fsmi_mae_nm,fsmi_pearson_r,generated_sq_mae_nm,generated_fsmi_mae_nm,texture_gate_pass_fraction,median_sharpness_ratio,median_afm_likeness_percentile,mean_island_feature_mae_z
+M14b_full_cohort_physics_baseline,M14b full-cohort physics baseline,1.68958075307425,-0.2508078582160669,1.5326588273071813,-0.2496377618086428,,,,,,
+M15b_auto_r3d_angular_tta,M15b corrected-target automatic input,1.2838630719777655,0.6606982248248057,1.1344918908066293,0.6611895241940313,1.2838630719777655,1.1401945729721,0.7857142857142857,0.7239129003072968,10.714285714285714,1.7684935599827902

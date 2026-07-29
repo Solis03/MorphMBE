@@ -1,0 +1,65 @@
+{
+  "afm_targets_used_for_selection": false,
+  "base_growth_count": 23,
+  "combined_growth_count": 28,
+  "combined_growth_ids": [
+    "6022",
+    "6028",
+    "6029",
+    "6033",
+    "6047",
+    "6048",
+    "6056",
+    "6057",
+    "6062",
+    "6063",
+    "6070",
+    "6072",
+    "6078",
+    "6080",
+    "6081",
+    "6082",
+    "6084",
+    "6085",
+    "6090",
+    "6094",
+    "6095",
+    "6099",
+    "6101",
+    "N6342",
+    "N6358",
+    "N6382",
+    "N6389",
+    "N6390"
+  ],
+  "embedding_families": [
+    "r3d_18__causal_8__raw_luminance",
+    "r3d_18__selected_16__raw_luminance",
+    "dino_vits14__keyframe_1__raw_luminance"
+  ],
+  "excluded_growth_ids": [
+    "N6324"
+  ],
+  "experiment_id": "20260729_extra_five_line3_full28_v1",
+  "extra_growth_count": 5,
+  "extra_growth_ids": [
+    "N6342",
+    "N6358",
+    "N6382",
+    "N6389",
+    "N6390"
+  ],
+  "n6324_used": false,
+  "raw_data_modified": false,
+  "runtime_seconds": 42.138668060302734,
+  "selected_video_hashes": {
+    "N6342": "44d5fd8442380d2e8cbbc7481461c104b6645160518de557da841f760c659986",
+    "N6358": "d619da57a111b1cfbdd226181550aa782b40646e6bd88b35fbb64e3c940a86c4",
+    "N6382": "8b160e37cd9622341f6cc92d83f9246246878cda262dd5561d4821533db5245a",
+    "N6389": "df4437c08ecd81966f5bb0cc56faa2715b0a5fa6106ef9e0c3c1146db0d857cc",
+    "N6390": "429ba621d446d3726f5a39225957838da3cceb103facf51039d206a6410ec849"
+  },
+  "selection_method": "frozen V5 DINOv2-S best-visible-cycle selector + frozen V8 complete-lattice model-input ROI",
+  "selection_model_refit_on_extra_five": false,
+  "standalone_modified": false
+}

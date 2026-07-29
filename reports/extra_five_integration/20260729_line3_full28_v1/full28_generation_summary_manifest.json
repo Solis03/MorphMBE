@@ -1,0 +1,21 @@
+{
+  "experiment_id": "20260729_m15b_m12a_line3_auto_full28_extra5_v1",
+  "extra_growth_ids": [
+    "N6342",
+    "N6358",
+    "N6382",
+    "N6389",
+    "N6390"
+  ],
+  "fit_growths_per_fold": 27,
+  "full_growth_count": 28,
+  "generated_draws_per_growth": 4,
+  "generated_methods": [
+    "M10_dense_island_spectral_pareto",
+    "M12a_edge_preserving_terrace"
+  ],
+  "n6324_used": false,
+  "report": "/Users/ziyi/Desktop/LAB/code/reports/extra_five_integration/20260729_line3_full28_v1/FULL28_GENERATION_REPORT.md",
+  "retrieval_at_inference": false,
+  "strict_outer_loo": true
+}

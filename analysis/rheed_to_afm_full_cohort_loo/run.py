@@ -86,13 +86,13 @@ def load_config(path: str | Path) -> dict[str, Any]:
 def prepare_full_cohort(
     tables: dict[str, Any], config: dict[str, Any]
 ) -> tuple[pd.DataFrame, dict[str, str]]:
-    """Return the fixed 23-growth cohort and retain old splits as provenance."""
+    """Return the configured cohort and retain old splits as provenance."""
 
     descriptors = tables["descriptors"].copy()
     descriptors["sample_id"] = descriptors["sample_id"].astype(str)
     descriptors["growth_run_id"] = descriptors["growth_run_id"].astype(str)
     descriptors["source_split"] = descriptors["split"].astype(str)
-    descriptors["split"] = FULL_SPLIT
+    descriptors["split"] = str(config.get("split_label", FULL_SPLIT))
     groups = sorted(descriptors["growth_run_id"].unique())
     expected = int(config["expected_growth_count"])
     if len(groups) != expected:
@@ -244,6 +244,8 @@ def _comparison_target_rows(
     current_rq: pd.DataFrame,
     current_fsmi: pd.DataFrame,
     prior_report: Path,
+    current_protocol: str = "new_M13_full23_train22_all23",
+    current_same_protocol: str = "new_M13_full23_train22_same15",
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     prior_rq = pd.read_csv(
         prior_report / "rq_crossfit_predictions.csv",
@@ -263,9 +265,9 @@ def _comparison_target_rows(
     rows = []
     for protocol, rq, fsmi in (
         ("prior_M12_strict15_train14", prior_rq, prior_fsmi),
-        ("new_M13_full23_train22_all23", current_rq, current_fsmi),
+        (current_protocol, current_rq, current_fsmi),
         (
-            "new_M13_full23_train22_same15",
+            current_same_protocol,
             current_rq_same,
             current_fsmi_same,
         ),
@@ -293,14 +295,14 @@ def _comparison_target_rows(
             ]
         ].rename(
             columns={
-                "predicted_target": "full23_predicted_rq_nm",
-                "absolute_error": "full23_rq_absolute_error_nm",
+                "predicted_target": "current_predicted_rq_nm",
+                "absolute_error": "current_rq_absolute_error_nm",
             }
         ),
         on="growth_run_id",
     )
     per_group["rq_absolute_error_change_nm"] = (
-        per_group["full23_rq_absolute_error_nm"]
+        per_group["current_rq_absolute_error_nm"]
         - per_group["prior_rq_absolute_error_nm"]
     )
     return pd.DataFrame(rows), per_group
@@ -308,7 +310,9 @@ def _comparison_target_rows(
 
 def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     started = time.time()
-    suffix = "smoke" if smoke else "full23_loo"
+    suffix = "smoke" if smoke else str(
+        config.get("full_run_suffix", "full23_loo")
+    )
     output = repo_path(config["output_root"]) / suffix
     report = repo_path(config["report_root"]) / suffix
     output.mkdir(parents=True, exist_ok=True)
@@ -317,11 +321,23 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     tables = load_source_tables(config)
     descriptors, source_split = prepare_full_cohort(tables, config)
     groups_all = sorted(descriptors["growth_run_id"].astype(str).unique())
+    extra_batch = set(map(str, config.get("extra_batch_growths", [])))
+    if not extra_batch.issubset(set(groups_all)):
+        raise RuntimeError(
+            "configured extra-batch growths are absent from the cohort: "
+            f"{sorted(extra_batch - set(groups_all))}"
+        )
     write_csv(
         pd.DataFrame(
             {
                 "growth_run_id": groups_all,
                 "source_split": [source_split[group] for group in groups_all],
+                "cohort_origin": [
+                    "extra_five_batch"
+                    if group in extra_batch
+                    else "original_23_batch"
+                    for group in groups_all
+                ],
                 "full_cohort_role": "outer_loo_once",
             }
         ),
@@ -671,10 +687,20 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     )
     write_csv(method_summary, report / "method_summary.csv")
 
+    cohort_count = len(groups_all)
+    fit_count = cohort_count - 1
+    current_protocol = (
+        f"new_M13_full{cohort_count}_train{fit_count}_all{cohort_count}"
+    )
+    current_same_protocol = (
+        f"new_M13_full{cohort_count}_train{fit_count}_same15"
+    )
     comparison, paired = _comparison_target_rows(
         current_rq=cross_rq,
         current_fsmi=cross_fsmi,
         prior_report=repo_path(config["prior_m12_report"]),
+        current_protocol=current_protocol,
+        current_same_protocol=current_same_protocol,
     )
     write_csv(comparison, report / "comparison_to_prior15_targets.csv")
     write_csv(paired, report / "comparison_to_prior15_per_group.csv")
@@ -695,10 +721,10 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
                 ]
             ).assign(protocol="prior_M12_strict15_train14"),
             _summarize_methods(current_prior_groups).assign(
-                protocol="new_M13_full23_train22_same15"
+                protocol=current_same_protocol
             ),
             _summarize_methods(standard).assign(
-                protocol="new_M13_full23_train22_all23"
+                protocol=current_protocol
             ),
         ],
         ignore_index=True,
@@ -712,7 +738,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         "mode": suffix,
         "protocol": (
             "retrospective nested leave-one-growth-out over the fixed "
-            "harmonized 23-growth cohort"
+            f"harmonized {cohort_count}-growth cohort"
         ),
         "outer_growth_group_count": len(groups),
         "full_available_growth_group_count": len(groups_all),
@@ -737,7 +763,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             if external
             else None
         ),
-        "selected_method_frozen_before_full23_run": True,
+        "selected_method_frozen_before_expanded_cohort_run": True,
         "retrieval_at_inference": False,
         "measured_afm_patch_used_at_inference": False,
         "all_outer_fold_leakage_checks_passed": bool(
