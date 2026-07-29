@@ -1,0 +1,56 @@
+{
+  "candidate_count": 642,
+  "confidence_validation": {
+    "confidence_error_spearman_p": 0.37296087290133023,
+    "confidence_error_spearman_rho": 0.18615384615384614,
+    "cross_fitted_calibration_error_spearman_p": 0.005986326244746073,
+    "cross_fitted_calibration_error_spearman_rho": 0.5338461538461539
+  },
+  "config": {
+    "candidate_table": "outputs/rheed_auto_roi_keyframe/20260728_removelist_compliant_final_v4/supervised_phase_ranker/phase_candidates.csv",
+    "embedding_batch_size": 8,
+    "evaluation_note": "Large-foundation ablation: frozen 86M-parameter DINOv2-Base with strict leave-one-video-out fitted heads and no removelist overlap.",
+    "expected_video_count": 25,
+    "experiment_id": "20260728_dinov2_base_spot_visibility_v6",
+    "foundation_model_cache": "tmp/huggingface",
+    "foundation_model_id": "facebook/dinov2-base",
+    "foundation_model_revision": "f9e44c814b77203eaa57a6bdbbd535f21ede1415",
+    "manifest": "outputs/rheed_video_afm_story/phase1/modeling_manifest.csv",
+    "random_seed": 17,
+    "raw_data_policy": "read_only",
+    "roi_method": "calibrated_safe",
+    "selected_method": "v5_dinov2_tree_hybrid_gate25",
+    "trajectory_experiment_root": "outputs/rheed_auto_roi_keyframe/20260728_diffraction_front_visibility_v2",
+    "visibility_gate": 0.25
+  },
+  "experiment_id": "20260728_dinov2_base_spot_visibility_v6",
+  "feature_extraction": {
+    "device": "mps",
+    "elapsed_seconds": 51.752318540995475,
+    "embedding_representation": "concatenated DINOv2 CLS, mean patch and patch standard deviation vectors",
+    "embedding_width": 2304,
+    "foundation_model_id": "facebook/dinov2-base",
+    "foundation_model_requested_revision": null,
+    "foundation_model_resolved_revision": "f9e44c814b77203eaa57a6bdbbd535f21ede1415",
+    "image_count": 598,
+    "images_per_second": 11.555037858377219,
+    "input_representation": "ROI max-channel brightness, 2-99.8 percentile normalization, aspect-preserving 224x224 padding"
+  },
+  "removelist_overlap": [],
+  "retained_video_count": 25,
+  "selected_method": "v5_dinov2_tree_hybrid_gate25",
+  "selected_summary": {
+    "diffuse_shadow_proxy_rate": 0.04,
+    "held_video_overlap": 0,
+    "mean_pattern_ncc": 0.6584285741145868,
+    "median_absolute_frame_error": 148.0,
+    "median_gradient_ncc": 0.3421259478464444,
+    "median_pattern_ncc": 0.7009777080842845,
+    "median_pattern_ssim": 0.4764105697174096,
+    "median_spot_mass_ratio": 1.012227680674551,
+    "median_target_similarity": 0.5926840009361302,
+    "median_visibility_rank": 0.6309523809523809,
+    "method": "v5_dinov2_tree_hybrid_gate25",
+    "n_videos": 25
+  }
+}
