@@ -6,6 +6,8 @@ Last updated: 2026-07-28 (America/Detroit)
 
 - Working branch:
   `codex/rheed-roi-full-lattice-v7-20260728`.
+- Frozen implementation/configuration commit: `ea25f2d`.
+- Frozen calibration/results/figure commit: `1ec763b`.
 - The user-approved V5 DINOv2-S keyframe selector is unchanged. Its
   `calibrated_safe` ROI remains the internal tracking/scoring geometry; V7
   predicts a separate full-lattice ROI only after frame selection.
