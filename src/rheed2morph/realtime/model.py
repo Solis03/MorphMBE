@@ -336,7 +336,7 @@ def build_deployment_bundle(
             "deployment generation config differs from the frozen M14i "
             "generator parameters"
         )
-    log("读取配置的训练队列和 AFM 形貌描述符")
+    log("Loading the configured training cohort and AFM descriptors")
     tables = _load_tables(model_config)
     descriptors, _ = prepare_full_cohort(tables, model_config)
     scan_metrics = scan_metric_table(
@@ -408,7 +408,10 @@ def build_deployment_bundle(
                 "automatic deployment requires finite rotation periods"
             )
 
-    log("拟合自动输入域 Sq/FSMI 部署头和严格 LOO 置信度参照")
+    log(
+        "Fitting automatic-input Sq/FSMI deployment heads and strict-LOO "
+        "confidence references"
+    )
     rq_reference = _target_reference(
         name="Rq_nm",
         method=rq_method,
@@ -466,7 +469,7 @@ def build_deployment_bundle(
         tables=tables,
         group_targets=group_targets,
     )
-    log("拟合 M12a 的 R3D-18 时序形貌条件头")
+    log("Fitting the M12a R3D-18 temporal morphology-conditioning head")
     morphology_predictor = fit_predictor(groups, condition_scaler)
     variance_calibrator, _ = fit_variance_calibrator(
         groups=groups,
@@ -478,7 +481,10 @@ def build_deployment_bundle(
         cap=float(model_config["variance_cap"]),
         minimum_predicted_std=float(model_config["minimum_predicted_std"]),
     )
-    log("拟合 M12a 岛屿统计模型与非检索式频谱先验")
+    log(
+        "Fitting the M12a island-statistics model and non-retrieval "
+        "spectral prior"
+    )
     island_model, _, _ = fit_island_condition_model(
         train_rows=descriptors,
         condition_scaler=condition_scaler,

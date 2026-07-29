@@ -77,7 +77,7 @@ class VideoCanvas(QWidget):
             painter.drawText(
                 self.rect(),
                 Qt.AlignmentFlag.AlignCenter,
-                "等待 RHEED 视频输入",
+                "Awaiting RHEED video input",
             )
             return
         frame = self._frame
@@ -113,7 +113,7 @@ class VideoCanvas(QWidget):
             painter.setFont(QFont("Arial", 10, QFont.Weight.Bold))
             painter.drawText(
                 rect.adjusted(4, 16, 0, 0),
-                "模型输入 / 完整点阵 ROI",
+                "Model input / full-lattice ROI",
             )
             physics_roi = self._selection.physics_roi.rect
             physics_color = QColor("#f472b6")
@@ -131,13 +131,13 @@ class VideoCanvas(QWidget):
             painter.setFont(QFont("Arial", 9, QFont.Weight.Bold))
             painter.drawText(
                 physics_rect.adjusted(4, 32, 0, 0),
-                "物理特征 ROI（不用于生成器）",
+                "Physics-feature ROI (not used by generator)",
             )
         banner = (
             f"frame {self._frame_index:05d}   t = {self._seconds:6.2f} s"
         )
         if self._event:
-            banner += "   ● 形貌推理触发"
+            banner += "   ● MORPHOLOGY INFERENCE TRIGGERED"
         painter.fillRect(
             QRectF(target.x(), target.y(), target.width(), 34),
             QColor(0, 0, 0, 155),
@@ -334,7 +334,9 @@ class RealtimeMainWindow(QMainWindow):
         self._start_prediction_worker()
 
     def _build_ui(self) -> None:
-        self.setWindowTitle("MorphMBE · RHEED → AFM 实时形貌监测")
+        self.setWindowTitle(
+            "MorphMBE · Real-Time RHEED-to-AFM Morphology Monitoring"
+        )
         self.resize(1540, 980)
         root = QWidget()
         self.setCentralWidget(root)
@@ -344,18 +346,19 @@ class RealtimeMainWindow(QMainWindow):
 
         header = QHBoxLayout()
         title_block = QVBoxLayout()
-        title = QLabel("MorphMBE  实时表面形貌监测")
+        title = QLabel("MorphMBE  Real-Time Surface Morphology Monitoring")
         title.setObjectName("appTitle")
         subtitle = QLabel(
-            "自动 ROI / 旋转顶点 · M15b causal R3D + 范围感知置信度 · "
-            "M12a 非检索式 AFM 生成 · 三阶逐扫描线 AFM 计量"
+            "Automatic ROI / rotational vertex · M15b causal R3D + "
+            "range-aware confidence · M12a non-retrieval AFM generation · "
+            "third-order line-by-line AFM metrology"
         )
         subtitle.setObjectName("appSubtitle")
         title_block.addWidget(title)
         title_block.addWidget(subtitle)
         header.addLayout(title_block)
         header.addStretch(1)
-        self.model_badge = QLabel("模型加载中")
+        self.model_badge = QLabel("LOADING MODEL")
         self.model_badge.setObjectName("modelBadge")
         header.addWidget(self.model_badge)
         outer.addLayout(header)
@@ -367,33 +370,34 @@ class RealtimeMainWindow(QMainWindow):
         self.sample_combo = QComboBox()
         self.video_combo = QComboBox()
         self.mode_combo = QComboBox()
-        self.mode_combo.addItem("原始视频 · 模拟实时回放", "video")
-        self.mode_combo.addItem("工业相机 · 接口预留", "camera")
+        self.mode_combo.addItem("Raw video · simulated live replay", "video")
+        self.mode_combo.addItem("Industrial camera · interface reserved", "camera")
         self.mode_combo.setItemData(
             1,
-            "相机适配器接口已预留；本版本验证对象是 raw 视频模拟流。",
+            "The camera-adapter interface is reserved; this version is "
+            "validated using simulated streams from raw videos.",
             Qt.ItemDataRole.ToolTipRole,
         )
         self.speed = QDoubleSpinBox()
         self.speed.setRange(1.0, 4.0)
         self.speed.setSingleStep(0.1)
-        self.speed.setSuffix("× 时长")
+        self.speed.setSuffix("× duration")
         self.speed.setValue(
             float(self.config.get("default_playback_duration_ratio", 1.67))
         )
-        self.start_button = QPushButton("开始分析与回放")
-        self.pause_button = QPushButton("暂停")
-        self.stop_button = QPushButton("停止")
+        self.start_button = QPushButton("Analyze and replay")
+        self.pause_button = QPushButton("Pause")
+        self.stop_button = QPushButton("Stop")
         self.start_button.setObjectName("primaryButton")
         self.start_button.setEnabled(False)
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
         for column, (label, widget) in enumerate(
             (
-                ("输入模式", self.mode_combo),
-                ("样品编号", self.sample_combo),
-                ("原始视频", self.video_combo),
-                ("回放速度", self.speed),
+                ("Input mode", self.mode_combo),
+                ("Sample ID", self.sample_combo),
+                ("Raw video", self.video_combo),
+                ("Playback speed", self.speed),
             )
         ):
             box = QVBoxLayout()
@@ -413,9 +417,9 @@ class RealtimeMainWindow(QMainWindow):
         left.setObjectName("panel")
         left_layout = QVBoxLayout(left)
         left_header = QHBoxLayout()
-        rheed_title = QLabel("RHEED 视频流")
+        rheed_title = QLabel("RHEED VIDEO STREAM")
         rheed_title.setObjectName("panelTitle")
-        self.stream_state = QLabel("未启动")
+        self.stream_state = QLabel("IDLE")
         self.stream_state.setObjectName("stateBadge")
         left_header.addWidget(rheed_title)
         left_header.addStretch(1)
@@ -424,8 +428,9 @@ class RealtimeMainWindow(QMainWindow):
         self.video_canvas = VideoCanvas()
         left_layout.addWidget(self.video_canvas, 1)
         self.roi_note = QLabel(
-            "青色实框：真正送入 M15b/M12a 的完整点阵裁剪；"
-            "内部 tracking ROI 只定位旋转顶点，不参与生成"
+            "Cyan box: full-lattice crop actually passed to M15b/M12a; "
+            "the internal tracking ROI only locates the rotational vertex "
+            "and is not used for generation"
         )
         self.roi_note.setObjectName("note")
         left_layout.addWidget(self.roi_note)
@@ -433,15 +438,17 @@ class RealtimeMainWindow(QMainWindow):
         right = QFrame()
         right.setObjectName("panel")
         right_layout = QVBoxLayout(right)
-        result_title = QLabel("生成式 AFM 预测")
+        result_title = QLabel("GENERATIVE AFM PREDICTION")
         result_title.setObjectName("panelTitle")
         right_layout.addWidget(result_title)
         self.afm_canvas = AFMCanvas()
         right_layout.addWidget(self.afm_canvas, 1)
         metrics = QGridLayout()
-        self.rq_card = MetricCard("面粗糙度 Sq", "— nm")
-        self.fsmi_card = MetricCard("表面形貌复杂度 FSMI", "— nm")
-        self.confidence_card = MetricCard("预测置信度（误差相关）", "— %")
+        self.rq_card = MetricCard("Areal roughness Sq", "— nm")
+        self.fsmi_card = MetricCard("Morphology complexity FSMI", "— nm")
+        self.confidence_card = MetricCard(
+            "Prediction confidence (error-calibrated)", "— %"
+        )
         metrics.addWidget(self.rq_card, 0, 0)
         metrics.addWidget(self.fsmi_card, 0, 1)
         metrics.addWidget(self.confidence_card, 0, 2)
@@ -558,8 +565,9 @@ class RealtimeMainWindow(QMainWindow):
         if "6063" in self.entries:
             self.sample_combo.setCurrentText("6063")
         self.append_log(
-            f"发现 {len(entries)} 个 raw 视频、{len(self.entries)} 个可用样品；"
-            f"removelist 排除 {len(excluded)} 个编号"
+            f"Discovered {len(entries)} raw videos across "
+            f"{len(self.entries)} eligible samples; removelist excludes "
+            f"{len(excluded)} sample IDs"
         )
 
     def _update_videos(self, sample_id: str) -> None:
@@ -572,7 +580,8 @@ class RealtimeMainWindow(QMainWindow):
         self.start_button.setEnabled(self._model_ready and not camera)
         if camera:
             self.append_log(
-                "工业相机 FrameSource 接口已预留；当前验证版本使用 raw 视频模拟流"
+                "The industrial-camera FrameSource interface is reserved; "
+                "the validated mode uses simulated streams from raw videos"
             )
 
     def _start_prediction_worker(self) -> None:
@@ -593,7 +602,7 @@ class RealtimeMainWindow(QMainWindow):
         self.start_button.setEnabled(
             self.mode_combo.currentData() == "video"
         )
-        self.append_log(f"模型就绪：{model_id}")
+        self.append_log(f"Model ready: {model_id}")
 
     def append_log(self, message: str) -> None:
         stamp = time.strftime("%H:%M:%S")
@@ -602,7 +611,11 @@ class RealtimeMainWindow(QMainWindow):
     def start_session(self) -> None:
         entry = self.video_combo.currentData()
         if not isinstance(entry, VideoEntry):
-            QMessageBox.warning(self, "没有输入", "请选择一个原始 RHEED 视频。")
+            QMessageBox.warning(
+                self,
+                "No input",
+                "Select a raw RHEED video before starting.",
+            )
             return
         self.stop_session(silent=True)
         ratio = float(self.speed.value())
@@ -622,7 +635,8 @@ class RealtimeMainWindow(QMainWindow):
             playback_ratio=ratio,
         )
         self.append_log(
-            f"启动样品 {entry.sample_id}：{entry.path.name}，目标时长 {ratio:.2f}×"
+            f"Starting sample {entry.sample_id}: {entry.path.name}; "
+            f"target replay duration {ratio:.2f}×"
         )
         self.replay_worker = ReplayWorker(
             sample_id=entry.sample_id,
@@ -653,8 +667,9 @@ class RealtimeMainWindow(QMainWindow):
         slowed = duration * float(self.speed.value())
         self.stream_state.setText("STREAMING")
         self.append_log(
-            f"源视频 {fps:.2f} fps / {duration:.1f} s；"
-            f"模拟回放约 {slowed:.1f} s；预测事件 {len(selection.events)} 个"
+            f"Source video {fps:.2f} fps / {duration:.1f} s; "
+            f"simulated replay about {slowed:.1f} s; "
+            f"{len(selection.events)} prediction event(s)"
         )
         if self.recorder is not None:
             self.recorder.record_selection(selection, fps=fps)
@@ -664,8 +679,8 @@ class RealtimeMainWindow(QMainWindow):
             accepted = self.prediction_worker.submit(job)
             if not accepted:
                 self.append_log(
-                    f"帧 {job.event.frame_index}: 推理队列已满，"
-                    "实时节流跳过该旋转周期"
+                    f"Frame {job.event.frame_index}: inference queue full; "
+                    "real-time throttling skipped this rotation cycle"
                 )
 
     def _prediction_ready(self, result: PredictionResult) -> None:
@@ -674,24 +689,33 @@ class RealtimeMainWindow(QMainWindow):
         self.trend.append(result)
         self.rq_card.value.setText(f"{prediction.rq.value:.2f} nm")
         self.rq_card.detail.setText(
-            f"预计 |误差| {prediction.rq.expected_absolute_error:.2f} nm  ·  "
-            f"区间 [{prediction.rq.interval_lower:.2f}, "
+            f"Expected |error| {prediction.rq.expected_absolute_error:.2f} "
+            f"nm  ·  interval [{prediction.rq.interval_lower:.2f}, "
             f"{prediction.rq.interval_upper:.2f}]"
             + ("  ·  SUPPORT CLIP" if prediction.rq.support_clipped else "")
         )
         self.fsmi_card.value.setText(f"{prediction.fsmi.value:.2f} nm")
         self.fsmi_card.detail.setText(
-            f"预计 |误差| {prediction.fsmi.expected_absolute_error:.2f} nm  ·  "
-            f"区间 [{prediction.fsmi.interval_lower:.2f}, "
+            f"Expected |error| {prediction.fsmi.expected_absolute_error:.2f} "
+            f"nm  ·  interval [{prediction.fsmi.interval_lower:.2f}, "
             f"{prediction.fsmi.interval_upper:.2f}]"
             + ("  ·  SUPPORT CLIP" if prediction.fsmi.support_clipped else "")
         )
         percent = int(round(prediction.model_confidence * 100))
         self.confidence_card.value.setText(f"{percent}%")
+        tta_percent = min(
+            prediction.rq.tta_confidence,
+            prediction.fsmi.tta_confidence,
+        ) * 100
+        agreement_percent = min(
+            prediction.rq.head_agreement_confidence,
+            prediction.fsmi.head_agreement_confidence,
+        ) * 100
         self.confidence_card.detail.setText(
-            f"角覆盖+TTA {min(prediction.rq.tta_confidence, prediction.fsmi.tta_confidence) * 100:.0f}%  ·  "
-            f"多头一致 {min(prediction.rq.head_agreement_confidence, prediction.fsmi.head_agreement_confidence) * 100:.0f}%  ·  "
-            f"保守综合 {prediction.combined_confidence * 100:.0f}%"
+            f"Angular coverage + TTA {tta_percent:.0f}%  ·  "
+            f"head agreement {agreement_percent:.0f}%  ·  "
+            f"conservative combined "
+            f"{prediction.combined_confidence * 100:.0f}%"
         )
         self.confidence_bar.setValue(percent)
         if percent < 40:
@@ -705,21 +729,21 @@ class RealtimeMainWindow(QMainWindow):
         )
         saved = self.recorder.record(result) if self.recorder else None
         self.append_log(
-            f"预测完成 frame={result.job.event.frame_index} · "
+            f"Prediction complete frame={result.job.event.frame_index} · "
             f"Sq={prediction.rq.value:.2f} nm · "
             f"FSMI={prediction.fsmi.value:.2f} nm · "
             f"confidence={percent}% · "
             f"latency={prediction.inference_seconds:.2f}s"
         )
         if saved is not None:
-            self.append_log(f"派生结果已保存：{saved}")
+            self.append_log(f"Derived result saved: {saved}")
 
     def toggle_pause(self) -> None:
         if self.replay_worker is None:
             return
-        paused = self.pause_button.text() == "暂停"
+        paused = self.pause_button.text() == "Pause"
         self.replay_worker.set_paused(paused)
-        self.pause_button.setText("继续" if paused else "暂停")
+        self.pause_button.setText("Resume" if paused else "Pause")
         self.stream_state.setText("PAUSED" if paused else "STREAMING")
 
     def stop_session(self, *, silent: bool = False) -> None:
@@ -728,7 +752,7 @@ class RealtimeMainWindow(QMainWindow):
                 self.replay_worker.stop()
                 self.replay_worker.wait(3000)
             self.replay_worker = None
-        self.pause_button.setText("暂停")
+        self.pause_button.setText("Pause")
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
         self.start_button.setEnabled(
@@ -736,14 +760,17 @@ class RealtimeMainWindow(QMainWindow):
         )
         self.stream_state.setText("STOPPED")
         if not silent:
-            self.append_log("回放已停止；raw 数据未被修改")
+            self.append_log("Replay stopped; raw data were not modified")
 
     def _replay_completed(self) -> None:
         self.stream_state.setText("VIDEO COMPLETE")
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
         self.start_button.setEnabled(self._model_ready)
-        self.append_log("视频回放结束；已提交的形貌预测将继续完成")
+        self.append_log(
+            "Video replay complete; submitted morphology predictions "
+            "will continue to completion"
+        )
 
     def _worker_failed(self, message: str) -> None:
         self.append_log(f"ERROR · {message}")
@@ -751,7 +778,7 @@ class RealtimeMainWindow(QMainWindow):
         self.start_button.setEnabled(self._model_ready)
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
-        QMessageBox.critical(self, "实时管线错误", message)
+        QMessageBox.critical(self, "Real-time pipeline error", message)
 
     def closeEvent(self, event) -> None:  # noqa: N802
         self.stop_session(silent=True)

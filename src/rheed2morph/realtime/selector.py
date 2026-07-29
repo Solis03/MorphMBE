@@ -177,10 +177,10 @@ def analyze_replay(
     log = progress or (lambda _: None)
     if int(frame_rotation_clockwise_degrees) % 360:
         log(
-            "应用采集方向校正："
-            f"顺时针 {int(frame_rotation_clockwise_degrees) % 360}°"
+            "Applying acquisition-orientation correction: "
+            f"CW {int(frame_rotation_clockwise_degrees) % 360}°"
         )
-    log("采样视频并估计目镜孔径")
+    log("Sampling video and estimating the viewport aperture")
     sampled, counted = sample_frames(
         source_path,
         maximum=int(roi_sample_count),
@@ -214,7 +214,7 @@ def analyze_replay(
             analysis=aperture,
             lattice_calibration=physics_calibration_path,
         )
-    log("提取亮斑轨迹与旋转顶点候选")
+    log("Extracting bright-spot trajectories and rotational-vertex candidates")
     factory, known_count, _ = _source_factory(
         source_path,
         rotation_clockwise_degrees=frame_rotation_clockwise_degrees,
@@ -230,8 +230,14 @@ def analyze_replay(
             break
     if len(frames) != len(required):
         missing = sorted(required - set(frames))
-        raise IndexError(f"候选帧解码不完整，缺少 {len(missing)} 帧")
-    log("使用冻结 DINOv2-S 可见度模型排除阴影和模糊候选")
+        raise IndexError(
+            f"Incomplete candidate-frame decoding; "
+            f"{len(missing)} frame(s) missing"
+        )
+    log(
+        "Using the frozen DINOv2-S visibility model to reject shadowed "
+        "and blurred candidates"
+    )
     scored = score_deep_visibility_candidates(
         candidates,
         frames,
@@ -345,13 +351,14 @@ def analyze_replay(
                 )
             ]
             log(
-                "完整点阵局部细化："
-                f"V5 候选 {selected.frame_index} → "
-                f"模型关键帧 {refined_index}"
+                "Full-lattice local refinement: "
+                f"V5 candidate {selected.frame_index} → "
+                f"model keyframe {refined_index}"
             )
     frame_count = int(known_count or counted or len(trajectory))
     log(
-        f"分析完成：{frame_count} 帧，检测到 {len(events)} 个可用旋转顶点"
+        f"Analysis complete: {frame_count} frames; detected "
+        f"{len(events)} eligible rotational vertex/vertices"
     )
     return ReplaySelection(
         source=source_path,

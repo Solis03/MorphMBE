@@ -272,8 +272,17 @@ def test_realtime_config_and_ui_identify_m15b_m12a_pipeline() -> None:
         assert manifest["method"]["measured_afm_patch_at_inference"] is False
     source = inspect.getsource(RealtimeMainWindow._build_ui)
     assert "M15b causal R3D" in source
-    assert "真正送入 M15b/M12a" in source
-    assert "真正送入 M14i/M12a" not in source
+    assert "actually passed to M15b/M12a" in source
+    assert "actually passed to M14i/M12a" not in source
+
+
+def test_realtime_ui_source_contains_no_cjk_text() -> None:
+    realtime_root = REPOSITORY / "src" / "rheed2morph" / "realtime"
+    source = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted(realtime_root.glob("*.py"))
+    )
+    assert not any("\u3400" <= character <= "\u9fff" for character in source)
 
 
 def test_v8_model_input_roi_bundle_has_strict_loo_provenance() -> None:

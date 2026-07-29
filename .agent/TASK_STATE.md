@@ -1266,3 +1266,19 @@ Status: completed locally on branch
   all-28 confidence scatter and corrected-sample atlas figures.
 - Primary report:
   `reports/extra_five_integration/20260729_line3_full28_orientation90_keyframe_locked_v3/ORIENTATION_CORRECTION_REPORT.md`.
+
+## 2026-07-29 — English-only real-time UI
+
+- Replaced every Chinese user-visible string in
+  `src/rheed2morph/realtime/` with consistent scientific English, including
+  the window title, controls, ROI annotations, metric cards, confidence
+  details, dialogs, replay/selector messages, and pipeline logs.
+- Added a regression test that rejects CJK characters anywhere in the
+  real-time UI Python package.
+- `tests/test_rheed_realtime_ui.py`: 12/12 passed.
+- Real N6389 offscreen replay passed using the unchanged orientation-corrected
+  v7 bundle: CW 90°, frame 1238, Sq 2.90 nm, FSMI 2.58 nm, confidence 45%.
+- English UI verification screenshot:
+  `outputs/rheed_realtime_ui/full28_orientation90_v7_ui_N6389_english.png`.
+- Raw data, model weights, predictions, and the desktop standalone freeze were
+  not modified.

@@ -80,7 +80,8 @@ class PredictionWorker(QThread):
     def run(self) -> None:
         try:
             self.log.emit(
-                "加载 M15b 自动输入标量头、M12a 生成器与 R3D-18"
+                "Loading the M15b automatic-input scalar heads, "
+                "M12a generator, and R3D-18"
             )
             predictor = RealtimeMorphologyPredictor.from_path(
                 self.bundle_path,
@@ -92,7 +93,8 @@ class PredictionWorker(QThread):
                 if job is None:
                     return
                 self.log.emit(
-                    f"帧 {job.event.frame_index}: 运行 causal-8 + selected-16 推理"
+                    f"Frame {job.event.frame_index}: running causal-8 + "
+                    "selected-16 inference"
                 )
                 seed = (
                     int(job.sample_id) * 1_000_003
@@ -212,8 +214,9 @@ class ReplayWorker(QThread):
                 and self.source.name != str(override["source_name"])
             ):
                 self.log.emit(
-                    "已跳过归档视频专用顶点锁定："
-                    f"当前视频 {self.source.name!r} 与配置来源不一致"
+                    "Skipped the archive-video-specific vertex lock: "
+                    f"current video {self.source.name!r} does not match "
+                    "the configured source"
                 )
                 override = None
             if override is not None:
@@ -236,9 +239,10 @@ class ReplayWorker(QThread):
                 )
                 selection = replace(selection, events=(event,))
                 self.log.emit(
-                    "方向校正消融锁定："
-                    f"模型读取 CW {rotation}° 帧，时序顶点沿用目标盲 "
-                    f"V5 frame {event.frame_index}"
+                    "Orientation-correction ablation lock: "
+                    f"the model reads CW {rotation}° frames while retaining "
+                    f"the target-blind V5 temporal vertex at frame "
+                    f"{event.frame_index}"
                 )
             if self._stop_event.is_set():
                 return
@@ -293,7 +297,8 @@ class ReplayWorker(QThread):
                     if event is not None:
                         if len(ring) != 18:
                             self.log.emit(
-                                f"帧 {event.frame_index}: 时序缓存不足，跳过"
+                                f"Frame {event.frame_index}: temporal buffer "
+                                "incomplete; event skipped"
                             )
                         else:
                             ring_frames = list(ring)
@@ -324,8 +329,9 @@ class ReplayWorker(QThread):
                                 )
                             )
                             self.log.emit(
-                                f"帧 {event.frame_index}: 完整点阵顶点确认，"
-                                "已收齐 16 帧及 confidence 扰动视图"
+                                f"Frame {event.frame_index}: full-lattice "
+                                "vertex confirmed; collected 16 frames and "
+                                "confidence perturbation views"
                             )
                             self.prediction_job.emit(
                                 PredictionJob(
