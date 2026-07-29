@@ -6,6 +6,8 @@ Last updated: 2026-07-28 (America/Detroit)
 
 - Working branch:
   `codex/rheed-keyframe-deep-visibility-20260728`.
+- Frozen implementation/configuration commit: `500b9b8`.
+- Frozen model/results/figure commit: `e9dac16`.
 - Immutable parent evidence is the removelist-compliant V4 selector frozen at
   commits `94b3ed0` and `90b1c4a`; it will not be overwritten.
 - User review identifies the primary V4 failure: some selected frames lie in
