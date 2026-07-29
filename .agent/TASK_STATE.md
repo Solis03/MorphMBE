@@ -53,6 +53,8 @@ Last updated: 2026-07-28 (America/Detroit)
   `7089a66` (`feat: automate RHEED ROI and phase keyframe selection`).
 - Frozen experiments/report/figure commit:
   `1eaba50` (`docs: freeze automatic RHEED selection experiments`).
+- Canonical removelist-compliant V4 freeze:
+  `94b3ed0` (`fix: freeze removelist-compliant RHEED selector`).
 - No raw data or `removelist.txt` changes are present. Pre-existing
   `.pytest_cache`, untracked `AGENTS.md` and untracked `tmp/` remain outside
   the task commits. No push was requested or performed.
