@@ -1,0 +1,202 @@
+{
+  "source": "/Users/ziyi/Desktop/LAB/code/data/raw/raw_RHEED/N6063/rampdown to 300C.MOV",
+  "sample_id": "6063",
+  "frame_count": 813,
+  "tracking_roi": {
+    "x": 414,
+    "y": 258,
+    "width": 450,
+    "height": 696,
+    "source_width": 1920,
+    "source_height": 1080
+  },
+  "display_roi": {
+    "x": 474,
+    "y": 54,
+    "width": 588,
+    "height": 984,
+    "source_width": 1920,
+    "source_height": 1080
+  },
+  "estimated_period_frames": 27.0,
+  "retained_event_count": 20,
+  "events": [
+    {
+      "frame_index": 113,
+      "keyframe_quality": 0.6426404945060752,
+      "visibility_rank": 0.5111111111111112,
+      "selector_score": 0.6249111111111111,
+      "tracker": "compact"
+    },
+    {
+      "frame_index": 136,
+      "keyframe_quality": 0.6465453113095976,
+      "visibility_rank": 0.6488888888888888,
+      "selector_score": 0.3864888888888889,
+      "tracker": "compact"
+    },
+    {
+      "frame_index": 160,
+      "keyframe_quality": 0.596321060029187,
+      "visibility_rank": 0.3455555555555556,
+      "selector_score": 0.7687555555555555,
+      "tracker": "front"
+    },
+    {
+      "frame_index": 189,
+      "keyframe_quality": 0.792,
+      "visibility_rank": 0.61,
+      "selector_score": 0.956,
+      "tracker": "compact"
+    },
+    {
+      "frame_index": 266,
+      "keyframe_quality": 0.7665418084941833,
+      "visibility_rank": 0.7977777777777777,
+      "selector_score": 0.5255777777777778,
+      "tracker": "compact"
+    },
+    {
+      "frame_index": 307,
+      "keyframe_quality": 0.593603332574358,
+      "visibility_rank": 0.46222222222222226,
+      "selector_score": 0.5462222222222223,
+      "tracker": "front"
+    },
+    {
+      "frame_index": 339,
+      "keyframe_quality": 0.6766054855664982,
+      "visibility_rank": 0.49222222222222217,
+      "selector_score": 0.7758222222222222,
+      "tracker": "front"
+    },
+    {
+      "frame_index": 367,
+      "keyframe_quality": 0.5928122208483808,
+      "visibility_rank": 0.5177777777777779,
+      "selector_score": 0.4419777777777778,
+      "tracker": "front"
+    },
+    {
+      "frame_index": 415,
+      "keyframe_quality": 0.6203845295841872,
+      "visibility_rank": 0.52,
+      "selector_score": 0.5324000000000001,
+      "tracker": "front"
+    },
+    {
+      "frame_index": 435,
+      "keyframe_quality": 0.71078575278347,
+      "visibility_rank": 0.5966666666666667,
+      "selector_score": 0.7020666666666666,
+      "tracker": "compact"
+    },
+    {
+      "frame_index": 452,
+      "keyframe_quality": 0.6377804639741295,
+      "visibility_rank": 0.3899999999999999,
+      "selector_score": 0.8296,
+      "tracker": "front"
+    },
+    {
+      "frame_index": 486,
+      "keyframe_quality": 0.5862178624371563,
+      "visibility_rank": 0.5444444444444444,
+      "selector_score": 0.3706444444444445,
+      "tracker": "compact"
+    },
+    {
+      "frame_index": 566,
+      "keyframe_quality": 0.7587030033327665,
+      "visibility_rank": 0.6844444444444444,
+      "selector_score": 0.7058444444444444,
+      "tracker": "front"
+    },
+    {
+      "frame_index": 586,
+      "keyframe_quality": 0.6570582710541207,
+      "visibility_rank": 0.6522222222222223,
+      "selector_score": 0.41642222222222225,
+      "tracker": "compact"
+    },
+    {
+      "frame_index": 611,
+      "keyframe_quality": 0.7055617522531481,
+      "visibility_rank": 0.5833333333333334,
+      "selector_score": 0.7085333333333333,
+      "tracker": "compact"
+    },
+    {
+      "frame_index": 641,
+      "keyframe_quality": 0.7633481688998797,
+      "visibility_rank": 0.8577777777777778,
+      "selector_score": 0.4049777777777778,
+      "tracker": "front"
+    },
+    {
+      "frame_index": 716,
+      "keyframe_quality": 0.7374951910744498,
+      "visibility_rank": 0.6133333333333335,
+      "selector_score": 0.7631333333333333,
+      "tracker": "compact"
+    },
+    {
+      "frame_index": 736,
+      "keyframe_quality": 0.5810034557397271,
+      "visibility_rank": 0.5266666666666666,
+      "selector_score": 0.38526666666666665,
+      "tracker": "compact"
+    },
+    {
+      "frame_index": 761,
+      "keyframe_quality": 0.5997149788111372,
+      "visibility_rank": 0.31444444444444447,
+      "selector_score": 0.8372444444444446,
+      "tracker": "front"
+    },
+    {
+      "frame_index": 789,
+      "keyframe_quality": 0.7976607360908158,
+      "visibility_rank": 0.6711111111111112,
+      "selector_score": 0.8637111111111111,
+      "tracker": "front"
+    }
+  ],
+  "selected_smoke_event": {
+    "frame_index": 189,
+    "keyframe_quality": 0.792,
+    "visibility_rank": 0.61,
+    "selector_score": 0.956,
+    "tracker": "compact"
+  },
+  "prediction": {
+    "model_id": "MorphMBE-M14i-Full23-OODAware + M12a-RangeTerrace-live-v1",
+    "Rq_nm": {
+      "value": 5.2081552308078845,
+      "unconstrained_value": 5.2081552308078845,
+      "support_clipped": false,
+      "expected_absolute_error": 2.6331047539391075,
+      "confidence": 0.323325957750833,
+      "interval_lower": 1.0378006700409728,
+      "interval_upper": 9.378509791574796,
+      "risk_score": 0.939629180316641
+    },
+    "FSMI_nm": {
+      "value": 3.7833928351128927,
+      "unconstrained_value": 3.7833928351128927,
+      "support_clipped": false,
+      "expected_absolute_error": 1.423308991382114,
+      "confidence": 0.45205336557085324,
+      "interval_lower": 0.0,
+      "interval_upper": 7.682633088057671,
+      "risk_score": 0.6200582415474178
+    },
+    "model_confidence": 0.38230954392701677,
+    "keyframe_quality": 0.792,
+    "combined_confidence": 0.48736217565601836,
+    "generated_rq_nm": 5.20814847946167,
+    "inference_seconds": 4.028484458001913,
+    "retrieval_at_inference": false
+  },
+  "total_seconds": 31.80280295900593
+}

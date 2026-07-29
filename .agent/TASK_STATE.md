@@ -1,6 +1,54 @@
 # RHEED-to-AFM Generative Modeling Task State
 
-Last updated: 2026-07-28 (America/Detroit)
+Last updated: 2026-07-29 (America/Detroit)
+
+## Simulated real-time RHEED→AFM UI (2026-07-29)
+
+- Working branch:
+  `codex/rheed-realtime-morphology-ui-20260729`.
+- Implemented a PySide6 desktop application for raw-video replay with sample
+  and video dropdowns, adjustable slow playback, RHEED display, V7 full-lattice
+  and model-input ROI overlays, generated AFM display, Rq/FSMI cards,
+  confidence-colored roughness timeline and terminal-style pipeline logs.
+- The V5 DINOv2-S selector and V7 ROI calibration are reused without changing
+  their frozen fitted artifacts. The user-approved standalone directory is
+  read only; all new caches and sessions are inside this repository.
+- The deployed model refits the frozen M14i methods on all 23 allowed growths:
+  M14g for Rq and M14b for FSMI. M12a uses selected-16 R3D morphology
+  conditions, stochastic Laguerre islands, a non-retrieval spectral prior and
+  the edge-preserving terrace renderer. No measured AFM patch or nearest
+  neighbor is loaded at inference.
+- Temporal semantics are explicit: keyframe at selected-16 index 7, causal-8
+  frames `k-7..k`, selected-16 frames `k-7..k+8`, with the event emitted only
+  after frame `k+8` arrives.
+- On the M1 Pro, deployment-cache fitting takes about 11.3 s; one full
+  morphology prediction takes 3.8–4.3 s. Video and prediction run in separate
+  threads, and a bounded one-job queue prevents unbounded lag.
+- 6063 raw-MOV end-to-end smoke processes 813 frames, finds a 27-frame period,
+  selects frame 189 versus human ~186, predicts Rq 5.2082 nm / FSMI 3.7834 nm,
+  and generates a height map whose measured Rq is 5.2081 nm. Total selector
+  plus inference time is 31.58 s.
+- Failure analysis found that a few secondary cycle vertices extrapolate to
+  nearly zero Rq with very low confidence. The final deploy layer preserves
+  the unconstrained value, clips the displayed/generated amplitude to the
+  observed 23-growth support boundary, flags `support_clipped`, expands the
+  interval and further reduces confidence. This keeps low-confidence outputs
+  visibly AFM-like without pretending the extrapolation is supported.
+- Current interface is a complete simulated replay. V5 still performs a
+  full-video analysis pass before playback; a truly causal camera selector is
+  a documented next step. Historical replay is not new held-out evidence.
+- User guide:
+  `docs/RHEED_REALTIME_MORPHOLOGY_UI.md`.
+- Implementation report:
+  `reports/rheed_realtime_ui_report.md`.
+- Verification: 13/13 realtime/selector tests and 16/16 adjacent
+  M14i/M12a/island/full-cohort tests pass. Installed console entry-point help,
+  offscreen Qt rendering, raw 6063 replay and support-clipped failure handling
+  were exercised. No file under `data/raw` was modified. The standalone's only
+  same-day mtimes predate this task and are pre-existing Finder `.DS_Store`
+  files; no standalone artifact was written by this implementation.
+- Implementation commit:
+  `24ae914` (`feat: add realtime RHEED morphology monitoring UI`).
 
 ## Complete-lattice ROI continuation (2026-07-28)
 

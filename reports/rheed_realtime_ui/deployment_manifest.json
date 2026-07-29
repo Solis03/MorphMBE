@@ -1,0 +1,51 @@
+{
+  "model_id": "MorphMBE-M14i-Full23-OODAware + M12a-RangeTerrace-live-v1",
+  "bundle": "outputs/rheed_realtime_ui/morphmbe_m14i_m12a_live_v1.joblib",
+  "created_at": "2026-07-29T01:48:22-0400",
+  "training_growth_count": 23,
+  "training_growth_ids": [
+    "6022",
+    "6028",
+    "6029",
+    "6033",
+    "6047",
+    "6048",
+    "6056",
+    "6057",
+    "6062",
+    "6063",
+    "6070",
+    "6072",
+    "6078",
+    "6080",
+    "6081",
+    "6082",
+    "6084",
+    "6085",
+    "6090",
+    "6094",
+    "6095",
+    "6099",
+    "6101"
+  ],
+  "frozen_parameter_hashes": {
+    "m12_parameters": "89ba7ae20e92ff41fa0d9918707bd46c48a28e07a0e01dafe911b3029335628a",
+    "m14_parameters": "1baf5a876b51ef29b9c9e99719c9c91ee821fe75d54fa7778c9271d49604e57b",
+    "m14_generator_parameters": "3af12130e311b969cc56e59a4f46d4edeb2a13ab2102feabd0c48a0784a4561e",
+    "deployment_config": "3af12130e311b969cc56e59a4f46d4edeb2a13ab2102feabd0c48a0784a4561e"
+  },
+  "method": {
+    "Rq_nm": "M14g_multiview_curated60_r3d40",
+    "FSMI_nm": "M14b_rheed_density_weighted",
+    "image_generator": "M12a_edge_preserving_terrace",
+    "retrieval_at_inference": false,
+    "measured_afm_patch_at_inference": false
+  },
+  "runtime": {
+    "python": "3.12.7 (main, Oct  1 2024, 02:05:46) [Clang 15.0.0 (clang-1500.3.9.4)]",
+    "platform": "macOS-26.5.2-arm64-arm-64bit",
+    "torch": "2.12.0",
+    "mps_available": true,
+    "build_seconds": 11.15973991699866
+  }
+}
