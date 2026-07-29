@@ -1310,3 +1310,25 @@ Status: completed locally on branch
   prospective/OOD rather than eligible training samples.
 - Report:
   `reports/rheed_realtime_ui/causal_stream_v1_N6342/REPORT.md`.
+
+## 2026-07-29 — N6342 every-event inference completion barrier
+
+- Added separate detected, worker-triggered, queue-accepted, inference-complete
+  and scatter-point counters. Video EOF now enters `DRAINING x/N`; the UI only
+  declares `COMPLETE N/N` when every count agrees.
+- Starting another video is disabled while queued morphology predictions remain,
+  preventing cross-session contamination.
+- Replayed all 2201 N6342 frames causally at 0.25x duration. The 13 detected
+  frames `129, 221, 312, 495, 678, 862, 1045, 1228, 1321, 1595, 1962, 2054,
+  2145` produced 13 accepted triggers, 13 completed M15b + M12a predictions,
+  13 generated AFM archives and exactly 13 Sq timeline points.
+- Generated AFM conditioning fidelity passed for all events; maximum
+  `|generated Sq - predicted Sq| = 1.41e-6 nm`. Per-event inference time was
+  6.40--7.79 s on the M1 Pro.
+- Final UI:
+  `outputs/rheed_realtime_ui/causal_stream_v1_ui_N6342_thirteen_predictions_final.png`.
+- All-event AFM atlas and timeline:
+  `reports/rheed_realtime_ui/causal_stream_v1_N6342/N6342_all_13_generated_afm.{png,pdf}`
+  and `ui_thirteen_prediction_timeline.csv`.
+- N6342 raw-video SHA-256 remains
+  `44d5fd8442380d2e8cbbc7481461c104b6645160518de557da841f760c659986`.

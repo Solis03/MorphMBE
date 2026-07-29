@@ -16,6 +16,16 @@
     2145
   ],
   "decoded_frame_count": 2201,
+  "end_to_end_verification": {
+    "completed_prediction_count": 13,
+    "detected_clear_moment_count": 13,
+    "final_ui_screenshot": "outputs/rheed_realtime_ui/causal_stream_v1_ui_N6342_thirteen_predictions_final.png",
+    "generated_afm_archive_count": 13,
+    "maximum_generated_vs_conditioning_sq_error_nm": 1.4105999608382547e-06,
+    "queue_accepted_trigger_count": 13,
+    "scatter_point_count": 13,
+    "timeline": "reports/rheed_realtime_ui/causal_stream_v1_N6342/ui_thirteen_prediction_timeline.csv"
+  },
   "frame_rotation_clockwise_degrees": 0,
   "full_video_preanalysis": false,
   "model_input_roi": {
@@ -31,6 +41,7 @@
   "selection_mode": "causal_stream",
   "source": "/Users/ziyi/Desktop/LAB/code/data/compressedfile/N6342/Ramp down to 200C.avi",
   "source_read_only": true,
+  "source_sha256": "44d5fd8442380d2e8cbbc7481461c104b6645160518de557da841f760c659986",
   "tracking_roi_not_model_input": {
     "height": 980,
     "source_height": 1100,

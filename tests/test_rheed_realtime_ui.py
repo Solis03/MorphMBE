@@ -21,7 +21,10 @@ from rheed2morph.realtime.clips import (
     live_physics_row,
 )
 from rheed2morph.realtime.model import MODEL_ID, load_deployment_bundle
-from rheed2morph.realtime.ui import RealtimeMainWindow
+from rheed2morph.realtime.ui import (
+    RealtimeMainWindow,
+    event_pipeline_complete,
+)
 from rheed2morph.realtime.selector import (
     _event_rows,
     _lattice_vertex_scores,
@@ -252,8 +255,16 @@ def test_default_ui_uses_causal_multi_event_streaming_without_drops() -> None:
     assert "detector.observe" in source
     assert "pending[trigger]" in source
     assert "prediction_job.emit" in source
+    assert "stream_summary.emit" in source
     worker = PredictionWorker(bundle_path="unused.joblib")
     assert worker.jobs.maxsize == 0
+
+
+def test_session_completes_only_when_every_clear_moment_is_plotted() -> None:
+    assert event_pipeline_complete(13, 13, 13, 13)
+    assert not event_pipeline_complete(13, 13, 3, 3)
+    assert not event_pipeline_complete(13, 12, 12, 12)
+    assert not event_pipeline_complete(13, 13, 13, 12)
 
 
 def test_deployment_cache_identifies_frozen_nonretrieval_pipeline() -> None:

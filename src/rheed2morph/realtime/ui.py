@@ -42,6 +42,23 @@ from .workers import (
 )
 
 
+def event_pipeline_complete(
+    detected: int,
+    triggered: int,
+    completed: int,
+    scatter_points: int,
+) -> bool:
+    """Return whether every detected clear moment reached the timeline."""
+
+    counts = (
+        int(detected),
+        int(triggered),
+        int(completed),
+        int(scatter_points),
+    )
+    return min(counts) >= 0 and len(set(counts)) == 1
+
+
 class VideoCanvas(QWidget):
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
@@ -330,6 +347,12 @@ class RealtimeMainWindow(QMainWindow):
         self.prediction_worker: PredictionWorker | None = None
         self.recorder: SessionRecorder | None = None
         self._model_ready = False
+        self._detected_count = 0
+        self._worker_triggered_count = 0
+        self._submitted_count = 0
+        self._completed_count = 0
+        self._replay_done = False
+        self._completion_announced = False
         self._build_ui()
         self._load_catalog()
         self._start_prediction_worker()
@@ -631,6 +654,14 @@ class RealtimeMainWindow(QMainWindow):
         self.terminal.appendPlainText(f"[{stamp}] {message}")
 
     def start_session(self) -> None:
+        if self._submitted_count > self._completed_count:
+            QMessageBox.warning(
+                self,
+                "Predictions still running",
+                "Wait for every queued prediction from the current video to "
+                "finish before starting another session.",
+            )
+            return
         entry = self.video_combo.currentData()
         if not isinstance(entry, VideoEntry):
             QMessageBox.warning(
@@ -649,6 +680,12 @@ class RealtimeMainWindow(QMainWindow):
         self.fsmi_card.value.setText("— nm")
         self.confidence_card.value.setText("— %")
         self.confidence_bar.setValue(0)
+        self._detected_count = 0
+        self._worker_triggered_count = 0
+        self._submitted_count = 0
+        self._completed_count = 0
+        self._replay_done = False
+        self._completion_announced = False
         result_root = self.repository / self.config["result_root"]
         self.recorder = SessionRecorder(
             result_root,
@@ -670,6 +707,9 @@ class RealtimeMainWindow(QMainWindow):
         self.replay_worker.prepared.connect(self._replay_prepared)
         self.replay_worker.frame.connect(self.video_canvas.set_frame)
         self.replay_worker.prediction_job.connect(self._submit_prediction)
+        self.replay_worker.stream_summary.connect(
+            self._stream_summary_ready
+        )
         self.replay_worker.completed.connect(self._replay_completed)
         self.replay_worker.failed.connect(self._worker_failed)
         self.replay_worker.start()
@@ -711,7 +751,13 @@ class RealtimeMainWindow(QMainWindow):
     def _submit_prediction(self, job: PredictionJob) -> None:
         if self.prediction_worker is not None:
             accepted = self.prediction_worker.submit(job)
-            if not accepted:
+            if accepted:
+                self._submitted_count += 1
+                self.append_log(
+                    f"Trigger accepted frame={job.event.frame_index} · "
+                    f"queued predictions={self._submitted_count}"
+                )
+            else:
                 self.append_log(
                     f"Frame {job.event.frame_index}: inference queue full; "
                     "real-time throttling skipped this rotation cycle"
@@ -761,6 +807,7 @@ class RealtimeMainWindow(QMainWindow):
         self.confidence_bar.setStyleSheet(
             f"QProgressBar::chunk {{ background:{chunk}; border-radius:4px; }}"
         )
+        self._completed_count += 1
         saved = self.recorder.record(result) if self.recorder else None
         self.append_log(
             f"Prediction complete frame={result.job.event.frame_index} · "
@@ -771,6 +818,69 @@ class RealtimeMainWindow(QMainWindow):
         )
         if saved is not None:
             self.append_log(f"Derived result saved: {saved}")
+        self._maybe_finalize_session()
+
+    def _stream_summary_ready(
+        self,
+        detected_count: int,
+        triggered_count: int,
+    ) -> None:
+        self._detected_count = int(detected_count)
+        self._worker_triggered_count = int(triggered_count)
+        self.append_log(
+            f"Stream summary: detected={self._detected_count}, "
+            f"triggered={self._worker_triggered_count}, "
+            f"accepted by inference queue={self._submitted_count}"
+        )
+        self._maybe_finalize_session()
+
+    def _maybe_finalize_session(self) -> None:
+        if not self._replay_done:
+            return
+        scatter_points = len(self.trend.times)
+        if self._completed_count < self._submitted_count:
+            self.stream_state.setText(
+                f"DRAINING {self._completed_count}/{self._submitted_count}"
+            )
+            self.start_button.setEnabled(False)
+            return
+        if event_pipeline_complete(
+            self._detected_count,
+            self._submitted_count,
+            self._completed_count,
+            scatter_points,
+        ) and self._worker_triggered_count == self._submitted_count:
+            self.stream_state.setText(
+                f"COMPLETE {self._completed_count}/{self._detected_count}"
+            )
+            self.start_button.setEnabled(
+                self._model_ready
+                and self.mode_combo.currentData() == "video"
+            )
+            if not self._completion_announced:
+                self._completion_announced = True
+                self.append_log(
+                    "End-to-end count check passed: "
+                    f"detected={self._detected_count}, "
+                    f"triggered={self._submitted_count}, "
+                    f"completed={self._completed_count}, "
+                    f"scatter points={scatter_points}"
+                )
+            return
+        self.stream_state.setText("COUNT MISMATCH")
+        self.start_button.setEnabled(
+            self._model_ready and self.mode_combo.currentData() == "video"
+        )
+        if not self._completion_announced:
+            self._completion_announced = True
+            self.append_log(
+                "ERROR · end-to-end event-count mismatch: "
+                f"detected={self._detected_count}, "
+                f"worker-triggered={self._worker_triggered_count}, "
+                f"queue-accepted={self._submitted_count}, "
+                f"completed={self._completed_count}, "
+                f"scatter points={scatter_points}"
+            )
 
     def toggle_pause(self) -> None:
         if self.replay_worker is None:
@@ -805,14 +915,18 @@ class RealtimeMainWindow(QMainWindow):
             self.append_log("Replay stopped; raw data were not modified")
 
     def _replay_completed(self) -> None:
-        self.stream_state.setText("VIDEO COMPLETE")
+        self._replay_done = True
+        self.stream_state.setText(
+            f"DRAINING {self._completed_count}/{self._submitted_count}"
+        )
         self.pause_button.setEnabled(False)
         self.stop_button.setEnabled(False)
-        self.start_button.setEnabled(self._model_ready)
+        self.start_button.setEnabled(False)
         self.append_log(
-            "Video replay complete; submitted morphology predictions "
-            "will continue to completion"
+            "Video replay complete; waiting for every triggered morphology "
+            "prediction to reach the scatter plot"
         )
+        self._maybe_finalize_session()
 
     def _worker_failed(self, message: str) -> None:
         self.append_log(f"ERROR · {message}")

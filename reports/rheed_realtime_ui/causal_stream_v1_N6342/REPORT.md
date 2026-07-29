@@ -59,14 +59,46 @@ required.
   `x=301, y=120, width=649, height=899`
 - Raw video was read-only.
 
-The actual Qt integration test completed predictions at frames 129, 221 and
-312 and displayed all three points on the Sq timeline before the screenshot
-was captured:
+The preliminary Qt integration smoke completed predictions at frames 129, 221
+and 312 and displayed all three points on the Sq timeline before its deliberately
+short screenshot was captured:
 
 `outputs/rheed_realtime_ui/causal_stream_v1_ui_N6342_three_predictions_final.png`
+
+That smoke was not a complete-video event-count validation. The final Qt test
+therefore added an explicit completion barrier and ran all 2201 frames. The UI
+may display `DRAINING x/13` after video decoding ends, but it cannot display
+`COMPLETE` or start another video until all four counts agree:
+
+| End-to-end count | N6342 result |
+|---|---:|
+| Clear moments detected | 13 |
+| Prediction triggers accepted by inference queue | 13 |
+| M15b + M12a predictions completed | 13 |
+| Sq scatter points displayed | 13 |
+| Generated AFM archives written | 13 |
+
+The final frames are exactly
+`129, 221, 312, 495, 678, 862, 1045, 1228, 1321, 1595, 1962, 2054, 2145`.
+The generated-map Sq matches its conditioning Sq for every event; the maximum
+absolute numerical discrepancy is `1.41e-6 nm`. Inference took 6.40--7.79 s
+per event on this M1 Pro run. The output is a sequence of prospective estimates
+from one video, not 13 independent AFM ground-truth measurements; low confidence
+is therefore retained visibly rather than interpreted as accuracy.
+
+Final complete-session artifacts:
+
+- UI with `COMPLETE 13/13`, 13 timeline points, and final generated AFM:
+  `outputs/rheed_realtime_ui/causal_stream_v1_ui_N6342_thirteen_predictions_final.png`
+- Shared-height-scale atlas of all 13 generated AFM maps:
+  `N6342_all_13_generated_afm.png` and
+  `N6342_all_13_generated_afm.pdf`
+- Complete per-event scalar/confidence/provenance table:
+  `ui_thirteen_prediction_timeline.csv`
 
 Machine-readable audit artifacts:
 
 - `accepted_online_events.csv`
 - `audit_manifest.json`
 - `ui_three_prediction_summary.csv`
+- `ui_thirteen_prediction_timeline.csv`

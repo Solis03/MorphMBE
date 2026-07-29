@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import shutil
 import sys
 import time
 
@@ -27,6 +28,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
     parser.add_argument("--minimum-predictions", type=int, default=1)
     parser.add_argument("--playback-duration-ratio", type=float, default=1.0)
+    parser.add_argument("--require-complete", action="store_true")
+    parser.add_argument("--timeline-output", default="")
     return parser.parse_args()
 
 
@@ -57,8 +60,31 @@ def main() -> None:
         if not state["started"] and window._model_ready:
             state["started"] = True
             window.start_session()
-        if len(window.trend.times) >= int(args.minimum_predictions):
+        enough_predictions = (
+            len(window.trend.times) >= int(args.minimum_predictions)
+        )
+        completion_ready = (
+            not args.require_complete or window._completion_announced
+        )
+        if enough_predictions and completion_ready:
             window.grab().save(str(destination))
+            if args.timeline_output:
+                if (
+                    window.recorder is None
+                    or not window.recorder.csv_path.exists()
+                ):
+                    raise RuntimeError(
+                        "Prediction timeline was not available at capture"
+                    )
+                timeline_destination = Path(args.timeline_output).resolve()
+                timeline_destination.parent.mkdir(
+                    parents=True,
+                    exist_ok=True,
+                )
+                shutil.copy2(
+                    window.recorder.csv_path,
+                    timeline_destination,
+                )
             window.close()
             app.quit()
             return

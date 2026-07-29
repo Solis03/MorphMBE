@@ -130,6 +130,7 @@ class ReplayWorker(QThread):
     prepared = Signal(object, float)
     frame = Signal(object, int, float, bool)
     prediction_job = Signal(object)
+    stream_summary = Signal(int, int)
     completed = Signal()
     failed = Signal(str)
 
@@ -412,6 +413,7 @@ class ReplayWorker(QThread):
             f"Causal replay complete: detected {detected_count} clear "
             f"moments and submitted {submitted_count} predictions"
         )
+        self.stream_summary.emit(detected_count, submitted_count)
         self.completed.emit()
 
     def run(self) -> None:
@@ -534,6 +536,7 @@ class ReplayWorker(QThread):
                 + int(self.config.get("prediction_trigger_delay_frames", 8)): event
                 for event in selection.events
             }
+            submitted_count = 0
             ring: deque[np.ndarray] = deque(maxlen=18)
             start = time.perf_counter()
             pause_started: float | None = None
@@ -619,6 +622,7 @@ class ReplayWorker(QThread):
                                     ),
                                 )
                             )
+                            submitted_count += 1
                     target = start + paused_total + (index + 1) * interval
                     while (
                         not self._stop_event.is_set()
@@ -629,6 +633,7 @@ class ReplayWorker(QThread):
                         )
             finally:
                 reader.close()
+            self.stream_summary.emit(len(selection.events), submitted_count)
             self.completed.emit()
         except Exception as exc:  # noqa: BLE001
             self.failed.emit(f"{type(exc).__name__}: {exc}")
