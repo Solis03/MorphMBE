@@ -1,5 +1,9 @@
 # Deep spot-visibility RHEED keyframe selection
 
+> Continuation: the V5 keyframe ranker and its internal tracking ROI remain
+> frozen. The later V7 full-lattice export ROI is documented in
+> `reports/rheed_full_lattice_roi_report.md`.
+
 Date: 2026-07-28
 Branch: `codex/rheed-keyframe-deep-visibility-20260728`
 

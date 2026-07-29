@@ -2,6 +2,44 @@
 
 Last updated: 2026-07-28 (America/Detroit)
 
+## Complete-lattice ROI continuation (2026-07-28)
+
+- Working branch:
+  `codex/rheed-roi-full-lattice-v7-20260728`.
+- The user-approved V5 DINOv2-S keyframe selector is unchanged. Its
+  `calibrated_safe` ROI remains the internal tracking/scoring geometry; V7
+  predicts a separate full-lattice ROI only after frame selection.
+- V7 learns four independent aperture-relative boundaries from the 25
+  removelist-compliant annotated videos, grouped by landscape/portrait
+  orientation. Conservative 5th/95th-percentile geometry, explicit
+  top/bottom padding, right transition inclusion and a row-wise circular-arc
+  constraint implement the requested full-dot-family crop.
+- Evaluation is strict 25-fold leave-one-video-out: each fold fits on 24
+  videos and predicts one entirely excluded video. Held-video and removelist
+  overlap are both zero.
+- Compared with the frozen V4/V5 tracking ROI, selected V7 median compact-spot
+  energy coverage is 1.000 versus 0.501; worst coverage is 0.9965 versus
+  0.0633; median manual area coverage is 0.975 versus 0.798; right reference
+  boundary inclusion is 25/25 versus 1/25; vertical envelope inclusion is
+  24/25 versus 9/25; circular eyepiece-edge intrusion is 0/25 versus 18/25.
+- The evaluation-only compact-spot metric uses DoG response within the manual
+  reference ROI. It does not enter inference. All 25 fixed-order comparison
+  crops and the eight numerically lowest-coverage cases are shown rather than
+  cherry-picked.
+- Final original-MOV smoke inference for 6063 processes 813 frames in
+  28.7 seconds, selects frame 189 and exports ROI
+  `(x=474, y=54, w=588, h=984)` with zero arc intrusion. A second smoke run
+  on 6048 processes 371 PNG frames in 25.1 seconds, selects frame 191 versus
+  human 199, and exports a complete-lattice crop with zero arc intrusion.
+- Calibration bundle:
+  `outputs/rheed_auto_roi_keyframe/20260728_full_lattice_roi_v7/full_lattice_roi_calibration.joblib`.
+- Experiment report:
+  `reports/rheed_full_lattice_roi_report.md`.
+- Verification report:
+  `reports/rheed_full_lattice_roi_verification.md`.
+- Local compute remains sufficient; no CUDA handoff is indicated for this
+  ROI task. Raw data and `removelist.txt` remain unchanged.
+
 ## Deep spot-visibility keyframe continuation (2026-07-28)
 
 - Working branch:
