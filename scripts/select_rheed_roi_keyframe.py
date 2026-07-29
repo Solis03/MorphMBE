@@ -90,6 +90,19 @@ def parse_args() -> argparse.Namespace:
         choices=("mps", "cpu", "cuda"),
         default=None,
     )
+    parser.add_argument(
+        "--full-lattice-roi-calibration",
+        default=(
+            "outputs/rheed_auto_roi_keyframe/"
+            "20260728_full_lattice_roi_v7/"
+            "full_lattice_roi_calibration.joblib"
+        ),
+        help=(
+            "Four-boundary complete-lattice ROI calibration applied after "
+            "keyframe scoring. Pass an empty string to retain the tracking "
+            "ROI as the exported crop."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -107,6 +120,9 @@ def main() -> None:
         ),
         foundation_cache_dir=args.foundation_cache_dir or None,
         deep_device=args.deep_device,
+        full_lattice_calibration_path=(
+            args.full_lattice_roi_calibration or None
+        ),
     )
     paths = save_selection_artifacts(
         selection,

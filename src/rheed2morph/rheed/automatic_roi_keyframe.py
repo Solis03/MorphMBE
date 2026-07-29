@@ -24,7 +24,7 @@ import json
 from pathlib import Path
 from collections.abc import Callable
 from dataclasses import replace
-from typing import Any, Iterable, Iterator, Sequence
+from typing import Any, Iterable, Iterator, Mapping, Sequence
 
 import imageio.v2 as imageio
 import numpy as np
@@ -143,6 +143,7 @@ class ROIPrediction:
     activity_coverage: float
     confidence: float
     analysis_scale: float
+    circular_edge_intrusion_fraction: float | None = None
 
 
 @dataclass(frozen=True)
@@ -169,6 +170,7 @@ class AutomaticSelection:
     frame_count: int
     roi: ROIPrediction
     keyframes: dict[str, KeyframePrediction]
+    tracking_roi: ROIPrediction | None = None
 
     def to_dict(self) -> dict[str, Any]:
         payload = asdict(self)
@@ -552,12 +554,26 @@ def predict_roi(
     aspect_ratio: float = 1.54,
     calibrated_scale: float = 0.90,
     analysis: ApertureAnalysis | None = None,
+    lattice_calibration: Mapping[str, Any] | str | Path | None = None,
 ) -> tuple[ROIPrediction, ApertureAnalysis]:
     """Predict a border-safe ROI from sampled full-video frames."""
 
-    if method not in ROI_METHODS:
+    if method not in (*ROI_METHODS, "full_lattice"):
         raise ValueError(f"Unknown ROI method {method!r}")
     aperture = analysis or analyze_aperture(frames)
+    if method == "full_lattice":
+        if lattice_calibration is None:
+            raise ValueError(
+                "full_lattice ROI requires a lattice calibration bundle"
+            )
+        from rheed2morph.rheed.lattice_roi import (
+            predict_full_lattice_roi,
+        )
+
+        return (
+            predict_full_lattice_roi(aperture, lattice_calibration),
+            aperture,
+        )
     x, y, width, height, safe_fraction, coverage = _search_safe_rectangle(
         aperture,
         method=method,
@@ -1168,15 +1184,33 @@ def select_from_source(
     deep_visibility_ranker_path: str | Path | None = None,
     foundation_cache_dir: str | Path | None = None,
     deep_device: str | None = None,
+    full_lattice_calibration_path: (
+        Mapping[str, Any] | str | Path | None
+    ) = None,
 ) -> tuple[AutomaticSelection, list[dict[str, Any]], ApertureAnalysis]:
-    """Run the complete two-pass selector on a video or PNG directory."""
+    """Run keyframe selection and optional complete-lattice ROI refinement.
 
+    The tracking ROI remains the frozen ``calibrated_safe`` geometry used to
+    train the V5 keyframe model.  A larger four-boundary ROI can be predicted
+    afterwards for visualization/export without changing keyframe scores.
+    """
+
+    if roi_method == "full_lattice":
+        raise ValueError(
+            "full_lattice is an export ROI, not a tracking ROI; pass its "
+            "bundle with full_lattice_calibration_path"
+        )
     sampled, counted = sample_frames(source, maximum=roi_sample_count)
     roi, analysis = predict_roi(
         sampled,
         method=roi_method,
         aspect_ratio=aspect_ratio,
         calibrated_scale=calibrated_scale,
+        lattice_calibration=(
+            full_lattice_calibration_path
+            if roi_method == "full_lattice"
+            else None
+        ),
     )
     factory, known_count, display_source = _source_factory(source)
     trajectory = extract_spot_trajectory(factory(), roi.rect)
@@ -1212,11 +1246,23 @@ def select_from_source(
             )
         )
     frame_count = known_count or counted or len(trajectory)
+    output_roi = roi
+    if (
+        full_lattice_calibration_path is not None
+        and roi_method != "full_lattice"
+    ):
+        output_roi, _ = predict_roi(
+            sampled,
+            method="full_lattice",
+            analysis=analysis,
+            lattice_calibration=full_lattice_calibration_path,
+        )
     selection = AutomaticSelection(
         source=display_source,
         frame_count=int(frame_count),
-        roi=roi,
+        roi=output_roi,
         keyframes=predictions,
+        tracking_roi=roi if output_roi.method != roi.method else None,
     )
     return selection, trajectory, analysis
 

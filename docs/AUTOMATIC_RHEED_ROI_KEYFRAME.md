@@ -16,7 +16,9 @@ PYTHONPATH=src .venv/bin/python scripts/select_rheed_roi_keyframe.py \
 
 The default command uses:
 
-- `calibrated_safe` aperture ROI;
+- the frozen `calibrated_safe` aperture ROI for trajectory extraction and
+  V5 keyframe scoring;
+- a post-selection V7 `full_lattice` ROI for the exported crop;
 - a compact brightest-feature trajectory and a whole-pattern diffraction
   front trajectory;
 - physical right-most vertex candidates;
@@ -29,8 +31,9 @@ The default command uses:
 
 The output directory contains:
 
-- `automatic_selection.json`: source provenance, ROI coordinates, every
-  heuristic prediction, the selected frame, and confidence;
+- `automatic_selection.json`: source provenance, the exported full-lattice
+  ROI, the smaller tracking ROI, every heuristic prediction, the selected
+  frame, and confidence;
 - `selected_frame_with_roi.png`: full selected frame with ROI overlay;
 - `selected_roi.png`: contrast-enhanced selected crop.
 
@@ -51,14 +54,32 @@ PYTHONPATH=src .venv/bin/python scripts/select_rheed_roi_keyframe.py \
 Supported video suffixes are AVI, M4V, MKV, MOV, MP4, MPEG and MPG. A directory
 of lossless numeric PNG frames is also accepted.
 
-## Method
+## ROI method
 
-ROI detection estimates the illuminated phosphor aperture from a temporal
-median, erodes it to a safe interior, aggregates high-pass diffraction
-activity over sampled frames, and searches for a fixed-aspect rectangle with
-less than 0.2% unsafe pixels. The selected `calibrated_safe` method balances
-aperture safety, useful diffraction coverage and the scale of existing human
-ROIs.
+ROI detection first estimates the illuminated phosphor aperture from a
+temporal median. The frozen `calibrated_safe` tracking rectangle then
+aggregates high-pass diffraction activity over sampled frames and searches
+for a fixed-aspect safe rectangle. This geometry is retained internally
+because the V5 keyframe ranker was trained with it.
+
+V7 predicts the exported crop only after keyframe scoring. It calibrates
+left, right, top and bottom independently relative to the detected aperture,
+uses separate landscape/portrait statistics, and deliberately includes the
+right light/shadow transition. Conservative 5th/95th-percentile bounds and
+extra top/bottom padding retain vertical motion around the selected frame.
+The left edge is constrained row by row to remain inside the circular
+eyepiece arc. Thus the crop can include the complete sparse point family
+without inheriting the fixed aspect ratio that caused V4 to clip its right,
+top or bottom.
+
+The fitted V7 calibration is:
+
+`outputs/rheed_auto_roi_keyframe/20260728_full_lattice_roi_v7/full_lattice_roi_calibration.joblib`
+
+To reproduce the previous smaller exported crop while leaving keyframe
+selection unchanged, pass `--full-lattice-roi-calibration ""`.
+
+## Keyframe method
 
 Two trajectories are extracted from every frame:
 
@@ -107,14 +128,35 @@ is the one remaining diffuse-shadow-proxy failure.
 For scientific acquisition, low confidence should trigger manual review and
 the reviewed frame should be added to the next training freeze.
 
+The V7 ROI was separately evaluated by strict leave-one-video-out
+calibration over the same 25 removelist-compliant videos. Relative to the V4
+tracking crop, median compact-spot energy coverage rises from 0.501 to 1.000,
+worst-case coverage from 0.063 to 0.997, median human-ROI area coverage from
+0.798 to 0.975, right reference-boundary inclusion from 4% to 100%, and the
+circular-edge intrusion rate falls from 72% to 0%. The vertical reference
+envelope is included for 24/25 videos. Compact-spot coverage is an
+evaluation-only difference-of-Gaussians measure computed inside the manual
+reference ROI; manual pixels are never used during inference. The complete
+atlas, including the eight lowest-coverage cases, is under
+`reports/rheed_auto_roi_keyframe/20260728_full_lattice_roi_v7`.
+
+V7 intentionally trades some IoU for content completeness: empty margin in a
+manual rectangle is not treated as more important than retaining all
+diffraction spots while avoiding the eyepiece arc. Like V5, this remains a
+retrospective result and needs prospective validation on new camera
+geometries. If the camera, eyepiece magnification, or screen orientation
+changes materially, collect several reviewed ROIs and refit the small
+calibration bundle.
+
 ## Streaming adaptation
 
 The deterministic implementation is a two-pass offline reference. Deep V5
 adds one candidate-frame pass and frozen foundation-model inference. The
 DINOv2-S extraction benchmark processed 598 unique evaluation images in
-35.5 seconds on MPS (16.9 images/s). The complete V5 CLI processed the
-813-frame 6063 MOV in 30.1 seconds and selected frame 189, three frames from
-the human choice. A causal version can:
+35.5 seconds on MPS (16.9 images/s). The final V5+V7 CLI processed the
+813-frame 6063 MOV in 28.7 seconds and selected frame 189, three frames from
+the human choice. It processed the 371-frame 6048 PNG sequence in 25.1
+seconds and selected frame 191 versus human frame 199. A causal version can:
 
 1. estimate and freeze the aperture ROI during the first one or two seconds;
 2. update both trajectory features per frame;

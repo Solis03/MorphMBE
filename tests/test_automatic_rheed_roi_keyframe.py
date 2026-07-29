@@ -21,6 +21,9 @@ from rheed2morph.rheed.spot_visibility import (
     analyze_spot_visibility,
     visibility_proxy,
 )
+from rheed2morph.rheed.lattice_roi import (
+    circular_arc_intrusion_fraction,
+)
 
 
 def synthetic_rotation_frames(
@@ -64,6 +67,49 @@ def synthetic_rotation_frames(
 
 
 class AutomaticRHEEDSelectionTest(unittest.TestCase):
+    def test_full_lattice_cannot_replace_frozen_tracking_roi(self) -> None:
+        with self.assertRaisesRegex(ValueError, "export ROI"):
+            select_from_source(
+                "not-read-because-geometry-is-rejected",
+                roi_method="full_lattice",
+                full_lattice_calibration_path={},
+            )
+
+    def test_full_lattice_roi_covers_right_family_without_circle(self) -> None:
+        frames = synthetic_rotation_frames()
+        bundle = {
+            "schema_version": 1,
+            "groups": {
+                "global": {
+                    "left": 0.18,
+                    "right": 1.0,
+                    "top": 0.18,
+                    "bottom": 0.82,
+                },
+                "landscape": {
+                    "left": 0.18,
+                    "right": 1.0,
+                    "top": 0.18,
+                    "bottom": 0.82,
+                },
+            },
+            "arc_margin_analysis_pixels": 2.0,
+            "right_boundary_margin_analysis_pixels": 1.0,
+            "minimum_width_fraction": 0.40,
+        }
+        prediction, analysis = predict_roi(
+            frames,
+            method="full_lattice",
+            lattice_calibration=bundle,
+        )
+        self.assertEqual(prediction.method, "full_lattice")
+        self.assertEqual(
+            circular_arc_intrusion_fraction(analysis, prediction.rect),
+            0.0,
+        )
+        self.assertGreater(prediction.rect.x2, 130)
+        self.assertGreater(prediction.rect.height, 70)
+
     def test_spot_visibility_rejects_diffuse_haze(self) -> None:
         height, width = 192, 128
         yy, xx = np.indices((height, width))
