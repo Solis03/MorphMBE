@@ -17,6 +17,10 @@ from rheed2morph.rheed.automatic_roi_keyframe import (
     select_from_source,
     select_keyframes,
 )
+from rheed2morph.rheed.spot_visibility import (
+    analyze_spot_visibility,
+    visibility_proxy,
+)
 
 
 def synthetic_rotation_frames(
@@ -60,6 +64,54 @@ def synthetic_rotation_frames(
 
 
 class AutomaticRHEEDSelectionTest(unittest.TestCase):
+    def test_spot_visibility_rejects_diffuse_haze(self) -> None:
+        height, width = 192, 128
+        yy, xx = np.indices((height, width))
+        diffuse = 0.18 + 0.22 * np.exp(
+            -((xx - 95.0) ** 2 + (yy - 90.0) ** 2) / (2.0 * 55.0**2)
+        )
+        spotted = diffuse.copy()
+        for y, x in (
+            (40, 82),
+            (62, 78),
+            (84, 74),
+            (106, 70),
+            (128, 66),
+            (150, 62),
+        ):
+            spotted += 0.33 * np.exp(
+                -(
+                    (xx - x) ** 2 / (2.0 * 2.8**2)
+                    + (yy - y) ** 2 / (2.0 * 3.2**2)
+                )
+            )
+
+        def rgb(values: np.ndarray) -> np.ndarray:
+            image = np.zeros((height, width, 3), dtype=np.uint8)
+            image[..., 2] = np.clip(values * 255.0, 0, 255).astype(
+                np.uint8
+            )
+            image[..., 1] = np.clip(values * 95.0, 0, 255).astype(
+                np.uint8
+            )
+            return image
+
+        rect = Rect(0, 0, width, height, width, height)
+        clear_analysis = analyze_spot_visibility(rgb(spotted), rect)
+        haze_analysis = analyze_spot_visibility(rgb(diffuse), rect)
+
+        self.assertGreater(
+            clear_analysis.features["spot_peak_top8_mass"],
+            2.0 * haze_analysis.features["spot_peak_top8_mass"],
+        )
+        self.assertGreaterEqual(
+            clear_analysis.features["spot_peak_count"], 5
+        )
+        self.assertGreater(
+            visibility_proxy(clear_analysis.features),
+            visibility_proxy(haze_analysis.features),
+        )
+
     def test_aperture_roi_is_inside_source_and_contains_signal(self) -> None:
         frames = synthetic_rotation_frames()
         prediction, analysis = predict_roi(

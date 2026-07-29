@@ -1,0 +1,17 @@
+{
+  "experiment_id": "20260728_dinov2_spot_visibility_v5",
+  "manifest": "outputs/rheed_video_afm_story/phase1/modeling_manifest.csv",
+  "candidate_table": "outputs/rheed_auto_roi_keyframe/20260728_removelist_compliant_final_v4/supervised_phase_ranker/phase_candidates.csv",
+  "trajectory_experiment_root": "outputs/rheed_auto_roi_keyframe/20260728_diffraction_front_visibility_v2",
+  "roi_method": "calibrated_safe",
+  "expected_video_count": 25,
+  "foundation_model_id": "facebook/dinov2-small",
+  "foundation_model_revision": "ed25f3a31f01632728cabb09d1542f84ab7b0056",
+  "foundation_model_cache": "tmp/huggingface",
+  "embedding_batch_size": 16,
+  "visibility_gate": 0.25,
+  "selected_method": "v5_dinov2_tree_hybrid_gate25",
+  "random_seed": 17,
+  "raw_data_policy": "read_only",
+  "evaluation_note": "Retrospective model development with strict leave-one-video-out heads. Frozen DINOv2 extraction is label-free. All removelist overlaps are excluded."
+}

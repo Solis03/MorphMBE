@@ -48,8 +48,9 @@ def parse_args() -> argparse.Namespace:
             "compact_physics",
             "compact_visibility",
             "supervised_phase_ranker",
+            "deep_visibility_ranker",
         ),
-        default="supervised_phase_ranker",
+        default="deep_visibility_ranker",
     )
     parser.add_argument("--roi-aspect-ratio", type=float, default=1.54)
     parser.add_argument("--roi-scale", type=float, default=0.90)
@@ -67,6 +68,28 @@ def parse_args() -> argparse.Namespace:
             "the deterministic physics heuristics."
         ),
     )
+    parser.add_argument(
+        "--deep-visibility-ranker",
+        default=(
+            "outputs/rheed_auto_roi_keyframe/"
+            "20260728_dinov2_spot_visibility_v5/"
+            "dinov2_spot_visibility_ranker.joblib"
+        ),
+        help=(
+            "Fitted DINOv2/spot-visibility ranker. Pass an empty string to "
+            "disable the deep model."
+        ),
+    )
+    parser.add_argument(
+        "--foundation-cache-dir",
+        default="tmp/huggingface",
+        help="Local cache for the pinned frozen DINOv2 foundation model.",
+    )
+    parser.add_argument(
+        "--deep-device",
+        choices=("mps", "cpu", "cuda"),
+        default=None,
+    )
     return parser.parse_args()
 
 
@@ -79,6 +102,11 @@ def main() -> None:
         calibrated_scale=args.roi_scale,
         roi_sample_count=args.roi_sample_count,
         phase_ranker_path=args.phase_ranker or None,
+        deep_visibility_ranker_path=(
+            args.deep_visibility_ranker or None
+        ),
+        foundation_cache_dir=args.foundation_cache_dir or None,
+        deep_device=args.deep_device,
     )
     paths = save_selection_artifacts(
         selection,

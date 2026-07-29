@@ -53,6 +53,7 @@ KEYFRAME_METHODS = (
     "compact_physics",
     "compact_visibility",
     "supervised_phase_ranker",
+    "deep_visibility_ranker",
 )
 
 ROI_METHODS = (
@@ -157,6 +158,9 @@ class KeyframePrediction:
     clarity: float
     vertex_prominence: float
     direction_consistent: bool
+    visibility_rank: float | None = None
+    eligible_candidate_count: int | None = None
+    selection_margin: float | None = None
 
 
 @dataclass(frozen=True)
@@ -1110,6 +1114,49 @@ def predict_keyframe_with_ranker(
     )
 
 
+def predict_keyframe_with_deep_visibility(
+    trajectory: Sequence[dict[str, float | int]],
+    candidate_frames: dict[int, np.ndarray],
+    roi: Rect,
+    ranker_path: str | Path,
+    *,
+    foundation_cache_dir: str | Path | None = None,
+    device: str | None = None,
+) -> KeyframePrediction:
+    """Rank physical vertices using DINOv2 and explicit spot visibility."""
+
+    from rheed2morph.rheed.spot_visibility import (
+        score_deep_visibility_candidates,
+    )
+
+    candidates, periods = _supervised_candidate_rows(trajectory)
+    result = score_deep_visibility_candidates(
+        candidates,
+        candidate_frames,
+        roi,
+        ranker_path,
+        foundation_cache_dir=foundation_cache_dir,
+        device=device,
+    )
+    selected = result["selected_candidate"]
+    return KeyframePrediction(
+        method="deep_visibility_ranker",
+        frame_index=int(selected["frame_index"]),
+        score=float(result["score"]),
+        confidence=float(result["confidence"]),
+        candidate_count=int(result["candidate_count"]),
+        estimated_period_frames=periods[str(selected["tracker"])],
+        spot_x=float(selected["spot_x"]),
+        spot_y=float(selected["spot_y"]),
+        clarity=float(selected["clarity"]),
+        vertex_prominence=float(selected["prominence"]),
+        direction_consistent=bool(selected["direction_consistent"]),
+        visibility_rank=float(result["visibility_rank"]),
+        eligible_candidate_count=int(result["eligible_candidate_count"]),
+        selection_margin=float(result["selection_margin"]),
+    )
+
+
 def select_from_source(
     source: str | Path,
     *,
@@ -1118,6 +1165,9 @@ def select_from_source(
     calibrated_scale: float = 0.90,
     roi_sample_count: int = 48,
     phase_ranker_path: str | Path | None = None,
+    deep_visibility_ranker_path: str | Path | None = None,
+    foundation_cache_dir: str | Path | None = None,
+    deep_device: str | None = None,
 ) -> tuple[AutomaticSelection, list[dict[str, Any]], ApertureAnalysis]:
     """Run the complete two-pass selector on a video or PNG directory."""
 
@@ -1134,6 +1184,32 @@ def select_from_source(
     if phase_ranker_path is not None:
         predictions["supervised_phase_ranker"] = (
             predict_keyframe_with_ranker(trajectory, phase_ranker_path)
+        )
+    if deep_visibility_ranker_path is not None:
+        deep_candidates, _ = _supervised_candidate_rows(trajectory)
+        required = {
+            int(candidate["frame_index"]) for candidate in deep_candidates
+        }
+        candidate_frames: dict[int, np.ndarray] = {}
+        for frame_index, frame in factory():
+            if frame_index in required:
+                candidate_frames[int(frame_index)] = frame
+            if len(candidate_frames) == len(required):
+                break
+        if len(candidate_frames) != len(required):
+            missing = sorted(required - set(candidate_frames))
+            raise IndexError(
+                f"Could not decode {len(missing)} candidate frames"
+            )
+        predictions["deep_visibility_ranker"] = (
+            predict_keyframe_with_deep_visibility(
+                trajectory,
+                candidate_frames,
+                roi.rect,
+                deep_visibility_ranker_path,
+                foundation_cache_dir=foundation_cache_dir,
+                device=deep_device,
+            )
         )
     frame_count = known_count or counted or len(trajectory)
     selection = AutomaticSelection(

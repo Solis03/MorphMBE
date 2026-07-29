@@ -3,6 +3,11 @@
 Date: 2026-07-28
 Branch: `codex/rheed-auto-roi-keyframe-20260728`
 
+> Continuation note: the V4 result frozen in this report remains the canonical
+> pre-image-content baseline. It has been superseded for default inference by
+> the removelist-compliant DINOv2/spot-visibility V5 model documented in
+> [the deep visibility report](rheed_deep_visibility_keyframe_report.md).
+
 ## Outcome
 
 An end-to-end, read-only tool now accepts complete MOV/MP4/AVI-style RHEED

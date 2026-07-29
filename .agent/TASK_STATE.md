@@ -2,6 +2,56 @@
 
 Last updated: 2026-07-28 (America/Detroit)
 
+## Deep spot-visibility keyframe continuation (2026-07-28)
+
+- Working branch:
+  `codex/rheed-keyframe-deep-visibility-20260728`.
+- Immutable parent evidence is the removelist-compliant V4 selector frozen at
+  commits `94b3ed0` and `90b1c4a`; it will not be overwritten.
+- User review identifies the primary V4 failure: some selected frames lie in
+  diffuse shadow/haze and lack the distinct RHEED spot family visible in the
+  human frame (for example sample 6063).
+- V5 evaluation keeps the same 25-video removelist-compliant cohort
+  and strict leave-one-video-out boundary, adds an explicit shadow/spot
+  visibility endpoint, and tests image-content-aware ranking without using
+  held-video labels.
+- Apple MPS is available; PyTorch 2.12 is installed. Local disk has about
+  236 GiB free. CUDA handoff is required only if the next meaningful model is
+  estimated to exceed the established local time/speedup threshold.
+- Implemented 27 multi-scale spot/haze/frequency descriptors and frozen
+  DINOv2 features. The selected 22M-parameter DINOv2-S model uses fold-local
+  PCA plus Ridge, pairwise ranking, ExtraTrees and a 25th-percentile
+  visibility gate.
+- Strict 25-fold leave-one-video-out V5 result: median/mean NCC
+  0.820/0.730, SSIM 0.559, gradient NCC 0.583 and median absolute frame
+  difference 3. Held-video overlap and removelist overlap are zero.
+- The evaluation-only diffuse-shadow proxy rate falls from 16% for V4 to 4%
+  for V5. Sample 6063 changes from V4 frame 461 (NCC 0.279) to V5 frame 188
+  (NCC 0.784), versus human frame 186. Sample 6022 is the one remaining
+  diffuse proxy failure.
+- V5 reliability confidence is error-related (Spearman rho -0.459,
+  p 0.021). It is an expected-similarity score calibrated from strict-LOO
+  selection margins, not a probability of correctness. A stricter
+  leave-one-prediction-out calibration audit is nonsignificant (rho -0.130,
+  p 0.537); therefore the raw reliability ordering is supported, while
+  absolute confidence calibration remains prospective.
+- An 86M-parameter DINOv2-Base V6 ablation was tested and rejected: median
+  NCC 0.701, SSIM 0.476 and frame difference 148. Larger was not better for
+  this small, specialized image domain.
+- MPS extracted 598 unique DINOv2-S representations in 35.5 seconds
+  (16.9 images/s). Complete original-MOV inference for 6063 processed 813
+  frames in 30.1 seconds and selected frame 189 versus human frame 186.
+  Local execution is well below the CUDA handoff threshold.
+- V5 report:
+  `reports/rheed_deep_visibility_keyframe_report.md`.
+- V5 fitted ensemble:
+  `outputs/rheed_auto_roi_keyframe/20260728_dinov2_spot_visibility_v5/dinov2_spot_visibility_ranker.joblib`.
+- Verification: 49/49 targeted tests pass; repository-wide tests report
+  335 passed with the same 24 failures and 6 errors from missing unrelated
+  freeze/checkpoint/parquet artifacts. V5/V6 split, bundle and figure
+  integrity checks pass. Details:
+  `reports/rheed_deep_visibility_verification.md`.
+
 ## Automatic RHEED ROI and keyframe selection (2026-07-28)
 
 - Working branch:
