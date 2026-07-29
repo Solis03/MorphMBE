@@ -58,9 +58,9 @@ def parse_args() -> argparse.Namespace:
         "--phase-ranker",
         default=(
             "outputs/rheed_auto_roi_keyframe/"
-            "20260728_diffraction_front_visibility_v2/"
+            "20260728_removelist_compliant_final_v4/"
             "supervised_phase_ranker/"
-            "gradient_boosting_phase_ranker.joblib"
+            "ridge_phase_ranker.joblib"
         ),
         help=(
             "Fitted phase-candidate ranker. Pass an empty string to run only "

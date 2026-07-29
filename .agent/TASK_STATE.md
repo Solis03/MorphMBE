@@ -9,27 +9,27 @@ Last updated: 2026-07-28 (America/Detroit)
 - New read-only tool accepts MOV/MP4/AVI/MKV/MPEG/MPG or a numeric PNG frame
   directory, predicts a circular-border-safe ROI, tracks diffraction motion
   and selects a rotation-phase vertex.
-- Ground truth contains 27 manually annotated source videos and 13,473
-  decoded frames. All 27 were used because this task does not use AFM
-  targets; AFM `removelist.txt` status is irrelevant to the RHEED-only
-  annotation benchmark.
+- Ground truth contains 27 manually annotated source videos. Final compliance
+  audit excludes 6023 and 6087 because they overlap `removelist.txt`;
+  canonical V4 fitting, evaluation and confidence calibration use 25 videos.
+  Earlier 27-video V1–V3 results are noncanonical diagnostics only.
 - Three ROI methods and six deterministic keyframe methods were compared.
   V1 physical vertex median NCC was 0.602. V2 visibility gating raised it to
   0.669. V3's larger aperture-inscribed ROI was rejected because its median
   NCC fell to 0.568 despite greater human ROI overlap.
-- The selected method uses `calibrated_safe` ROI, compact bright-feature and
-  whole-diffraction-front trajectories, physical vertex candidates and a
-  gradient-boosting candidate ranker.
-- Strict leave-one-video-out evaluation trains on 26 annotated videos and
-  holds one video completely out in each of 27 folds. Held overlap is zero.
-  Median pattern NCC is 0.715, mean NCC 0.687, SSIM 0.516, gradient NCC 0.373
-  and absolute frame difference 24 frames. Repeated rotation cycles make
-  absolute difference a secondary metric.
-- Predicted similarity is error-related (Spearman rho -0.508, p 0.0068) and
+- The selected V4 method uses `calibrated_safe` ROI, compact bright-feature
+  and whole-diffraction-front trajectories, physical vertex candidates and an
+  auditable Ridge candidate ranker.
+- Strict leave-one-video-out evaluation trains on 24 retained videos and
+  holds one video completely out in each of 25 folds. Held overlap and
+  removelist overlap are zero. Median pattern NCC is 0.714, mean NCC 0.670,
+  SSIM 0.482, gradient NCC 0.362 and absolute frame difference 46 frames.
+  Repeated rotation cycles make absolute difference a secondary metric.
+- Predicted similarity is error-related (Spearman rho -0.548, p 0.0046) and
   is isotonic-calibrated as the inference confidence. It is explicitly not a
-  correctness probability. Samples 6023 and 6056 remain visible
-  low-confidence failures.
-- Final fitted model is refit on all 27 annotations for future prospective
+  correctness probability. Samples 6048, 6063 and 6056 remain visible
+  failures.
+- Final fitted model is refit on all 25 retained annotations for future prospective
   video use. It must not be described as prospectively validated.
 - Direct original-video smoke benchmark: 810 frames / 27 seconds processed in
   12.9 seconds on the M1 Pro (~62.7 frames/s). CUDA is unnecessary.
@@ -38,10 +38,12 @@ Last updated: 2026-07-28 (America/Detroit)
 - User guide:
   `docs/AUTOMATIC_RHEED_ROI_KEYFRAME.md`.
 - Selected experiment:
-  `outputs/rheed_auto_roi_keyframe/20260728_diffraction_front_visibility_v2`.
-- Complete ROI/keyframe/supervised atlases:
+  `outputs/rheed_auto_roi_keyframe/20260728_removelist_compliant_final_v4`.
+- Complete deterministic ROI/keyframe comparison atlases:
   `reports/rheed_auto_roi_keyframe/20260728_diffraction_front_visibility_v2`.
-- Verification complete: adjacent selector tests pass 48/48; 155 PNG and 44
+- Canonical V4 Ridge held-video atlases and confidence figures:
+  `reports/rheed_auto_roi_keyframe/20260728_removelist_compliant_final_v4`.
+- Verification complete: adjacent selector tests pass 48/48; 167 PNG and 56
   PDF artifacts pass integrity checks; 27/27 raw-source size/mtime audits
   pass; source video inference succeeds. The repository-wide `tests/` run has
   334 passes and unrelated missing-freeze/checkpoint/parquet failures recorded

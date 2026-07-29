@@ -14,18 +14,21 @@ Date: 2026-07-28
   - 48 passed.
 - Python compile check passed for the automatic selector, CLI, experiment
   scripts and tests.
-- 155 generated PNG files opened and passed Pillow verification.
-- 44 generated PDF files have valid PDF headers, EOF markers and nontrivial
-  size. Primary V2 benchmark, confidence and atlas PNGs were also visually
-  inspected.
-- V2 row-integrity checks passed:
+- 167 generated PNG files opened and passed Pillow verification.
+- 56 generated PDF files have valid PDF headers, EOF markers and nontrivial
+  size. Primary V2 deterministic comparison atlases and canonical V4 Ridge
+  benchmark, confidence and held-video atlas PNGs were also visually inspected.
+- V2 trajectory/ROI row-integrity checks passed:
   - 81 ROI predictions = 27 videos x 3 ROI methods;
   - 162 heuristic keyframe predictions = 27 videos x 6 methods;
-  - 27 strict leave-one-video-out gradient-boosting predictions;
+  - 724 labelled physical vertex candidates in the noncanonical diagnostic.
+- Canonical V4 checks passed:
+  - 25 strict leave-one-video-out Ridge predictions;
+  - samples 6023 and 6087 have zero rows;
   - zero held-video overlap;
-  - 724 labelled physical vertex candidates in the final training bundle.
-- The fitted `gradient_boosting_phase_ranker.joblib` loads successfully and
-  records 27 training videos.
+  - 642 labelled physical vertex candidates.
+- The fitted V4 `ridge_phase_ranker.joblib` loads successfully and records 25
+  training videos.
 - Every V1/V2/V3 run audit reports unchanged raw source video size and
   modification time.
 - Direct source-video inference on
@@ -59,14 +62,15 @@ mismatch. Scoping to `tests/` avoids that unrelated discovery problem.
 
 ## Independent review notes
 
-- The final supervised metrics use strict video-level leave-one-out; candidate
+- The final V4 supervised metrics use strict video-level leave-one-out; candidate
   labels from the held video never enter its fold model.
-- ROI and keyframe development used the same 27-video cohort retrospectively.
-  The final all-data model is correctly described as awaiting prospective
-  validation.
+- The final model and its validation exclude every `removelist.txt` overlap.
+  Earlier 27-video experiments are labelled noncanonical diagnostics.
+- ROI and keyframe development is retrospective. The final retained-data model
+  is correctly described as awaiting prospective validation.
 - Repeated rotation cycles mean absolute frame difference is not treated as
   the primary scientific endpoint.
-- Failure cases 6023 and 6056 are included in both tables and figures.
+- Failure cases 6048, 6063 and 6056 are included in tables and figures.
 - Confidence is described as expected human-frame similarity, not a
   correctness probability.
 - V1 and rejected V3 artifacts remain separate and were not overwritten.

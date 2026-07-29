@@ -148,10 +148,10 @@ def build_candidate_dataset(
     output_path: Path,
 ) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
-    for index, record in manifest.iterrows():
+    for count, (_, record) in enumerate(manifest.iterrows(), start=1):
         sample = str(record["sample_id"])
         print(
-            f"[candidate labels {index + 1:02d}/{len(manifest):02d}] "
+            f"[candidate labels {count:02d}/{len(manifest):02d}] "
             f"{sample}",
             flush=True,
         )
@@ -366,6 +366,52 @@ def grouped_leave_one_out(dataset: pd.DataFrame) -> pd.DataFrame:
                     ),
                 }
             )
+        ridge_model = make_models()["ridge"]
+        gradient_model = make_models()["gradient_boosting"]
+        ridge_model.fit(train[FEATURES], train["target_similarity"])
+        gradient_model.fit(train[FEATURES], train["target_similarity"])
+        ridge_scores = ridge_model.predict(test[FEATURES])
+        gradient_scores = gradient_model.predict(test[FEATURES])
+        ridge_ranks = pd.Series(ridge_scores).rank(pct=True).to_numpy()
+        gradient_ranks = (
+            pd.Series(gradient_scores).rank(pct=True).to_numpy()
+        )
+        scores = 0.55 * ridge_ranks + 0.45 * gradient_ranks
+        position = int(np.argmax(scores))
+        selected = test.iloc[position]
+        ordered = np.sort(scores)[::-1]
+        predictions.append(
+            {
+                "fold": fold,
+                "sample_id": held,
+                "method": "ridge_gradient_rank_ensemble",
+                "train_video_count": len(groups) - 1,
+                "held_video_overlap": 0,
+                "selected_frame_index": int(selected["frame_index"]),
+                "manual_frame_index": int(
+                    selected["manual_frame_index"]
+                ),
+                "tracker": selected["tracker"],
+                "predicted_similarity": float(
+                    0.55 * ridge_scores[position]
+                    + 0.45 * gradient_scores[position]
+                ),
+                "prediction_margin": (
+                    float(ordered[0] - ordered[1])
+                    if len(ordered) > 1
+                    else float(ordered[0])
+                ),
+                "pattern_ncc": float(selected["pattern_ncc"]),
+                "pattern_ssim": float(selected["pattern_ssim"]),
+                "gradient_ncc": float(selected["gradient_ncc"]),
+                "target_similarity": float(
+                    selected["target_similarity"]
+                ),
+                "absolute_frame_error": int(
+                    selected["absolute_frame_error"]
+                ),
+            }
+        )
         classifiers = {
             "logistic_top_quintile": make_pipeline(
                 SimpleImputer(strategy="median"),
@@ -751,6 +797,74 @@ def fit_final_gradient_bundle(
     )
 
 
+def fit_final_ridge_bundle(
+    dataset: pd.DataFrame,
+    predictions: pd.DataFrame,
+    *,
+    output_root: Path,
+) -> None:
+    model = make_models()["ridge"]
+    model.fit(dataset[FEATURES], dataset["target_similarity"])
+    loo = predictions.loc[predictions["method"] == "ridge"].copy()
+    calibrator = IsotonicRegression(
+        y_min=0.0, y_max=1.0, out_of_bounds="clip"
+    )
+    calibrator.fit(
+        loo["predicted_similarity"], loo["target_similarity"]
+    )
+    bundle_path = output_root / "ridge_phase_ranker.joblib"
+    joblib.dump(
+        {
+            "schema_version": 1,
+            "model": model,
+            "calibrator": calibrator,
+            "features": FEATURES,
+            "training_video_count": int(
+                dataset["sample_id"].nunique()
+            ),
+            "training_candidate_count": int(len(dataset)),
+            "tracker_models": ["diffraction_front", "compact_bright_spot"],
+        },
+        bundle_path,
+        compress=3,
+    )
+    rho, p_value = stats.spearmanr(
+        loo["predicted_similarity"],
+        1.0 - loo["target_similarity"],
+    )
+    metadata = {
+        "schema_version": 1,
+        "model_family": "ridge_candidate_similarity_ranker",
+        "bundle_path": bundle_path.name,
+        "features": FEATURES,
+        "training_video_count": int(dataset["sample_id"].nunique()),
+        "training_candidate_count": int(len(dataset)),
+        "validation_protocol": "strict_leave_one_video_out",
+        "validation_video_count": int(len(loo)),
+        "held_video_overlap_sum": int(loo["held_video_overlap"].sum()),
+        "median_pattern_ncc": float(loo["pattern_ncc"].median()),
+        "mean_pattern_ncc": float(loo["pattern_ncc"].mean()),
+        "median_pattern_ssim": float(loo["pattern_ssim"].median()),
+        "median_absolute_frame_error": float(
+            loo["absolute_frame_error"].median()
+        ),
+        "confidence_error_spearman_rho": float(rho),
+        "confidence_error_spearman_p": float(p_value),
+        "confidence_definition": (
+            "LOO-isotonic expected composite human-frame similarity; "
+            "not a probability of correctness."
+        ),
+        "prospective_note": (
+            "The exported model is refit on all retained annotated videos "
+            "and must be prospectively validated on future unseen videos."
+        ),
+    }
+    (output_root / "ridge_phase_ranker_bundle.json").write_text(
+        json.dumps(metadata, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+
 def crop_display(frame: np.ndarray, rect: Rect) -> Image.Image:
     image = Image.fromarray(frame).convert("RGB")
     crop = image.crop((rect.x, rect.y, rect.x2, rect.y2))
@@ -846,10 +960,13 @@ def save_selected_ranker_atlases(
 
 
 def save_confidence_figure(
-    predictions: pd.DataFrame, report_root: Path
+    predictions: pd.DataFrame,
+    report_root: Path,
+    *,
+    selected_method: str,
 ) -> None:
     selected = predictions.loc[
-        predictions["method"] == "gradient_boosting"
+        predictions["method"] == selected_method
     ].copy()
     rho, p_value = stats.spearmanr(
         selected["predicted_similarity"],
@@ -903,7 +1020,8 @@ def save_confidence_figure(
     axes[1].set_title("All held videos; no omitted failures")
     axes[1].grid(axis="y", alpha=0.25)
     fig.suptitle(
-        "Supervised keyframe ranker confidence validation",
+        f"Supervised keyframe ranker confidence validation: "
+        f"{selected_method}",
         fontsize=14,
         fontweight="bold",
     )
@@ -924,10 +1042,22 @@ def main() -> None:
     args = parse_args()
     config = json.loads((ROOT / args.config).read_text(encoding="utf-8"))
     experiment_id = config["experiment_id"]
-    experiment_root = (
-        ROOT / "outputs" / "rheed_auto_roi_keyframe" / experiment_id
+    source_experiment_id = config.get(
+        "source_experiment_id", experiment_id
     )
-    output_root = experiment_root / "supervised_phase_ranker"
+    source_experiment_root = (
+        ROOT
+        / "outputs"
+        / "rheed_auto_roi_keyframe"
+        / source_experiment_id
+    )
+    output_root = (
+        ROOT
+        / "outputs"
+        / "rheed_auto_roi_keyframe"
+        / experiment_id
+        / "supervised_phase_ranker"
+    )
     report_root = (
         ROOT
         / "reports"
@@ -939,11 +1069,19 @@ def main() -> None:
     manifest = pd.read_csv(
         ROOT / config["manifest"], dtype={"sample_id": str}
     ).drop_duplicates(subset=["sample_id", "source_video"])
+    if bool(config.get("exclude_removelist", False)):
+        if "excluded_by_removelist" not in manifest.columns:
+            raise KeyError(
+                "Manifest lacks excluded_by_removelist required by config"
+            )
+        manifest = manifest.loc[
+            ~manifest["excluded_by_removelist"].astype(bool)
+        ].copy()
     candidate_path = output_root / "phase_candidates.csv"
     if args.rebuild_candidates or not candidate_path.exists():
         dataset = build_candidate_dataset(
             manifest,
-            experiment_root=experiment_root,
+            experiment_root=source_experiment_root,
             output_path=candidate_path,
         )
     else:
@@ -954,7 +1092,7 @@ def main() -> None:
             template_leave_one_out(
                 dataset,
                 manifest,
-                experiment_root=experiment_root,
+                experiment_root=source_experiment_root,
             ),
         ],
         ignore_index=True,
@@ -972,13 +1110,22 @@ def main() -> None:
     fit_final_gradient_bundle(
         dataset, predictions, output_root=output_root
     )
+    fit_final_ridge_bundle(
+        dataset, predictions, output_root=output_root
+    )
     save_selected_ranker_atlases(
         predictions,
         manifest,
-        experiment_root=experiment_root,
+        experiment_root=source_experiment_root,
         report_root=report_root,
     )
-    save_confidence_figure(predictions, report_root)
+    save_confidence_figure(
+        predictions,
+        report_root,
+        selected_method=config.get(
+            "selected_ranker_method", "gradient_boosting"
+        ),
+    )
     print(summary.to_string(index=False))
 
 

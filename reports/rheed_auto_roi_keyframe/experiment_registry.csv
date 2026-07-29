@@ -1,5 +1,6 @@
 experiment_id,roi,keyframe_or_ranker,evaluation,n_videos,median_pattern_ncc,median_pattern_ssim,median_absolute_frame_error,status,conclusion
 20260728_physics_vertex_v1,calibrated_safe,physics_vertex,all annotated videos,27,0.602173,0.433183,106,preserved_baseline,Physical vertex constraint outperformed quality-only selection but retained dark false vertices
 20260728_diffraction_front_visibility_v2,calibrated_safe,compact_visibility,all annotated videos,27,0.669363,0.442020,46,preserved_ablation,Absolute visibility gating improved the compact physical tracker
-20260728_diffraction_front_visibility_v2,calibrated_safe,gradient_boosting candidate ranker,strict leave-one-video-out,27,0.714503,0.516028,24,selected,Best validated model with zero held-video overlap and error-related confidence
+20260728_diffraction_front_visibility_v2,calibrated_safe,gradient_boosting candidate ranker,strict leave-one-video-out,27,0.714503,0.516028,24,noncanonical_diagnostic,Exploratory result predating the final removelist compliance audit
 20260728_aperture_roi_supervised_phase_v3,aperture_inscribed,compact_visibility,all annotated videos,27,0.567807,0.378755,76,rejected,The larger ROI increased human-area overlap but worsened feature identity switching
+20260728_removelist_compliant_final_v4,calibrated_safe,Ridge candidate ranker,strict leave-one-video-out,25,0.713634,0.481740,46,selected,Canonical final model excludes 6023 and 6087 from fitting evaluation and confidence calibration

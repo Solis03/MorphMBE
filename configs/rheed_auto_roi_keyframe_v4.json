@@ -1,0 +1,12 @@
+{
+  "experiment_id": "20260728_removelist_compliant_final_v4",
+  "source_experiment_id": "20260728_diffraction_front_visibility_v2",
+  "manifest": "outputs/rheed_video_afm_story/phase1/modeling_manifest.csv",
+  "exclude_removelist": true,
+  "final_roi_method": "calibrated_safe",
+  "final_keyframe_method": "supervised_phase_ranker",
+  "selected_ranker_method": "ridge",
+  "random_seed": 17,
+  "raw_data_policy": "read_only",
+  "evaluation_note": "Canonical final ranker: strict leave-one-video-out on all 25 annotated videos that do not overlap removelist.txt. Samples 6023 and 6087 are excluded from fitting, evaluation and confidence calibration."
+}

@@ -21,7 +21,7 @@ The default command uses:
   front trajectory;
 - physical right-most vertex candidates;
 - the frozen supervised phase ranker at
-  `outputs/rheed_auto_roi_keyframe/20260728_diffraction_front_visibility_v2/supervised_phase_ranker/gradient_boosting_phase_ranker.joblib`.
+  `outputs/rheed_auto_roi_keyframe/20260728_removelist_compliant_final_v4/supervised_phase_ranker/ridge_phase_ranker.joblib`.
 
 The output directory contains:
 
@@ -62,23 +62,24 @@ Two trajectories are extracted from every frame:
 
 Local horizontal maxima are candidate vertices. Candidate features encode
 clarity, raw visibility, horizontal prominence, the before/after reversal,
-upward motion and agreement between the two trackers. The final gradient
-boosting ranker was trained on candidates from all 27 annotated videos only
-after strict leave-one-video-out evaluation. Its confidence is an isotonic
+upward motion and agreement between the two trackers. The final Ridge ranker
+was trained on candidates from the 25 annotated videos that do not occur in
+`removelist.txt`, only after strict leave-one-video-out evaluation. Its
+confidence is an isotonic
 estimate of expected human-frame composite similarity, not a probability that
 the frame is “correct.”
 
 ## Validation and limitations
 
-The strict leave-one-video-out result has 26 annotated training videos and one
+The strict leave-one-video-out result has 24 annotated training videos and one
 completely excluded held video in each fold. Median human–machine pattern NCC
-is 0.715 and median SSIM is 0.516 over all 27 held predictions. The confidence
-score is significantly related to realized error (Spearman rho = -0.508,
-p = 0.0068).
+is 0.714 and median SSIM is 0.482 over all 25 held predictions. The confidence
+score is significantly related to realized error (Spearman rho = -0.548,
+p = 0.0046).
 
 This is retrospective development evidence. The final exported ranker is
-refit on all 27 annotations and must be prospectively tested on newly acquired
-videos. Samples 6023 and 6056 remain important low-confidence failure cases.
+refit on all 25 retained annotations and must be prospectively tested on newly
+acquired videos. Samples 6048, 6063 and 6056 remain important failure cases.
 For scientific acquisition, low confidence should trigger manual review and
 the reviewed frame should be added to the next training freeze.
 
