@@ -28,6 +28,35 @@ PHYSICS_COLUMNS = [
 ]
 
 
+def aggregate_group_conditions(
+    descriptors: pd.DataFrame,
+    columns: list[str],
+) -> pd.DataFrame:
+    """Aggregate scan descriptors in physical space before transformations.
+
+    In particular, sample Sq is the arithmetic median of scan-level ``rq_nm``
+    values.  Taking a median of ``log_rq_nm`` first would yield a geometric
+    midpoint for samples with an even scan count and silently change the
+    physical target definition.
+    """
+
+    table = descriptors.groupby("growth_run_id")[columns].median()
+    if "log_rq_nm" in columns:
+        if "rq_nm" in descriptors:
+            sq_nm = descriptors.groupby("growth_run_id")["rq_nm"].median()
+        else:
+            # Some nested routines pass a reduced condition table containing
+            # only transformed columns. Recover physical scan Sq before
+            # aggregation rather than reverting to median(log(Sq)).
+            sq_nm = np.exp(
+                descriptors["log_rq_nm"].astype(float)
+            ).groupby(descriptors["growth_run_id"]).median()
+        table["log_rq_nm"] = np.log(np.clip(sq_nm.astype(float), 1e-6, None))
+    table.index = table.index.astype(str)
+    table.index.name = "growth_run_id"
+    return table
+
+
 def _finite_frame(frame: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
     result = frame.copy()
     for column in columns:
@@ -115,10 +144,11 @@ class ConditionScaler:
         columns: list[str],
         train_groups: set[str],
     ) -> "ConditionScaler":
-        group_medians = (
-            descriptors.loc[descriptors["growth_run_id"].isin(train_groups)]
-            .groupby("growth_run_id")[columns]
-            .median()
+        group_medians = aggregate_group_conditions(
+            descriptors.loc[
+                descriptors["growth_run_id"].isin(train_groups)
+            ],
+            columns,
         )
         values = group_medians.to_numpy(float)
         mean = np.nanmean(values, axis=0)

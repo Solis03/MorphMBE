@@ -15,7 +15,10 @@ from analysis.rheed_video_afm_story.afm_descriptors import radial_psd
 from analysis.rheed_video_afm_story.common import repo_path
 from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_np
 
-from analysis.rheed_to_afm_generation.data import ConditionScaler
+from analysis.rheed_to_afm_generation.data import (
+    ConditionScaler,
+    aggregate_group_conditions,
+)
 
 
 QUANTILE_LEVELS = np.linspace(0.01, 0.99, 33, dtype=np.float64)
@@ -139,8 +142,10 @@ def fit_conditional_spectral_model(
     )
     groups = list(group_parameters.index.astype(str))
     group_conditions = (
-        train_rows.groupby("growth_run_id")[condition_scaler.columns]
-        .median()
+        aggregate_group_conditions(
+            train_rows,
+            condition_scaler.columns,
+        )
         .loc[groups]
         .to_numpy(float)
     )

@@ -89,9 +89,35 @@ from .clips import live_physics_row
 
 MODEL_ID = (
     "MorphMBE-M15b-AutoR3D-AngularTTA + "
-    "M12a-RangeTerrace-live-v3"
+    "M12a-RangeTerrace-line3-metrology-live-v4"
 )
 QUERY_ID = "__live_stream__"
+
+_FROZEN_GENERATOR_KEYS = (
+    "resolution",
+    "scan_size_nm",
+    "analysis_scale_nm",
+    "ridge_alpha",
+    "morphology_head_weight",
+    "pca_dim",
+    "hybrid_roughness_embedding_id",
+    "hybrid_morphology_embedding_id",
+    "variance_cap",
+    "minimum_predicted_std",
+    "matern_blend_weight",
+    "spectral_iaaft_iterations",
+    "spectral_ridge_alphas",
+    "descriptor_calibration_steps",
+    "descriptor_calibration_learning_rate",
+    "descriptor_calibration_content_weight",
+    "laguerre_count_factor",
+    "fine_count_factor",
+    "island_ridge_alphas",
+    "m10_structure_weight",
+    "selected_method",
+    "selected_renderer",
+    "condition_columns",
+)
 
 
 @dataclass
@@ -104,6 +130,8 @@ class TargetReference:
     calibrated_loo_errors: np.ndarray
     diagnostics: pd.DataFrame
     tta_centrality_reference: np.ndarray | None = None
+    confidence_risk_reference: np.ndarray | None = None
+    confidence_error_reference: np.ndarray | None = None
 
 
 @dataclass
@@ -270,14 +298,37 @@ def build_deployment_bundle(
         raise RuntimeError("frozen M14i target-head mapping changed")
 
     model_config_path = repository / str(config["generation_config"])
-    if _hash_file(model_config_path) != _hash_file(
+    model_config = json.loads(model_config_path.read_text(encoding="utf-8"))
+    frozen_generator_config = json.loads(
+        m14_generator_parameters.read_text(encoding="utf-8")
+    )
+    if bool(config.get("metrology_audited_mode", False)):
+        mismatched = [
+            key
+            for key in _FROZEN_GENERATOR_KEYS
+            if model_config.get(key) != frozen_generator_config.get(key)
+        ]
+        if mismatched:
+            raise RuntimeError(
+                "the metrology repair changed frozen M12a architecture or "
+                f"hyperparameters: {mismatched}"
+            )
+        if (
+            "line3" not in str(model_config.get("afm_descriptors", ""))
+            or "afm_metrology_line3_v1"
+            not in str(model_config.get("phase1_manifest", ""))
+        ):
+            raise RuntimeError(
+                "metrology-audited deployment must use the line-3 AFM "
+                "descriptor and manifest paths"
+            )
+    elif _hash_file(model_config_path) != _hash_file(
         m14_generator_parameters
     ):
         raise RuntimeError(
             "deployment generation config differs from the frozen M14i "
             "generator parameters"
         )
-    model_config = json.loads(model_config_path.read_text(encoding="utf-8"))
     log("读取冻结的 23 样本训练队列和 AFM 形貌描述符")
     tables = _load_tables(model_config)
     descriptors, _ = prepare_full_cohort(tables, model_config)
@@ -350,7 +401,7 @@ def build_deployment_bundle(
                 "automatic deployment requires finite rotation periods"
             )
 
-    log("拟合自动输入域 Rq/FSMI 部署头和严格 LOO 置信度参照")
+    log("拟合自动输入域 Sq/FSMI 部署头和严格 LOO 置信度参照")
     rq_reference = _target_reference(
         name="Rq_nm",
         method=rq_method,
@@ -378,8 +429,24 @@ def build_deployment_bundle(
                 .set_index("growth_run_id")
                 .loc[groups]
             )
+            if not np.allclose(
+                rows["true_target"].to_numpy(float),
+                np.exp(reference.log_target.loc[groups].to_numpy(float)),
+                rtol=1e-6,
+                atol=1e-8,
+            ):
+                raise RuntimeError(
+                    f"{reference.name} confidence targets do not match the "
+                    "metrology-audited training targets"
+                )
             reference.tta_centrality_reference = rows[
                 "base_to_tta_median_nm"
+            ].to_numpy(float)
+            reference.confidence_risk_reference = rows[
+                "uncertainty_risk_score"
+            ].to_numpy(float)
+            reference.confidence_error_reference = rows[
+                "absolute_error"
             ].to_numpy(float)
 
     condition_columns = list(model_config["condition_columns"])
@@ -441,6 +508,15 @@ def build_deployment_bundle(
                 m14_generator_parameters
             ),
             "deployment_config": _hash_file(model_config_path),
+            "metrology_manifest": _hash_file(
+                repository / str(model_config["phase1_manifest"])
+            ),
+            "afm_descriptors": _hash_file(
+                repository / str(model_config["afm_descriptors"])
+            ),
+            "confidence_reference": _hash_file(
+                repository / str(config["stability_predictions"])
+            ),
         },
         retrieval_at_inference=False,
         measured_afm_patch_at_inference=False,
@@ -573,7 +649,7 @@ class RealtimeMorphologyPredictor:
             )
             period_reference = self.bundle.period_frames_reference
             rotation_period_risk = 0.0
-            risk = centrality_risk
+            angular_risk = centrality_risk
             if (
                 period_reference is not None
                 and estimated_period_frames is not None
@@ -583,13 +659,15 @@ class RealtimeMorphologyPredictor:
                     float(estimated_period_frames),
                     np.asarray(period_reference, dtype=float),
                 )
-                risk = float(
+                angular_risk = float(
                     angular_coverage_risk(
                         centrality_risk,
                         rotation_period_risk,
                     ).item()
                 )
-            tta_confidence = float(np.clip(1.0 - risk, 0.0, 1.0))
+            tta_confidence = float(
+                np.clip(1.0 - angular_risk, 0.0, 1.0)
+            )
             _, query_diagnostics = predict_candidates(
                 physics=physics,
                 embeddings=embeddings,
@@ -612,52 +690,40 @@ class RealtimeMorphologyPredictor:
             head_confidence = float(
                 np.clip(1.0 - head_risk, 0.0, 1.0)
             )
+            amplitude_risk = _empirical_risk(
+                unconstrained_value,
+                reference.calibrated_loo_predictions,
+            )
+            range_aware_risk = float(
+                0.75 * amplitude_risk + 0.25 * angular_risk
+            )
             combined, veto = combine_tta_and_head_confidence(
-                tta_confidence,
+                1.0 - range_aware_risk,
                 head_confidence,
+                extreme_quantile=0.10,
             )
             extreme_head_veto = bool(veto.item())
             confidence = float(combined.item())
-            composite_risk = (
-                max(risk, head_risk) if extreme_head_veto else risk
-            )
-            centrality_reference_risk = np.asarray(
-                [
-                    _empirical_risk(
-                        value,
-                        np.delete(centrality_reference, index),
-                    )
-                    for index, value in enumerate(centrality_reference)
-                ],
-                dtype=float,
-            )
-            reference_risk = centrality_reference_risk
-            if period_reference is not None:
-                period_values = np.asarray(period_reference, dtype=float)
-                period_reference_risk = np.asarray(
-                    [
-                        _empirical_risk(
-                            value,
-                            np.delete(period_values, index),
-                        )
-                        for index, value in enumerate(period_values)
-                    ],
-                    dtype=float,
-                )
-                reference_risk = angular_coverage_risk(
-                    centrality_reference_risk,
-                    period_reference_risk,
+            composite_risk = 1.0 - confidence
+            reference_risk = reference.confidence_risk_reference
+            reference_errors = reference.confidence_error_reference
+            if reference_risk is None or reference_errors is None:
+                raise RuntimeError(
+                    f"{reference.name} lacks the audited M15b confidence "
+                    "reference"
                 )
             expected_error = _isotonic_expected_error(
                 reference_risk,
-                reference.calibrated_loo_errors,
-                risk,
+                reference_errors,
+                composite_risk,
             )
-            adaptive = reference.calibrated_loo_errors / np.maximum(
+            adaptive = reference_errors / np.maximum(
                 0.50 + reference_risk,
                 0.25,
             )
-            radius = _higher_quantile(adaptive, 0.90) * (0.50 + risk)
+            radius = _higher_quantile(adaptive, 0.90) * (
+                0.50 + composite_risk
+            )
             support_lower = float(np.min(truth))
             support_upper = float(np.max(truth))
             value = float(

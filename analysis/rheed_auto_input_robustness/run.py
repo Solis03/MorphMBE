@@ -28,6 +28,12 @@ from .confidence import crossfit_r3d_stability_confidence
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def _display_target(target: str) -> str:
+    """Paper-facing label; Rq_nm remains only as a legacy schema key."""
+
+    return "Sq" if target == "Rq_nm" else target.replace("_nm", "")
+
+
 def _load_config(path: str | Path) -> dict[str, Any]:
     candidate = Path(path)
     if not candidate.is_absolute():
@@ -144,6 +150,7 @@ def _plot_predictions(
     )
     scatter = None
     for axis, target in zip(axes, ("Rq_nm", "FSMI_nm")):
+        display = _display_target(target)
         rows = predictions.loc[predictions["target"] == target]
         low = float(min(rows["true_target"].min(), rows["predicted_target"].min()))
         high = float(max(rows["true_target"].max(), rows["predicted_target"].max()))
@@ -178,17 +185,17 @@ def _plot_predictions(
         )
         axis.set_xlim(low - pad, high + pad)
         axis.set_ylim(low - pad, high + pad)
-        axis.set_xlabel(f"Measured {target.replace('_nm', '')} (nm)")
-        axis.set_ylabel(f"Predicted {target.replace('_nm', '')} (nm)")
+        axis.set_xlabel(f"Measured {display} (nm)")
+        axis.set_ylabel(f"Predicted {display} (nm)")
         axis.set_title(
-            f"{target.replace('_nm', '')}: strict 23-fold automatic-input LOO"
+            f"{display}: strict 23-fold automatic-input LOO"
         )
         axis.grid(alpha=0.18)
     assert scatter is not None
     colorbar = figure.colorbar(scatter, ax=axes, pad=0.02)
     colorbar.set_label("Reliability confidence (%)")
     figure.suptitle(
-        "M15b causal R3D restores automatic-input Rq and FSMI",
+        "M15b causal R3D predicts automatic-input Sq and FSMI",
         fontsize=12,
     )
     _save_figure(figure, figure_root / "Fig1_m15b_target_predictions")
@@ -202,6 +209,7 @@ def _plot_confidence(
         1, 2, figsize=(8.4, 3.6), constrained_layout=True
     )
     for axis, target in zip(axes, ("Rq_nm", "FSMI_nm")):
+        display = _display_target(target)
         rows = predictions.loc[predictions["target"] == target].copy()
         axis.scatter(
             100.0 * rows["confidence"],
@@ -236,7 +244,7 @@ def _plot_confidence(
         )
         axis.set_xlabel("Confidence (%)")
         axis.set_ylabel("Absolute prediction error (nm)")
-        axis.set_title(target.replace("_nm", ""))
+        axis.set_title(display)
         axis.grid(alpha=0.18)
     figure.suptitle(
         "Confidence is derived without the outer held AFM target",
@@ -262,7 +270,7 @@ def _plot_risk_coverage(
             & (prior["method"] == R3D_TEMPORAL)
         ].set_index("growth_run_id").loc[rows.index]
         for label, confidence, color in (
-            ("M15b angular-coverage TTA", rows["confidence"], "#0072B2"),
+            ("M15b range-aware + angular TTA", rows["confidence"], "#0072B2"),
             ("old density/amplitude risk", old["confidence"], "#D55E00"),
         ):
             order = np.argsort(-confidence.to_numpy(float))
@@ -279,7 +287,7 @@ def _plot_risk_coverage(
         )
         axis.set_xlabel("Retained coverage")
         axis.set_ylabel("MAE of retained predictions (nm)")
-        axis.set_title(target.replace("_nm", ""))
+        axis.set_title(_display_target(target))
         axis.grid(alpha=0.18)
     axes[0].legend(fontsize=7)
     figure.suptitle(
@@ -326,7 +334,7 @@ def _plot_method_ablation(
         axis.set_xticks(x)
         axis.set_xticklabels(labels)
         axis.set_ylabel("Strict LOO MAE (nm)")
-        axis.set_title(target.replace("_nm", ""))
+        axis.set_title(_display_target(target))
         axis.grid(axis="y", alpha=0.18)
         for bar, corr in zip(bars, correlations):
             axis.text(
@@ -355,6 +363,7 @@ def _plot_all_sample_predictions(
     )
     scatter = None
     for axis, target in zip(axes, ("Rq_nm", "FSMI_nm")):
+        display = _display_target(target)
         rows = (
             predictions.loc[predictions["target"] == target]
             .sort_values(["true_target", "growth_run_id"])
@@ -406,9 +415,9 @@ def _plot_all_sample_predictions(
             ha="right",
             fontsize=7,
         )
-        axis.set_ylabel(f"{target.replace('_nm', '')} (nm)")
+        axis.set_ylabel(f"{display} (nm)")
         axis.set_title(
-            f"{target.replace('_nm', '')}: all 23 automatic-input held folds"
+            f"{display}: all 23 automatic-input held folds"
         )
         axis.grid(axis="y", alpha=0.18)
     axes[0].legend(loc="upper left", ncols=2, fontsize=8)
@@ -509,8 +518,9 @@ def main() -> None:
     prediction_table = pd.concat(predictions, ignore_index=True)
     inner_table = pd.concat(inner, ignore_index=True)
     prediction_table["confidence_method"] = (
-        "strictly nested angular-coverage x TTA-centrality risk with a "
-        "95th-percentile extreme temporal-vs-physics disagreement veto"
+        "strictly nested 75% predicted-amplitude support + 25% angular-TTA "
+        "risk with a discrete 10% extreme temporal-vs-physics disagreement "
+        "veto; outer AFM target excluded"
     )
     prediction_table.to_csv(
         report_root / "m15b_strict_loo_predictions.csv",
@@ -655,9 +665,9 @@ def main() -> None:
             "selected by inner CV in all 23 outer folds for both targets"
         ),
         "confidence_method": (
-            "nested target-blind angular-coverage x keyframe/ROI TTA "
-            "centrality risk with a 95th-percentile temporal-vs-physics "
-            "conflict veto"
+            "strictly nested 75% predicted-amplitude support + 25% "
+            "angular-TTA risk, with a discrete 10% extreme "
+            "temporal-vs-physics disagreement veto"
         ),
         "rotation_period_source": (
             "automatic RHEED spot trajectory; AFM-target blind"

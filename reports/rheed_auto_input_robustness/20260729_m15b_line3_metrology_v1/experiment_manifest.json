@@ -1,0 +1,42 @@
+{
+  "cohort_count": 23,
+  "confidence_calibration": "true nested inner-fold reference predictions",
+  "confidence_method": "strictly nested 75% predicted-amplitude support + 25% angular-TTA risk, with a discrete 10% extreme temporal-vs-physics disagreement veto",
+  "excluded_growths": [
+    "6043",
+    "6055"
+  ],
+  "experiment_id": "20260729_m15b_line3_metrology_v1",
+  "final_model_id": "MorphMBE-M15b-AutoR3D-AngularTTA",
+  "groups": [
+    "6022",
+    "6028",
+    "6029",
+    "6033",
+    "6047",
+    "6048",
+    "6056",
+    "6057",
+    "6062",
+    "6063",
+    "6070",
+    "6072",
+    "6078",
+    "6080",
+    "6081",
+    "6082",
+    "6084",
+    "6085",
+    "6090",
+    "6094",
+    "6095",
+    "6099",
+    "6101"
+  ],
+  "outer_target_used_for_training_or_confidence": false,
+  "point_prediction_method": "M14d_r3d_causal_temporal",
+  "raw_data_modified": false,
+  "rotation_period_source": "automatic RHEED spot trajectory; AFM-target blind",
+  "selection_evidence": "selected by inner CV in all 23 outer folds for both targets",
+  "standalone_modified": false
+}

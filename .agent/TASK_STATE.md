@@ -985,3 +985,83 @@ not a success claim.
 - If the next scientifically important experiment is estimated to exceed
   30 minutes locally and an NVIDIA CUDA machine is likely to be at least 10x
   faster, freeze the local state and produce the requested CUDA handoff package.
+
+---
+
+## AFM metrology repair — 2026-07-29
+
+Status: in progress on branch
+`codex/afm-metrology-repair-20260729`.
+
+### Scope and safety
+
+- [x] Preserve the 2026-07-28 publication freeze without editing it.
+- [x] Add a sibling status marker:
+  `superseded_pending_AFM_metrology_audit`.
+- [x] Create a new derived AFM hierarchy; never modify raw AFM/RHEED files.
+- [x] Retain per-scan-line polynomial flattening orders 0/1/2/3.
+- [x] Use exported NanoScope Rq labels only as independent QC.
+- [x] Hash-deduplicate decoded scans and record provenance decisions.
+- [x] Aggregate independent scans as median Sq in nm, then take log for models.
+- [x] Separate displayed-scan Sq from sample median Sq ± IQR in AFM panels.
+- [x] Re-run corrected-target M14i and the M12a generator.
+- [x] Develop corrected-target automatic-input M15b under strict outer LOO.
+- [x] Integrate the corrected M15b/M12a bundle into the realtime UI.
+- [x] Complete raw-source integrity verification, final tests, diff review,
+  and report.
+- [ ] Create the final local commit.
+
+### Metrology evidence
+
+- Derived root: `data/afm_metrology_line3_v1` (180 decoded ZSensor maps).
+- Audit root: `outputs/afm_metrology_line3_v1`.
+- The 23-sample primary 1 µm QC subset contains 42 NanoScope-labelled scans.
+- Order-3 line flattening versus independent NanoScope Rq:
+  MAE 0.02240 nm, median absolute error 0.00420 nm,
+  Pearson r 0.99979, Spearman rho 0.99737, and 100% within 0.2 nm.
+- Exact-array hashing found 14 rows in seven duplicate groups; only one
+  representative per group enters aggregation.
+- `6094/N6081_1um_000` is conservatively excluded pending lab-notebook
+  confirmation. The N69/N74 legacy aliases are retained but explicitly flagged.
+- Corrected targets contain 110 deduplicated/provenance-valid primary 1 µm
+  scans across 23 growth groups.
+
+### Corrected-target model evidence
+
+- M14i (human input, target-specific historical selection) no longer predicts
+  corrected Sq strongly: MAE 1.662 nm, Pearson r 0.233. This negative result is
+  retained and must not be hidden.
+- M15b (automatic ROI/key-frame R3D angular TTA, strict 23-fold LOO):
+  Sq MAE 1.090 nm, Pearson r 0.746, Spearman rho 0.600;
+  FSMI MAE 0.980, Pearson r 0.726, Spearman rho 0.580.
+- Nested range-aware confidence is inversely related to absolute error:
+  Spearman rho = -0.617 for Sq and -0.602 for FSMI.
+- M12a was re-fit inside every outer fold (22 training growths, one held out);
+  all leakage checks pass, retrieval at inference is false, and measured AFM
+  patches are not used at inference.
+- The corrected M12a image generator remains limited: median sharpness ratio
+  0.719, texture-gate pass 73.9%, median AFM-likeness percentile 13.0%.
+  Scalar metrology is substantially stronger than image realism.
+
+### Claim boundary
+
+All 23 samples are strict leave-one-growth-out for scalar and generator fitting.
+The method family was developed on earlier retrospective partitions, so this
+is retrospective cross-validation rather than a prospective external test.
+
+### Final verification
+
+- AFM source integrity: 180/180 raw AFM hashes and 180/180 decoded ZSensor
+  hashes match the pre-derivation audit.
+- Changed-component regression suite: 43/43 tests pass; rebuilt UI bundle
+  regression suite: 10/10 tests pass.
+- New deployment cache:
+  `outputs/rheed_realtime_ui/morphmbe_m15b_m12a_line3_metrology_live_v4.joblib`.
+- Raw-data Git status is empty for `data/raw`, `data/pair`,
+  `data/processed_afm`, and `removelist.txt`.
+- Desktop standalone received no task output and no source/model/report edits.
+  Finder-created `.DS_Store` activity is external to this pipeline and is not
+  included in the repository work.
+- Final report:
+  `reports/afm_metrology_line3_v1/FINAL_RETRAIN_REPORT.md`.
+- Local commit: pending at the time of this state update; fill after commit.

@@ -10,7 +10,7 @@
 3. V5 DINOv2-S 在内部 tracking ROI 中定位旋转周期，V8 在完整点阵区域
    细化顶点并给出 R3D/生成模型输入 ROI；
 4. 在顶点之后等待 8 帧，构造与冻结模型一致的时序输入；
-5. M15b 自动输入域 causal R3D 输出 Rq、FSMI、经验预测区间和误差相关
+5. M15b 自动输入域 causal R3D 输出 Sq、FSMI、经验预测区间和误差相关
    置信度；
 6. M12a 随机岛屿/台阶生成器输出新的 AFM 高度场；
 7. UI 实时更新 AFM 图、指标卡、置信度和粗糙度时间曲线；
@@ -46,7 +46,7 @@ PYTHONPATH=src:. .venv/bin/python \
 部署缓存位于：
 
 ```text
-outputs/rheed_realtime_ui/morphmbe_m15b_m12a_auto_live_v3.joblib
+outputs/rheed_realtime_ui/morphmbe_m15b_m12a_line3_metrology_live_v4.joblib
 ```
 
 这是可重建的派生缓存，不是新的论文验证结果，也不会覆盖两个论文模型冻结。
@@ -56,7 +56,7 @@ outputs/rheed_realtime_ui/morphmbe_m15b_m12a_auto_live_v3.joblib
 设自动检测的顶点为帧 `k`：
 
 - `keyframe_1`：帧 `k`；
-- `causal_8`：`k-7 ... k`，用于 M15b 的 Rq 和 FSMI 时序分支；
+- `causal_8`：`k-7 ... k`，用于 M15b 的 Sq 和 FSMI 时序分支；
 - `selected_16`：`k-7 ... k+8`，用于 M12a 的形貌条件分支；
 - 预测触发时刻为收到 `k+8` 后，因此没有偷看尚未进入模拟流的图像。
 
@@ -84,12 +84,15 @@ V8 的四边界来自 25 个 removelist-compliant 视频的 20%/80% 稳健分位
 ## 4. 模型
 
 标量端使用
-`MorphMBE-M15b-AutoR3D-AngularTTA + M12a-RangeTerrace-live-v3`：
+`MorphMBE-M15b-AutoR3D-AngularTTA +
+M12a-RangeTerrace-line3-metrology-live-v4`：
 
-- Rq：自动输入域 `M14d_r3d_causal_temporal`；
+- Sq：自动输入域 `M14d_r3d_causal_temporal`；
 - FSMI：自动输入域 `M14d_r3d_causal_temporal`；
 - 在 23 个外层 held fold 内，两项目标的内层选择都 23/23 次选择该时序头；
 - 论文验证使用严格 23-fold LOO；UI 部署缓存则在全部 23 个允许样品上重拟合。
+- AFM 标量目标是三阶逐扫描线 flatten 后、去重扫描的样品中位 Sq；内部
+  CSV 的 `Rq_nm` 仅为兼容旧代码保留的 schema 名称。
 
 图像端使用 `MorphMBE-M12a-Strict15-RangeTerrace-v1` 的
 `M12a_edge_preserving_terrace` 生成器：
@@ -98,7 +101,7 @@ V8 的四边界来自 25 个 removelist-compliant 视频的 20%/80% 稳健分位
 - 非检索式频谱先验；
 - 随机 Laguerre capture zones；
 - 岛屿、台阶、沟槽和细纹理混合；
-- 最终高度场严格缩放到预测 Rq。
+- 最终高度场严格缩放到预测 Sq。
 
 推理时不读取最近邻 AFM、不复制训练 AFM patch。每个事件使用不同随机种子，
 因此输出是条件生成结果而非检索结果。
@@ -110,12 +113,14 @@ V8 的四边界来自 25 个 removelist-compliant 视频的 20%/80% 稳健分位
 
 - 围绕同一自动关键帧建立 11 个 target-blind 输入视图：`k-2...k+2`
   五个 causal-8 结束位置、ROI 上下左右各 3% 平移和 ±6% 尺度；
-- 主风险是 base 预测偏离 11 个视图中位数的程度，而不是简单 TTA 方差；
+- TTA 风险由 base 预测偏离 11 个视图中位数与自动估计旋转周期共同构成；
 - 固定 8 帧在不同旋转周期下覆盖不同转角，因此加入从 RHEED 轨迹估计的
-  period/angular-coverage empirical risk，并与 TTA centrality 风险取几何平均；
-- 当 causal R3D 与独立物理头的 disagreement 进入训练参照最极端 5% 时，
+  period/angular-coverage empirical risk；
+- 最终风险由 75% 嵌套 predicted-amplitude support 与 25% angular-TTA
+  组成；这项比例只用外层训练折的内层预测构造；
+- 当 causal R3D 与独立物理头的 disagreement 进入离散最极端 10% 时，
   启用 veto，取 TTA 与 head-agreement confidence 的较小值；
-- 主 confidence 是 Rq/FSMI 置信度的几何平均，因此与冻结 LOO 图表中的
+- 主 confidence 是 Sq/FSMI 置信度的几何平均，因此与严格 LOO 图表中的
   模型置信度定义一致；
 - V5/V8 给出独立的输入质量；
 - 指标卡小字另列包含输入质量的保守综合 confidence；
@@ -131,7 +136,7 @@ V8 的四边界来自 25 个 removelist-compliant 视频的 20%/80% 稳健分位
 
 这样低支持事件仍显示有 AFM 纹理的保守边界结果，而不会把接近 0 nm 的无支持
 外推伪装成一张可信的平面 AFM。该 confidence 是小样本严格 LOO 下验证的排序
-指数，不应解释为“85% 概率正确”；95th-percentile veto 仍需要未来前瞻性
+指数，不应解释为“85% 概率正确”；小样本离散 veto 仍需要未来前瞻性
 样品再验证。
 
 ## 6. 实时调度
@@ -163,10 +168,10 @@ outputs/rheed_realtime_ui/sessions/
 `session.json` 明确保存 `model_input_roi`、
 `physics_feature_roi_not_generator_input`、
 `internal_tracking_roi_not_model_input` 和
-`conservative_audit_roi_not_model_input` 四种角色。CSV 保存时间、Rq/FSMI、
+`conservative_audit_roi_not_model_input` 四种角色。CSV 保存时间、Sq/FSMI、
 预计误差、区间、TTA/head/模型/综合置信度、推理延迟、支持约束标记和生成
 文件路径。NPZ
-保存真实 nm 高度场和无量纲单位-Rq 形貌。
+保存真实 nm 高度场和无量纲单位-Sq 形貌。
 
 ## 8. 当前边界
 
@@ -204,17 +209,17 @@ PYTHONPATH=src:. .venv/bin/python \
   "data/raw/raw_RHEED/N6056 - Copy/After rampdown to 200 C.MOV" \
   --sample-id 6056 \
   --output-dir \
-  outputs/rheed_realtime_ui/20260729_m15b_m12a_end_to_end_ui_verification_6056
+  outputs/rheed_realtime_ui/headless_smoke_line3_v4_6056
 ```
 
 该次运行自动选择帧 160，模型输入为 `k-7..k+8` 的 16 帧完整点阵 ROI；
-输出 Rq 2.687 nm、FSMI 2.324 nm、模型置信度 61.5%，生成高度场重新测得
-Rq 2.687 nm。界面截图、三联图、输入 clip 和生成高度场均保存在上述目录。
+输出 Sq 2.435 nm、FSMI 2.064 nm、模型置信度 55.2%，生成高度场重新测得
+Sq 2.435 nm。三联图、输入 clip 和生成高度场均保存在上述目录。
 
 论文性能证据与部署演示必须分开解释。严格 23-fold 自动输入端到端结果、
 全部 23 个样品的 RHEED→生成 AFM→真实 AFM 图谱及失败案例位于：
 
 ```text
 reports/rheed_m15b_end_to_end_generation/
-  20260729_m15b_m12a_auto_full23_v1/full23_loo/
+  20260729_m15b_m12a_line3_auto_full23_v1/full23_loo/
 ```

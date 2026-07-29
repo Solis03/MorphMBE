@@ -133,7 +133,7 @@ def main() -> None:
         keyframe_rgb=keyframe,
         unit_shape=prediction.unit_shape,
         height_nm=prediction.height_nm,
-        predicted_rq_nm=np.asarray(prediction.rq.value),
+        predicted_sq_nm=np.asarray(prediction.rq.value),
         predicted_fsmi_nm=np.asarray(prediction.fsmi.value),
         combined_confidence=np.asarray(prediction.combined_confidence),
         retrieval_at_inference=np.asarray(False),
@@ -158,12 +158,13 @@ def main() -> None:
         "selected_smoke_event": asdict(event),
         "prediction": {
             "model_id": prediction.model_id,
-            "Rq_nm": asdict(prediction.rq),
+            "Sq_nm": asdict(prediction.rq),
+            "legacy_internal_target_name": "Rq_nm",
             "FSMI_nm": asdict(prediction.fsmi),
             "model_confidence": prediction.model_confidence,
             "keyframe_quality": prediction.keyframe_quality,
             "combined_confidence": prediction.combined_confidence,
-            "generated_rq_nm": prediction.generated_rq_nm,
+            "generated_sq_nm": prediction.generated_rq_nm,
             "inference_seconds": prediction.inference_seconds,
             "retrieval_at_inference": False,
         },
@@ -221,7 +222,7 @@ def main() -> None:
         xlabel="x (µm)",
         ylabel="y (µm)",
         title=(
-            f"Generated AFM · Rq {prediction.rq.value:.2f} nm\n"
+            f"Generated AFM · Sq {prediction.rq.value:.2f} nm\n"
             f"FSMI {prediction.fsmi.value:.2f} nm · "
             f"model confidence {prediction.model_confidence:.0%}"
         ),

@@ -10,7 +10,11 @@ import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
-from analysis.rheed_to_afm_generation.data import ConditionScaler, predict_groups
+from analysis.rheed_to_afm_generation.data import (
+    ConditionScaler,
+    aggregate_group_conditions,
+    predict_groups,
+)
 from analysis.rheed_to_afm_generation.run import _load_tables, _split_manifest
 from analysis.rheed_to_afm_sharp_generation.evaluation import evaluate_method_sets
 from analysis.rheed_to_afm_sharp_generation.rheed import _fit_hybrid_candidate
@@ -48,10 +52,7 @@ def load_config(path: str | Path) -> dict[str, Any]:
 def _group_targets(
     descriptors: pd.DataFrame, columns: list[str]
 ) -> pd.DataFrame:
-    table = descriptors.groupby("growth_run_id")[columns].median()
-    table.index = table.index.astype(str)
-    table.index.name = "growth_run_id"
-    return table
+    return aggregate_group_conditions(descriptors, columns)
 
 
 def _predictor_factory(

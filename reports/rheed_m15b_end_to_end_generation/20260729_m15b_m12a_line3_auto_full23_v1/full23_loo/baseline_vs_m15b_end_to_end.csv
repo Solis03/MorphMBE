@@ -1,0 +1,3 @@
+protocol,label,sq_mae_nm,sq_pearson_r,fsmi_mae_nm,fsmi_pearson_r,generated_sq_mae_nm,generated_fsmi_mae_nm,texture_gate_pass_fraction,median_sharpness_ratio,median_afm_likeness_percentile,mean_island_feature_mae_z
+M14i_auto_input_line3,M14i corrected-target automatic input,1.525314639129278,0.435006074951538,1.7071709388202445,-0.2868295415101433,,,,,,
+M15b_auto_r3d_angular_tta,M15b corrected-target automatic input,1.090286533841713,0.7456703213452184,0.9795391922014264,0.7259637873934927,1.090286533841713,0.9815606242656476,0.7391304347826086,0.718563255468743,13.043478260869565,1.9451813268139015

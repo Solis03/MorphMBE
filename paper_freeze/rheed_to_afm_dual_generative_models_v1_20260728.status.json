@@ -1,0 +1,9 @@
+{
+  "freeze_id": "rheed_to_afm_dual_generative_models_v1_20260728",
+  "artifact_directory": "paper_freeze/rheed_to_afm_dual_generative_models_v1_20260728",
+  "status": "superseded_pending_AFM_metrology_audit",
+  "status_date": "2026-07-29",
+  "reason": "The frozen targets used global first-order areal plane subtraction. Independent NanoScope Rq-labelled exports support third-order per-scan-line flattening, hash deduplication, provenance adjudication, and sample aggregation in nm before log transformation.",
+  "immutability_note": "The frozen artifact directory is preserved unchanged. This sibling status record does not replace or rewrite any frozen file.",
+  "replacement": "pending outputs from configs/afm_metrology_line3_v1.json"
+}

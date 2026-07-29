@@ -10,7 +10,10 @@ import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
 from analysis.rheed_to_afm_distinct_confidence.run import _load_tables
-from analysis.rheed_to_afm_generation.data import ConditionScaler
+from analysis.rheed_to_afm_generation.data import (
+    ConditionScaler,
+    aggregate_group_conditions,
+)
 from analysis.rheed_to_afm_island_generation.evaluation import (
     evaluate_island_methods,
 )
@@ -69,7 +72,10 @@ def _target_series(
     split: str,
 ) -> tuple[pd.Series, pd.Series]:
     rows = descriptors.loc[descriptors["split"] == split]
-    log_rq = rows.groupby("growth_run_id")["log_rq_nm"].median()
+    log_rq = aggregate_group_conditions(
+        rows,
+        ["log_rq_nm"],
+    )["log_rq_nm"]
     log_rq.index = log_rq.index.astype(str)
     log_rq.name = "log_rq_nm"
     fsmi = (

@@ -1,5 +1,10 @@
 # RHEED→AFM 模拟实时监测界面：实现与验证报告
 
+> 历史状态（2026-07-29）：本文记录的是计量审计前的 UI v3。当前
+> line-3 AFM 计量、M15b 置信度和 UI v4 结果请以
+> `reports/afm_metrology_line3_v1/FINAL_RETRAIN_REPORT.md` 为准；本文中的
+> Rq 数值不得与修正后的 Sq 结果直接比较。
+
 日期：2026-07-29
 分支：`codex/rheed-realtime-morphology-ui-20260729`
 

@@ -454,10 +454,12 @@ def run(config: dict[str, Any]) -> None:
         .expanduser()
         .read_text(encoding="utf-8")
     )
+    generator_config_path = config.get(
+        "generation_config_override",
+        config["standalone_generator_parameters"],
+    )
     generator_config = json.loads(
-        Path(config["standalone_generator_parameters"])
-        .expanduser()
-        .read_text(encoding="utf-8")
+        Path(generator_config_path).expanduser().read_text(encoding="utf-8")
     )
     tables = _load_tables(generator_config)
     descriptors, _ = prepare_full_cohort(tables, generator_config)

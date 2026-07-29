@@ -44,6 +44,7 @@ from analysis.rheed_to_afm_functional_morphology.run import (
 )
 from analysis.rheed_to_afm_generation.data import (
     ConditionScaler,
+    aggregate_group_conditions,
     predict_groups,
 )
 from analysis.rheed_to_afm_generation.training import resolve_device
@@ -131,7 +132,10 @@ def prepare_full_cohort(
 def _target_series(
     descriptors: pd.DataFrame, group_metrics: pd.DataFrame
 ) -> tuple[pd.Series, pd.Series]:
-    log_rq = descriptors.groupby("growth_run_id")["log_rq_nm"].median()
+    log_rq = aggregate_group_conditions(
+        descriptors,
+        ["log_rq_nm"],
+    )["log_rq_nm"]
     log_rq.index = log_rq.index.astype(str)
     log_rq.name = "log_rq_nm"
     fsmi = group_metrics.set_index("growth_run_id")[

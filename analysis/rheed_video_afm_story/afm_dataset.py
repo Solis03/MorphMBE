@@ -57,8 +57,15 @@ def build_afm_manifest(config: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFra
         primary_size = abs(sx - float(config["primary_scan_size_um"])) <= tol and abs(sy - float(config["primary_scan_size_um"])) <= tol
         array_path = str(raw["height_array_path"])
         source_exists = repo_path(array_path).exists()
+        source_eligible = bool(raw.get("include_for_modeling", True))
         quality_flags = [] if pd.isna(raw.get("quality_flags")) else [str(raw.get("quality_flags"))]
-        quality_pass = (not excluded) and unit_ok and primary_size and source_exists
+        quality_pass = (
+            (not excluded)
+            and unit_ok
+            and primary_size
+            and source_exists
+            and source_eligible
+        )
         if not source_exists:
             quality_flags.append("missing_plane_corrected_array")
         if excluded:
@@ -67,6 +74,10 @@ def build_afm_manifest(config: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFra
             quality_flags.append("height_unit_not_nm")
         if not primary_size:
             quality_flags.append("not_primary_1um")
+        if not source_eligible:
+            quality_flags.append(
+                "excluded_by_versioned_provenance_or_hash_deduplication"
+            )
         audit_rows.append(
             {
                 "sample_id": sid,
@@ -116,6 +127,13 @@ def build_afm_manifest(config: dict[str, Any]) -> tuple[pd.DataFrame, pd.DataFra
                 "source_afm_file": raw.get("raw_afm_file", ""),
                 "afm_file_id": raw.get("afm_file_id", ""),
                 "plane_corrected_array_path": array_path,
+                "height_array_path": array_path,
+                "afm_preprocessing_variant": str(
+                    raw.get("afm_preprocessing_variant", "global_plane_v0")
+                ),
+                "roughness_metric": str(
+                    raw.get("roughness_metric", "Sq_areal_RMS_height_nm")
+                ),
                 "scan_size_x_um": sx,
                 "scan_size_y_um": sy,
                 "resolution_x": int(raw["resolution_x"]),

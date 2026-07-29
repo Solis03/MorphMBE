@@ -70,35 +70,55 @@ def _selected_method_metrics(path: Path) -> dict[str, float]:
 def _comparison_table(
     *,
     current_report: Path,
-    prior_report: Path,
+    corrected_m14i_metrics: Path,
 ) -> pd.DataFrame:
-    records = []
-    for protocol, label, root in (
-        (
-            "M14i_auto_input",
-            "previous automatic input",
-            prior_report,
-        ),
-        (
-            "M15b_auto_r3d_angular_tta",
-            "current automatic input",
-            current_report,
-        ),
-    ):
-        targets = _target_metrics(root / "target_prediction_summary.csv")
-        image = _selected_method_metrics(root / "method_summary.csv")
-        records.append(
+    prior = pd.read_csv(corrected_m14i_metrics)
+    prior = prior.loc[prior["protocol"] == "auto→auto (strict LOO)"]
+    prior = prior.set_index("target")
+    if set(prior.index) != {"Rq_nm", "FSMI_nm"}:
+        raise RuntimeError("corrected M14i automatic-input metrics are missing")
+    targets = _target_metrics(
+        current_report / "target_prediction_summary.csv"
+    )
+    image = _selected_method_metrics(current_report / "method_summary.csv")
+    return pd.DataFrame(
+        [
             {
-                "protocol": protocol,
-                "label": label,
-                "rq_mae_nm": targets["Rq_nm"]["mae_nm"],
-                "rq_pearson_r": targets["Rq_nm"]["pearson_r"],
+                "protocol": "M14i_auto_input_line3",
+                "label": "M14i corrected-target automatic input",
+                "sq_mae_nm": float(prior.loc["Rq_nm", "mae"]),
+                "sq_pearson_r": float(
+                    prior.loc["Rq_nm", "pearson_r"]
+                ),
+                "fsmi_mae_nm": float(prior.loc["FSMI_nm", "mae"]),
+                "fsmi_pearson_r": float(
+                    prior.loc["FSMI_nm", "pearson_r"]
+                ),
+                "generated_sq_mae_nm": np.nan,
+                "generated_fsmi_mae_nm": np.nan,
+                "texture_gate_pass_fraction": np.nan,
+                "median_sharpness_ratio": np.nan,
+                "median_afm_likeness_percentile": np.nan,
+                "mean_island_feature_mae_z": np.nan,
+            },
+            {
+                "protocol": M15B,
+                "label": "M15b corrected-target automatic input",
+                "sq_mae_nm": targets["Rq_nm"]["mae_nm"],
+                "sq_pearson_r": targets["Rq_nm"]["pearson_r"],
                 "fsmi_mae_nm": targets["FSMI_nm"]["mae_nm"],
                 "fsmi_pearson_r": targets["FSMI_nm"]["pearson_r"],
-                **image,
-            }
-        )
-    return pd.DataFrame(records)
+                "generated_sq_mae_nm": image[
+                    "generated_rq_mae_nm"
+                ],
+                **{
+                    key: value
+                    for key, value in image.items()
+                    if key != "generated_rq_mae_nm"
+                },
+            },
+        ]
+    )
 
 
 def _integrity_audit(
@@ -247,7 +267,7 @@ def _overview_figure(
         method=M12A,
         title=(
             "M15b + M12a end-to-end automatic-video prediction: "
-            "four fixed Rq strata plus the largest non-duplicate Rq failure"
+            "four fixed Sq strata plus the largest non-duplicate Sq failure"
         ),
     )
     figure.set_size_inches(11.2, 2.65 * len(groups))
@@ -260,11 +280,6 @@ def run(config_path: str | Path) -> None:
     config = load_config(config_path)
     output = repo_path(config["output_root"]) / "full23_loo"
     report = repo_path(config["report_root"]) / "full23_loo"
-    prior_report = repo_path(
-        "reports/rheed_manual_vs_auto_selection/"
-        "20260729_m14i_human_vs_auto_full23_v1/"
-        "auto_input_generation/full23_loo"
-    )
     strict_path = repo_path(config["external_confidence_predictions"])
     strict = pd.read_csv(
         strict_path,
@@ -272,7 +287,9 @@ def run(config_path: str | Path) -> None:
     )
     comparison = _comparison_table(
         current_report=report,
-        prior_report=prior_report,
+        corrected_m14i_metrics=repo_path(
+            config["corrected_m14i_metrics"]
+        ),
     )
     audit = _integrity_audit(
         output=output,
@@ -291,7 +308,7 @@ def run(config_path: str | Path) -> None:
         comparison["protocol"] == M15B
     ].iloc[0]
     prior = comparison.loc[
-        comparison["protocol"] == "M14i_auto_input"
+        comparison["protocol"] == "M14i_auto_input_line3"
     ].iloc[0]
     manifest = {
         "experiment_id": config["experiment_id"],
@@ -320,10 +337,10 @@ def run(config_path: str | Path) -> None:
         ),
         "overview_growths": groups,
         "overview_path": str(overview),
-        "rq_mae_improvement_vs_previous_auto_nm": float(
-            prior["rq_mae_nm"] - current["rq_mae_nm"]
+        "sq_mae_improvement_vs_corrected_m14i_auto_nm": float(
+            prior["sq_mae_nm"] - current["sq_mae_nm"]
         ),
-        "fsmi_mae_improvement_vs_previous_auto_nm": float(
+        "fsmi_mae_improvement_vs_corrected_m14i_auto_nm": float(
             prior["fsmi_mae_nm"] - current["fsmi_mae_nm"]
         ),
         "claim_boundary": (

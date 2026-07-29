@@ -88,6 +88,20 @@ def _real_afm(phase1: pd.DataFrame, group: str) -> np.ndarray:
     )
 
 
+def _real_afm_label(phase1: pd.DataFrame, group: str) -> dict[str, float]:
+    """Return scan-level Sq and separately declared sample-level statistics."""
+
+    row = _phase_row(phase1, group)
+    array = _real_afm(phase1, group)
+    centered = array - float(np.nanmean(array))
+    displayed_sq = float(np.sqrt(np.nanmean(np.square(centered))))
+    return {
+        "displayed_scan_sq_nm": displayed_sq,
+        "sample_median_sq_nm": float(row["primary_rq_nm_median"]),
+        "sample_sq_iqr_nm": float(row.get("primary_rq_nm_iqr", np.nan)),
+    }
+
+
 def _scale_bar(axis: plt.Axes, *, pixels: int, length_nm: float = 250) -> None:
     width = 0.25 * pixels
     y = 0.91 * pixels
@@ -118,7 +132,7 @@ def _surface_panel(
         cmap="viridis",
         vmin=vmin,
         vmax=vmax,
-        interpolation="bilinear",
+        interpolation="nearest",
     )
     axis.set_title(title)
     axis.set_xticks([])
@@ -156,6 +170,7 @@ def _comparison_figure(
             output, split=split, method=method, group=group
         )
         real = _real_afm(phase1, group)
+        real_label = _real_afm_label(phase1, group)
         combined = np.concatenate([generated.ravel(), real.ravel()])
         vmin, vmax = np.quantile(combined, [0.01, 0.99])
 
@@ -172,7 +187,7 @@ def _comparison_figure(
             vmax=float(vmax),
             title=(
                 f"generated AFM\n"
-                f"Rq={rq.loc[group, 'predicted_target']:.2f} nm, "
+                f"predicted Sq={rq.loc[group, 'predicted_target']:.2f} nm, "
                 f"FSMI={fsmi.loc[group, 'predicted_target']:.2f} nm, "
                 f"C={conf.loc[group, 'joint_confidence_index']:.0f}/100"
             ),
@@ -184,8 +199,11 @@ def _comparison_figure(
             vmax=float(vmax),
             title=(
                 f"measured AFM\n"
-                f"Rq={rq.loc[group, 'true_target']:.2f} nm, "
-                f"FSMI={fsmi.loc[group, 'true_target']:.2f} nm"
+                f"displayed scan Sq="
+                f"{real_label['displayed_scan_sq_nm']:.2f} nm\n"
+                f"sample median Sq="
+                f"{real_label['sample_median_sq_nm']:.2f} ± "
+                f"{real_label['sample_sq_iqr_nm']:.2f} nm (IQR)"
             ),
         )
         colorbar = figure.colorbar(
@@ -249,7 +267,7 @@ def plot_crossfit_atlas(
             confidence=confidence,
             method=method,
             title=(
-                "Strict held-one-growth predictions ordered by measured Rq "
+                "Strict held-one-growth predictions ordered by measured Sq "
                 f"(page {page}/3)"
             ),
         )
@@ -271,7 +289,7 @@ def plot_target_scatter(
         1, 2, figsize=(8.2, 3.65), constrained_layout=True
     )
     for axis, table, label in (
-        (axes[0], rq, "Rq (nm)"),
+        (axes[0], rq, "Sq (nm)"),
         (axes[1], fsmi, "FSMI (nm)"),
     ):
         table = table.copy()
@@ -366,7 +384,7 @@ def plot_dynamic_range(
         "o-",
         color=REAL_COLOR,
         lw=1.8,
-        label="measured Rq",
+        label="measured sample median Sq",
     )
     axis.plot(
         positions,
@@ -374,7 +392,7 @@ def plot_dynamic_range(
         "o--",
         color=BASELINE_COLOR,
         lw=1.4,
-        label="M10 predicted Rq",
+        label="M10 predicted Sq",
     )
     axis.plot(
         positions,
@@ -382,14 +400,14 @@ def plot_dynamic_range(
         "o-",
         color=SELECTED_COLOR,
         lw=1.8,
-        label=f"{method.split('_')[0]} predicted Rq",
+        label=f"{method.split('_')[0]} predicted Sq",
     )
     axis.set_xticks(positions)
     axis.set_xticklabels(
         selected["growth_run_id"], rotation=45, ha="right"
     )
-    axis.set_ylabel("Rq (nm)")
-    axis.set_xlabel("held-out growth group (ordered by measured Rq)")
+    axis.set_ylabel("Sq (nm)")
+    axis.set_xlabel("held-out growth group (ordered by measured Sq)")
     axis.set_title(
         "Dynamic-range recovery: the new amplitude head no longer collapses "
         "all predictions near 3 nm"
@@ -514,7 +532,7 @@ def plot_ablation(
         table.loc[M10, error_columns], axis=1
     )
     labels = {
-        "median_rq_absolute_error_nm": "Rq error",
+        "median_rq_absolute_error_nm": "Sq error",
         "median_normalized_psd_log_distance": "PSD error",
         "median_island_feature_mae_z": "island error",
         "median_afm_prior_mahalanobis": "AFM-prior distance",
@@ -764,7 +782,7 @@ def run(config: dict[str, Any]) -> None:
             "height_units": "nm",
             "afm_scan_size_nm": float(config["scan_size_nm"]),
             "fixed_order_policy": (
-                "Held-one atlas is ordered by measured Rq and the same order "
+                "Held-one atlas is ordered by measured Sq and the same order "
                 "is used within each comparison page."
             ),
         },

@@ -183,14 +183,14 @@ class AFMCanvas(FigureCanvasQTAgg):
             prediction.height_nm,
             cmap="afmhot",
             extent=(0.0, 1.0, 1.0, 0.0),
-            interpolation="bilinear",
+            interpolation="nearest",
         )
         axis.set(
             xlabel="x (µm)",
             ylabel="y (µm)",
             title=(
                 f"Generated AFM · frame {result.job.event.frame_index}\n"
-                f"Rq {prediction.rq.value:.2f} nm · "
+                f"Sq {prediction.rq.value:.2f} nm · "
                 f"model confidence {prediction.model_confidence * 100:.0f}%"
             ),
         )
@@ -283,8 +283,8 @@ class TrendCanvas(FigureCanvasQTAgg):
                 label.set_color("#dfeaf0")
         axis.set(
             xlabel="RHEED stream time (s)",
-            ylabel="Predicted Rq (nm)",
-            title="Roughness timeline · point color encodes confidence",
+            ylabel="Predicted Sq (nm)",
+            title="Areal roughness timeline · color encodes confidence",
         )
         axis.grid(color="#426070", alpha=0.25, linewidth=0.7)
         for item in (
@@ -347,8 +347,8 @@ class RealtimeMainWindow(QMainWindow):
         title = QLabel("MorphMBE  实时表面形貌监测")
         title.setObjectName("appTitle")
         subtitle = QLabel(
-            "双 ROI / 自动旋转顶点 · M15b causal R3D + 角覆盖 TTA · "
-            "M12a 非检索式 AFM 生成"
+            "自动 ROI / 旋转顶点 · M15b causal R3D + 范围感知置信度 · "
+            "M12a 非检索式 AFM 生成 · 三阶逐扫描线 AFM 计量"
         )
         subtitle.setObjectName("appSubtitle")
         title_block.addWidget(title)
@@ -439,7 +439,7 @@ class RealtimeMainWindow(QMainWindow):
         self.afm_canvas = AFMCanvas()
         right_layout.addWidget(self.afm_canvas, 1)
         metrics = QGridLayout()
-        self.rq_card = MetricCard("粗糙度 Rq", "— nm")
+        self.rq_card = MetricCard("面粗糙度 Sq", "— nm")
         self.fsmi_card = MetricCard("表面形貌复杂度 FSMI", "— nm")
         self.confidence_card = MetricCard("预测置信度（误差相关）", "— %")
         metrics.addWidget(self.rq_card, 0, 0)
@@ -695,7 +695,7 @@ class RealtimeMainWindow(QMainWindow):
         saved = self.recorder.record(result) if self.recorder else None
         self.append_log(
             f"预测完成 frame={result.job.event.frame_index} · "
-            f"Rq={prediction.rq.value:.2f} nm · "
+            f"Sq={prediction.rq.value:.2f} nm · "
             f"FSMI={prediction.fsmi.value:.2f} nm · "
             f"confidence={percent}% · "
             f"latency={prediction.inference_seconds:.2f}s"

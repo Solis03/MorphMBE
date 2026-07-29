@@ -11,7 +11,10 @@ from skimage import measure, morphology
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 
-from analysis.rheed_to_afm_generation.data import ConditionScaler
+from analysis.rheed_to_afm_generation.data import (
+    ConditionScaler,
+    aggregate_group_conditions,
+)
 from analysis.rheed_to_afm_sharp_generation.spectral import load_unit_map
 from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_np
 
@@ -186,8 +189,10 @@ def fit_island_condition_model(
     )
     groups = list(targets.index.astype(str))
     raw_conditions = (
-        train_rows.groupby("growth_run_id")[condition_scaler.columns]
-        .median()
+        aggregate_group_conditions(
+            train_rows,
+            condition_scaler.columns,
+        )
         .loc[groups]
         .to_numpy(float)
     )

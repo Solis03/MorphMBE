@@ -68,14 +68,19 @@ def main() -> None:
         "training_growth_ids": bundle.groups,
         "frozen_parameter_hashes": bundle.frozen_parameter_hashes,
         "method": {
-            "Rq_nm": bundle.rq_reference.method,
+            "Sq_nm": bundle.rq_reference.method,
+            "legacy_internal_target_name": "Rq_nm",
             "FSMI_nm": bundle.fsmi_reference.method,
             "image_generator": bundle.generation_config["selected_method"],
+            "afm_metrology": (
+                "third-order independent polynomial flatten per fast-scan "
+                "line; sample target is median scan Sq in nm"
+            ),
             "retrieval_at_inference": False,
             "measured_afm_patch_at_inference": False,
             "confidence": (
-                "rotation-angular-coverage x keyframe/ROI TTA centrality "
-                "with extreme head-conflict diagnostic"
+                "75% nested predicted-amplitude support + 25% angular-TTA "
+                "risk, with a discrete 10% extreme head-conflict veto"
             ),
             "rotation_period_reference_available": (
                 bundle.period_frames_reference is not None

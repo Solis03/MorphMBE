@@ -1,0 +1,7 @@
+input_protocol,model,target,strict_loo_growths,mae_nm,pearson_r,spearman_rho,confidence_vs_absolute_error_spearman,interpretation
+human,M14i_target_specific_robust,Sq,23,1.6615715724,0.2327405931,0.2371541502,-0.5238175807,historical target-specific selection is weak after metrology correction
+human,M14i_target_specific_robust,FSMI,23,1.3324141780,0.1891009555,0.3181818182,-0.5491626781,historical target-specific selection is weak after metrology correction
+automatic,M14i_auto_to_auto_line3,Sq,23,1.5253146391,0.4350060750,0.2420948617,-0.1112228209,corrected-target automatic-input baseline
+automatic,M14i_auto_to_auto_line3,FSMI,23,1.7071709388,-0.2868295415,-0.3992094862,-0.1119369455,corrected-target automatic-input baseline
+automatic,M15b_auto_r3d_range_aware,Sq,23,1.0902865338,0.7456703213,0.5998023715,-0.6167531693,best corrected-target strict LOO scalar model
+automatic,M15b_auto_r3d_range_aware,FSMI,23,0.9795391922,0.7259637874,0.5800395257,-0.6019273720,best corrected-target strict LOO scalar model

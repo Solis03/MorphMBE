@@ -20,6 +20,7 @@ from analysis.rheed_to_afm_functional_morphology.visualization import (
     _comparison_figure,
     _generated,
     _real_afm,
+    _real_afm_label,
     _rheed_keyframe,
     _save,
     _scale_bar,
@@ -112,7 +113,7 @@ def _external_target_confidence(
         + fsmi["absolute_error"].rank(pct=True)
     )
     result["confidence_basis"] = (
-        "geometric mean of strict-LOO Rq and FSMI confidence"
+        "geometric mean of strict-LOO Sq and FSMI confidence"
     )
     return result.reset_index()
 
@@ -196,7 +197,7 @@ def plot_target_scatter(
         1, 2, figsize=(9.0, 4.0), constrained_layout=True
     )
     for axis, values, label in (
-        (axes[0], rq.copy(), "Rq (nm)"),
+        (axes[0], rq.copy(), "Sq (nm)"),
         (axes[1], fsmi.copy(), "FSMI (nm)"),
     ):
         values["source_split"] = values["growth_run_id"].map(source_map)
@@ -301,7 +302,7 @@ def plot_protocol_comparison(
                 label=labels[protocol],
             )
         axis.set_xticks(x)
-        axis.set_xticklabels(["Rq", "FSMI"])
+        axis.set_xticklabels(["Sq", "FSMI"])
         axis.set_title(f"{title} ({'higher' if higher else 'lower'} is better)")
         if higher:
             axis.axhline(0, color="black", lw=0.6)
@@ -345,7 +346,7 @@ def plot_rq_order(
         ordered["true_target"],
         "o-",
         color=REAL_COLOR,
-        label="measured Rq",
+        label="measured Sq",
         lw=1.7,
     )
     line = axis.scatter(
@@ -358,7 +359,7 @@ def plot_rq_order(
         edgecolor="black",
         linewidth=0.5,
         s=52,
-        label="LOO-predicted Rq",
+        label="LOO-predicted Sq",
         zorder=3,
     )
     axis.plot(
@@ -380,10 +381,10 @@ def plot_rq_order(
     axis.set_xticklabels(
         ordered["growth_run_id"], rotation=55, ha="right", fontsize=7
     )
-    axis.set_xlabel("held-out growth (ordered by measured Rq)")
-    axis.set_ylabel("Rq (nm)")
+    axis.set_xlabel("held-out growth (ordered by measured Sq)")
+    axis.set_ylabel("Sq (nm)")
     axis.set_title(
-        "Full-cohort LOO exposes high-Rq underprediction and unstable "
+        "Full-cohort LOO exposes high-Sq underprediction and unstable "
         "low-end extrapolation"
     )
     axis.legend(frameon=False, loc="upper left")
@@ -435,7 +436,7 @@ def plot_confidence_audit(
         + f": Spearman ρ={rho.statistic:.2f}, p={rho.pvalue:.3f}"
     )
     colorbar = figure.colorbar(points, ax=axes[0], pad=0.02)
-    colorbar.set_label("realized Rq error (nm)")
+    colorbar.set_label("realized Sq error (nm)")
 
     coverage = [
         confidence["rq_interval_covered"].astype(bool).mean(),
@@ -446,7 +447,7 @@ def plot_confidence_audit(
         ).mean(),
     ]
     axes[1].bar(
-        ["Rq", "FSMI", "island topology"],
+        ["Sq", "FSMI", "island topology"],
         coverage,
         color=[SELECTED_COLOR, "#009E73", "#E69F00"],
     )
@@ -493,6 +494,7 @@ def plot_renderer_strata(
             group=group,
         )
         real = _real_afm(phase1, group)
+        real_label = _real_afm_label(phase1, group)
         scale = np.concatenate(
             [baseline.ravel(), selected.ravel(), real.ravel()]
         )
@@ -501,7 +503,7 @@ def plot_renderer_strata(
         axes[row_index, 0].set_xticks([])
         axes[row_index, 0].set_yticks([])
         axes[row_index, 0].set_title(
-            f"{group} RHEED\nmeasured Rq="
+            f"{group} RHEED\nsample median Sq="
             f"{lookup.loc[group, 'true_target']:.2f} nm"
         )
         _surface_panel(
@@ -509,7 +511,7 @@ def plot_renderer_strata(
             baseline,
             vmin=float(vmin),
             vmax=float(vmax),
-            title=f"M10 baseline\npredicted Rq="
+            title=f"M10 baseline\npredicted Sq="
             f"{lookup.loc[group, 'predicted_target']:.2f} nm",
         )
         image = _surface_panel(
@@ -524,7 +526,14 @@ def plot_renderer_strata(
             real,
             vmin=float(vmin),
             vmax=float(vmax),
-            title="measured AFM",
+            title=(
+                "measured AFM\n"
+                f"displayed scan Sq="
+                f"{real_label['displayed_scan_sq_nm']:.2f} nm\n"
+                f"sample median Sq="
+                f"{real_label['sample_median_sq_nm']:.2f} ± "
+                f"{real_label['sample_sq_iqr_nm']:.2f} nm (IQR)"
+            ),
         )
         cb = figure.colorbar(
             image,
@@ -534,7 +543,7 @@ def plot_renderer_strata(
         )
         cb.set_label("height (nm)")
     figure.suptitle(
-        "Fixed roughness strata: renderer comparison under the same "
+        "Fixed areal-roughness strata: renderer comparison under the same "
         "held-one conditioning",
         fontsize=11,
         fontweight="bold",
@@ -565,7 +574,7 @@ def plot_largest_failures(
         confidence=confidence,
         method=method,
         title=(
-            "Four largest Rq failures in full-cohort LOO "
+            "Four largest Sq failures in full-cohort LOO "
             "(reported without cherry-picking)"
         ),
     )
@@ -654,7 +663,7 @@ def run(config: dict[str, Any]) -> None:
             "atlas_stems": stems,
             "outer_growth_count": int(rq["growth_run_id"].nunique()),
             "fit_growths_per_fold": 22,
-            "ordering": "ascending measured Rq for the five atlas pages",
+            "ordering": "ascending measured Sq for the five atlas pages",
             "png_count": len(list(figure_dir.glob("*.png"))),
             "pdf_count": len(list(figure_dir.glob("*.pdf"))),
             "height_units": "nm",
