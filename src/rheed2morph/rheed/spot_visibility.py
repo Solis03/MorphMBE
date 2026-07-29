@@ -538,6 +538,7 @@ def score_deep_visibility_candidates(
         "selected_candidate": selected,
         "score": float(final_scores[position]),
         "confidence": float(np.clip(confidence, 0.0, 1.0)),
+        "visibility_gate": gate,
         "visibility_rank": float(
             table.iloc[position]["spot_visibility_rank"]
         ),

@@ -14,6 +14,7 @@ dependencies = [
     "pyspm>=0.6.0",
     "tifffile>=2025.5.10",
     "torch",
+    "torchvision==0.27.0",
     "transformers>=4.50,<5",
 ]
 
@@ -24,6 +25,7 @@ rheed2morph-make-pairs = "rheed2morph.pairing.make_pairs:main"
 rheed2morph-build-one-to-one-manifests = "rheed2morph.manifests.one_to_one:main"
 rheed2morph-rheed-descriptor-mvp = "rheed2morph.rheed.mvp:main"
 rheed2morph-run-pipeline = "rheed2morph.pipeline.run:main"
+rheed2morph-realtime-ui = "rheed2morph.realtime.cli:main"
 
 [build-system]
 requires = ["setuptools>=69"]
@@ -34,3 +36,8 @@ where = ["src"]
 
 [tool.uv]
 package = true
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+]
