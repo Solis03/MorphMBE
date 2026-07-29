@@ -1,0 +1,20 @@
+{
+  "atlas_stems": [
+    "Fig1a_full23_loo_atlas",
+    "Fig1b_full23_loo_atlas",
+    "Fig1c_full23_loo_atlas",
+    "Fig1d_full23_loo_atlas",
+    "Fig1e_full23_loo_atlas"
+  ],
+  "confidence_vs_realized_target_error_spearman": -0.16023740832022557,
+  "confidence_warning": "Confidence is a relative index, not a calibrated probability.",
+  "experiment_id": "20260729_m14i_m12a_auto_input_full23_loo_v1",
+  "figure_directory": "/Users/ziyi/Desktop/LAB/code/reports/rheed_manual_vs_auto_selection/20260729_m14i_human_vs_auto_full23_v1/auto_input_generation/full23_loo/figures",
+  "fit_growths_per_fold": 22,
+  "height_units": "nm",
+  "ordering": "ascending measured Rq for the five atlas pages",
+  "outer_growth_count": 23,
+  "pdf_count": 11,
+  "png_count": 11,
+  "scan_size_nm": 1000.0
+}

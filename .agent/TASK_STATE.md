@@ -2,6 +2,38 @@
 
 Last updated: 2026-07-29 (America/Detroit)
 
+## Human-vs-automatic M14i/M12a input-domain comparison (2026-07-29)
+
+- Built a parallel automatic-input dataset for the exact frozen M14i Full23
+  cohort, excluding 6043 and 6055, from the same source video/stage as every
+  human row. V5 selects the visible rotation cycle, V8 supplies the model-input
+  ROI, and `selected_16` remains `k-7..k+8`.
+- Dataset geometry: median folded cycle-phase residual 2 frames, ROI IoU
+  0.753, human-ROI coverage 0.996 and keyframe quality 0.717.
+- Ran three target protocols with the frozen M14i methods/hyperparameters:
+  frozen human→human strict LOO, auto→auto strict LOO, and human→auto strict
+  cross-domain LOO. Every outer target and confidence calibration is held out.
+- Rq remains usable: human / auto / cross-domain Pearson r =
+  0.509 / 0.536 / 0.554 and MAE = 1.466 / 1.536 / 1.480 nm. Paired MAE changes
+  versus human have bootstrap CIs spanning zero.
+- FSMI transfer is weak: auto→auto Pearson r = -0.130. Machine-domain
+  confidence is not significantly error-related, unlike the frozen human
+  confidence. This negative result is retained and explicitly limits UI
+  claims.
+- Completed full 23-fold M12a automatic-input generation with 23/23 leakage
+  audits passing. Machine-domain AFM sharpness, texture-gate rate and
+  AFM-likeness are essentially unchanged from the human-input generator, so
+  input automation does not collapse the image renderer.
+- Same-weight paired deployment sensitivity (diagnostic, not held-out) finds
+  median input-induced shifts of 0.333 nm Rq and 0.480 nm FSMI. For 6056,
+  automatic frame 160 vs human 161 gives strict auto LOO Rq 3.277 nm vs true
+  3.225 nm; the all-23 deployment gives 3.048 nm with 90.4% model confidence.
+- Machine dataset:
+  `outputs/rheed_manual_vs_auto_selection/20260729_m14i_human_vs_auto_full23_v1/machine_dataset`.
+- Complete report:
+  `reports/rheed_manual_vs_auto_selection/20260729_m14i_human_vs_auto_full23_v1/REPORT.md`.
+- The desktop Standalone and all raw RHEED/AFM files remain unmodified.
+
 ## Realtime ROI/model-input alignment correction (2026-07-29)
 
 - User review of 6056 exposed a real implementation defect: the compact V5

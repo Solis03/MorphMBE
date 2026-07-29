@@ -1,0 +1,11 @@
+{
+  "claim_boundary": "This paired deployment experiment isolates input sensitivity. It is not held-out evidence because the all-23 deployment bundle was fitted using each growth's human-selected training row.",
+  "growth_group_count": 23,
+  "median_absolute_fsmi_input_shift_nm": 0.47998196400326565,
+  "median_absolute_rq_input_shift_nm": 0.33290445135414437,
+  "median_auto_model_confidence": 0.7071067811865476,
+  "median_generated_map_standardized_l1": 1.1018290324408018,
+  "protocol": "same frozen all-23 deployment weights and paired random seed; only human versus automatic model input changes",
+  "runtime_seconds": 159.42228603363037,
+  "strict_held_out": false
+}

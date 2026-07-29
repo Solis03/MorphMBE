@@ -1,0 +1,5 @@
+target,comparison,growth_group_count,mean_absolute_error_change_nm,median_absolute_error_change_nm,paired_bootstrap_mean_change_lower_95_nm,paired_bootstrap_mean_change_upper_95_nm,bootstrap_probability_improved,wilcoxon_signed_rank_statistic,wilcoxon_signed_rank_p,negative_change_means_lower_error
+Rq_nm,auto→auto (strict LOO) minus human→human (frozen strict LOO),23,0.07068206704715402,0.11383181969040998,-0.10845537946046416,0.2554377245532726,0.2301,116.0,0.5202305316925049,True
+Rq_nm,human→auto (strict cross-domain LOO) minus human→human (frozen strict LOO),23,0.0141798292282079,0.10014164683799542,-0.26985304314439995,0.28555929601085916,0.4526,129.0,0.7997725009918213,True
+FSMI_nm,auto→auto (strict LOO) minus human→human (frozen strict LOO),23,0.3088109792941401,0.23575462010058518,-0.035367425369136035,0.6608457191879913,0.04015,85.0,0.11142587661743164,True
+FSMI_nm,human→auto (strict cross-domain LOO) minus human→human (frozen strict LOO),23,0.19991781995123611,0.12089833037586084,-0.09189200630919207,0.4911165254989045,0.08785,86.0,0.11864614486694336,True
