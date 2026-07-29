@@ -1009,7 +1009,7 @@ Status: in progress on branch
 - [x] Integrate the corrected M15b/M12a bundle into the realtime UI.
 - [x] Complete raw-source integrity verification, final tests, diff review,
   and report.
-- [ ] Create the final local commit.
+- [x] Create the final local commit.
 
 ### Metrology evidence
 
@@ -1064,4 +1064,5 @@ is retrospective cross-validation rather than a prospective external test.
   included in the repository work.
 - Final report:
   `reports/afm_metrology_line3_v1/FINAL_RETRAIN_REPORT.md`.
-- Local commit: pending at the time of this state update; fill after commit.
+- Local implementation/results commit:
+  `b063d5e` (`repair AFM metrology and retrain corrected models`).
