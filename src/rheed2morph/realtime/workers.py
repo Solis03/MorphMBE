@@ -74,7 +74,9 @@ class PredictionWorker(QThread):
 
     def run(self) -> None:
         try:
-            self.log.emit("加载 M14i 标量头、M12a 生成器与 R3D-18")
+            self.log.emit(
+                "加载 M15b 自动输入标量头、M12a 生成器与 R3D-18"
+            )
             predictor = RealtimeMorphologyPredictor.from_path(
                 self.bundle_path,
                 device=self.device,

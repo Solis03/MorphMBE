@@ -424,7 +424,7 @@ class RealtimeMainWindow(QMainWindow):
         self.video_canvas = VideoCanvas()
         left_layout.addWidget(self.video_canvas, 1)
         self.roi_note = QLabel(
-            "青色实框：真正送入 M14i/M12a 的 16 帧完整点阵裁剪；"
+            "青色实框：真正送入 M15b/M12a 的完整点阵裁剪；"
             "内部 tracking ROI 只定位旋转顶点，不参与生成"
         )
         self.roi_note.setObjectName("note")

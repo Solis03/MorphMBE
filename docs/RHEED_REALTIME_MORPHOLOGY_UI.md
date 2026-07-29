@@ -195,3 +195,26 @@ PYTHONPATH=src:. .venv/bin/python \
 
 该命令保存自动 ROI、全部保留事件、选定关键帧、多帧模型输入、生成 AFM、
 标量、置信度、运行时间以及 PNG/PDF 三联图。
+
+当前 M15b+M12a 端到端验证使用：
+
+```bash
+PYTHONPATH=src:. .venv/bin/python \
+  scripts/smoke_rheed_realtime_pipeline.py \
+  "data/raw/raw_RHEED/N6056 - Copy/After rampdown to 200 C.MOV" \
+  --sample-id 6056 \
+  --output-dir \
+  outputs/rheed_realtime_ui/20260729_m15b_m12a_end_to_end_ui_verification_6056
+```
+
+该次运行自动选择帧 160，模型输入为 `k-7..k+8` 的 16 帧完整点阵 ROI；
+输出 Rq 2.687 nm、FSMI 2.324 nm、模型置信度 61.5%，生成高度场重新测得
+Rq 2.687 nm。界面截图、三联图、输入 clip 和生成高度场均保存在上述目录。
+
+论文性能证据与部署演示必须分开解释。严格 23-fold 自动输入端到端结果、
+全部 23 个样品的 RHEED→生成 AFM→真实 AFM 图谱及失败案例位于：
+
+```text
+reports/rheed_m15b_end_to_end_generation/
+  20260729_m15b_m12a_auto_full23_v1/full23_loo/
+```

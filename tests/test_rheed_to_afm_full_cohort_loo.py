@@ -100,6 +100,48 @@ def test_external_predictions_require_exact_leakage_free_cohort(
     assert not loaded["outer_target_used_for_training"].any()
 
 
+def test_external_combined_predictions_filter_requested_target(
+    tmp_path,
+) -> None:
+    groups = ["6022", "6028"]
+    rows = []
+    for target, truth in (
+        ("Rq_nm", [1.0, 2.0]),
+        ("FSMI_nm", [3.0, 4.0]),
+    ):
+        for group, value in zip(groups, truth):
+            rows.append(
+                {
+                    "target": target,
+                    "growth_run_id": group,
+                    "true_target": value,
+                    "predicted_target": value,
+                    "absolute_error": 0.0,
+                    "predicted_absolute_error": 0.1,
+                    "interval_lower": max(value - 0.2, 0.0),
+                    "interval_upper": value + 0.2,
+                    "interval_covered": True,
+                    "outer_target_used_for_training": False,
+                }
+            )
+    path = tmp_path / "combined_predictions.csv"
+    pd.DataFrame(rows).to_csv(path, index=False)
+    log_rq = pd.Series(
+        np.log([1.0, 2.0]),
+        index=groups,
+        name="log_rq_nm",
+    )
+
+    loaded = _load_external_predictions(
+        path=path,
+        groups=groups,
+        log_target=log_rq,
+    )
+
+    assert loaded["target"].unique().tolist() == ["Rq_nm"]
+    assert loaded["growth_run_id"].tolist() == groups
+
+
 def test_external_target_confidence_uses_both_target_heads(
     tmp_path,
 ) -> None:
@@ -135,3 +177,41 @@ def test_external_target_confidence_uses_both_target_heads(
 
     assert np.allclose(result["joint_confidence_index"], 50.0)
     assert result["rq_interval_covered"].all()
+
+
+def test_external_target_confidence_accepts_configured_method(
+    tmp_path,
+) -> None:
+    groups = [str(6000 + index) for index in range(23)]
+    rows = []
+    for target in ("Rq_nm", "FSMI_nm"):
+        for group in groups:
+            rows.append(
+                {
+                    "growth_run_id": group,
+                    "target": target,
+                    "method": "M15b_auto_r3d_angular_tta",
+                    "confidence": 0.64,
+                    "absolute_error": 0.2,
+                    "predicted_absolute_error": 0.3,
+                    "interval_covered": True,
+                    "outer_target_used_for_training": False,
+                }
+            )
+    path = tmp_path / "m15b_confidence.csv"
+    pd.DataFrame(rows).to_csv(path, index=False)
+    fallback = pd.DataFrame(
+        {
+            "growth_run_id": groups,
+            "realized_island_error_z": 0.0,
+            "island_error_90_upper_z": 1.0,
+        }
+    )
+
+    result = _external_target_confidence(
+        path=path,
+        fallback=fallback,
+        method="M15b_auto_r3d_angular_tta",
+    )
+
+    assert np.allclose(result["joint_confidence_index"], 64.0)

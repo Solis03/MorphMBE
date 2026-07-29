@@ -2,6 +2,52 @@
 
 Last updated: 2026-07-29 (America/Detroit)
 
+## M15b automatic-video end-to-end AFM generation (2026-07-29)
+
+- Connected the improved automatic-input M15b scalar/confidence predictions
+  to the existing M12a non-retrieval island/terrace generator under a strict
+  23-growth outer leave-one-growth-out protocol. Every held growth is absent
+  from the 22-growth generator fit; the output-map metadata exactly matches
+  the strict M15b outer prediction for that growth.
+- Generalized the full-cohort experiment loader to accept one combined
+  target table with an explicit `target` column, and generalized publication
+  visualization to use a configured external confidence method rather than a
+  hard-coded M14i label. Added regression tests for both contracts.
+- Final scalar performance is Rq MAE 1.212 nm / Pearson r 0.757 and FSMI MAE
+  1.036 nm / r 0.748. Relative to the previous M14i automatic-input baseline,
+  MAE improves by 0.325 nm and 0.588 nm respectively.
+- Re-measured generated-image performance is Rq MAE 1.197 nm and FSMI MAE
+  1.064 nm, versus 1.510/1.350 nm for the previous automatic-input pipeline.
+  Median sharpness ratio is effectively retained (0.711 versus 0.713), while
+  the texture-gate rate decreases from 0.609 to 0.565; the latter is reported
+  as a limitation rather than hidden.
+- Produced a fixed-order complete 23-growth atlas, stratified overview,
+  scalar scatter, confidence/error audit, renderer strata and largest-failure
+  panels as both PDF and PNG. The overview shows automatic RHEED, generated
+  AFM and measured AFM for four fixed Rq strata plus a deterministic failure.
+- M15b joint reliability confidence is negatively associated with joint
+  target error (Spearman rho -0.646, p≈0.001). It is explicitly labeled a
+  relative reliability index, not a calibrated probability.
+- Verified the configured UI path on the original 6056 MOV. It selects frame
+  160, predicts Rq 2.687 nm / FSMI 2.324 nm at 61.5% model confidence and
+  generates a field with measured Rq 2.687 nm. Inference is 7.02 s and the
+  selector-plus-inference path is 28.75 s on the M1 Pro. Saved the actual
+  16-frame input, generated field, three-panel figure and offscreen UI
+  screenshot under
+  `outputs/rheed_realtime_ui/20260729_m15b_m12a_end_to_end_ui_verification_6056`.
+- Corrected stale UI/worker/CLI text that still named the superseded M14i
+  scalar head. Added a regression check that the configured bundle, manifest,
+  UI subtitle and ROI note all identify M15b+M12a and retain
+  retrieval/AFM-patch prohibitions.
+- Main report:
+  `reports/rheed_m15b_end_to_end_generation/20260729_m15b_m12a_auto_full23_v1/REPORT.md`.
+- Final verification: 51 targeted selector, automatic-input, realtime and
+  generative regression tests pass. The 23 outer maps pass target-identity,
+  22-growth fit, held-growth exclusion, non-retrieval and no-measured-patch
+  assertions; the artifact SHA-256 manifest verifies.
+- Raw data, `removelist.txt`, prior publication freezes and the desktop
+  Standalone were not modified.
+
 ## Automatic-input confidence/FSMI robustness continuation (2026-07-29)
 
 - Audited all 23 human and automatic clip caches. Both domains use exactly

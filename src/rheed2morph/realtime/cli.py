@@ -32,7 +32,7 @@ def main() -> None:
     config["repository_root"] = str(repository)
     bundle_path = repository / config["deployment_bundle"]
     if not bundle_path.exists():
-        print("Preparing the frozen M14i + M12a deployment cache...")
+        print("Preparing the M15b + frozen M12a deployment cache...")
         bundle = build_deployment_bundle(config, progress=print)
         save_deployment_bundle(bundle, bundle_path)
     application = QApplication(sys.argv)

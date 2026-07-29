@@ -50,6 +50,7 @@ def _external_target_confidence(
     *,
     path: str | Path,
     fallback: pd.DataFrame,
+    method: str = "M14i_target_specific_robust",
 ) -> pd.DataFrame:
     predictions = pd.read_csv(
         repo_path(path), dtype={"growth_run_id": str}
@@ -73,9 +74,13 @@ def _external_target_confidence(
         raise RuntimeError(
             f"external confidence reports outer target leakage: {path}"
         )
-    selected = predictions.loc[
-        predictions["method"] == "M14i_target_specific_robust"
-    ]
+    selected = predictions.loc[predictions["method"] == str(method)]
+    if selected.empty:
+        available = sorted(predictions["method"].astype(str).unique())
+        raise RuntimeError(
+            f"external confidence method {method!r} is unavailable; "
+            f"found {available}"
+        )
     rq = selected.loc[selected["target"] == "Rq_nm"].set_index(
         "growth_run_id"
     )
@@ -581,6 +586,12 @@ def run(config: dict[str, Any]) -> None:
         confidence = _external_target_confidence(
             path=config["external_confidence_predictions"],
             fallback=confidence,
+            method=str(
+                config.get(
+                    "external_confidence_method",
+                    "M14i_target_specific_robust",
+                )
+            ),
         )
     cohort = _read(report / "cohort_manifest.csv")
     comparison = pd.read_csv(

@@ -152,6 +152,18 @@ def _load_external_predictions(
     frame = pd.read_csv(
         repo_path(path), dtype={"growth_run_id": str}
     )
+    if "target" in frame.columns:
+        target_lookup = {
+            "log_rq_nm": "Rq_nm",
+            "log_fsmi_nm": "FSMI_nm",
+        }
+        target = target_lookup.get(str(log_target.name))
+        if target is None:
+            raise RuntimeError(
+                "cannot infer the target row from external predictions for "
+                f"series {log_target.name!r}"
+            )
+        frame = frame.loc[frame["target"] == target].copy()
     required = {
         "growth_run_id",
         "true_target",
