@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare the full-23 deployment refit of M15b + frozen M12a."""
+"""Prepare the audited full-28 M16 + M16b deployment refit."""
 
 from __future__ import annotations
 
@@ -68,7 +68,11 @@ def main() -> None:
         "training_growth_ids": bundle.groups,
         "frozen_parameter_hashes": bundle.frozen_parameter_hashes,
         "method": {
-            "Sq_nm": bundle.rq_reference.method,
+            "Sq_nm": (
+                "M16_endpoint_streak_dual_resolution"
+                if bundle.endpoint_streak_reference is not None
+                else bundle.rq_reference.method
+            ),
             "legacy_internal_target_name": "Rq_nm",
             "FSMI_nm": bundle.fsmi_reference.method,
             "image_generator": bundle.generation_config["selected_method"],
@@ -79,8 +83,8 @@ def main() -> None:
             "retrieval_at_inference": False,
             "measured_afm_patch_at_inference": False,
             "confidence": (
-                "75% nested predicted-amplitude support + 25% angular-TTA "
-                "risk, with a discrete 10% extreme head-conflict veto"
+                "M16 target-blind endpoint-support risk with causal "
+                "angular-TTA/head risk; strict-LOO error calibration"
             ),
             "rotation_period_reference_available": (
                 bundle.period_frames_reference is not None

@@ -373,8 +373,8 @@ class RealtimeMainWindow(QMainWindow):
         title = QLabel("MorphMBE  Real-Time Surface Morphology Monitoring")
         title.setObjectName("appTitle")
         subtitle = QLabel(
-            "Automatic ROI / rotational vertex · M15b causal R3D + "
-            "range-aware confidence · M12a non-retrieval AFM generation · "
+            "Automatic ROI / rotational vertex · M16 endpoint-aware R3D + "
+            "range-aware confidence · M16b non-retrieval AFM generation · "
             "third-order line-by-line AFM metrology"
         )
         subtitle.setObjectName("appSubtitle")
@@ -452,7 +452,7 @@ class RealtimeMainWindow(QMainWindow):
         self.video_canvas = VideoCanvas()
         left_layout.addWidget(self.video_canvas, 1)
         self.roi_note = QLabel(
-            "Cyan box: full-lattice crop actually passed to M15b/M12a; "
+            "Cyan box: full-lattice crop actually passed to M16/M16b; "
             "the internal tracking ROI only locates the rotational vertex "
             "and is not used for generation"
         )
@@ -639,7 +639,7 @@ class RealtimeMainWindow(QMainWindow):
 
     def _model_loaded(self, model_id: str) -> None:
         self._model_ready = True
-        self.model_badge.setText("M15b + M12a · READY")
+        self.model_badge.setText("M16 + M16b · READY")
         self.model_badge.setToolTip(model_id)
         self.start_button.setEnabled(
             self.mode_combo.currentData() == "video"

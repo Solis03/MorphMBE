@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run one raw-video event through ROI, keyframe, M15b and M12a."""
+"""Run one raw-video event through ROI, keyframe, M16 and M16b."""
 
 from __future__ import annotations
 

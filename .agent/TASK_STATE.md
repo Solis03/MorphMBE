@@ -1355,3 +1355,66 @@ Status: completed locally on branch
   `reports/rheed_realtime_ui/causal_stream_v2_N6056_fallback/`.
 - N6056 raw SHA-256 remains
   `8e36f1a697af4986a0f004de8e46be1181f32f0c7eb13ab19bd378f93907c0e6`.
+## 2026-07-29 — Sq/Rq metrology re-audit and smooth/extreme morphology model
+
+- Branch: `codex/sq-metrology-smooth-extremes-20260729`
+- Worktree:
+  `/Users/ziyi/Desktop/LAB/code-worktrees/sq-metrology-smooth-extremes-20260729`
+- Base: `db74604991f7fe3bfd099a87b72fdb5e292e0307`
+- Historical Desktop standalone folders are read-only and must not be changed.
+- Task A: independently re-audit the AFM roughness foundation using the
+  mathematical Sq/Rq definition, raw AFM headers, the current third-order
+  line-by-line implementation, NanoScope records, official Gwyddion behavior,
+  and direct Gwyddion calculations.
+- Task B: improve strict full-28 held-growth prediction and AFM generation at
+  both physical extremes: push genuinely streaky/smooth 6101 and N6342 below
+  1 nm when supported, retain high predictions for spotty 6095/6099, improve
+  smooth-surface fine texture, and prevent degradation of global scalar,
+  confidence, leakage, or generative metrics.
+- Raw data policy: read-only. New derived outputs/reports receive a new
+  experiment ID and never overwrite the 20260729 freezes.
+
+### Completed evidence
+
+- Local Gwyddion 2.71 independently reproduced the repository's row-levelled
+  Sq on 110 original 1 µm ZSensor maps and 104 extra-five 1 µm subfields.
+  Maximum line-3 discrepancy was below `4e-9 nm`; all order-0/1/2/3
+  comparisons agreed to numerical round-off.
+- NanoScope exported-value QC remains independent of the training target:
+  active original-23 deduplicated scans have line-3 MAE `0.0224 nm`,
+  Pearson `r=0.9998`, and 42/42 within `0.2 nm`.
+- Strict retrospective 28-growth LOO M16 Sq:
+  MAE `1.0701 nm`, median AE `0.6748 nm`, Pearson `r=0.7377`,
+  smooth-end MAE `0.7590 nm`, rough-end MAE `1.2330 nm`.
+- Strict held-growth endpoint predictions: 6101 `0.5666 nm`, N6342
+  `0.9545 nm`, N6358 `0.8001 nm`, N6382 `1.067 nm`, 6095 `7.691 nm`,
+  and 6099 `6.500 nm`.
+- M16 confidence remains target-blind for the outer query; confidence versus
+  absolute Sq error Spearman is `-0.4691`, with 25/28 nominal 90% intervals
+  covering the held target.
+- M16a smooth generation was rejected and preserved as an ablation because it
+  amplified high-frequency residuals. M16b micro-island/terrace generation
+  improved mean gradient relative error `0.463 -> 0.263`, Laplacian relative
+  error `0.897 -> 0.450`, high-PSD relative error `12.35 -> 0.82`, and the
+  AFM texture gate `60.7% -> 82.1%`.
+- The final 28-fold M16b generator run reports no retrieval, no measured
+  held-AFM patch at inference, and no outer-fold overlap.
+- New UI bundle:
+  `outputs/rheed_realtime_ui/morphmbe_m16_m16b_line3_full28_orientation90_keyframe_locked_live_v8.joblib`.
+  Raw-video smoke predictions were 6101 `0.481 nm` in `6.74 s` and N6342
+  `0.895 nm` in `7.30 s`; generated map Sq matched conditioning to `~1e-6 nm`.
+- 32 endpoint/generator/UI regression tests passed after the final
+  retrospective-claim-boundary and legacy-bundle compatibility audit.
+- A final source-integrity rerun checked 180 raw AFM files and 180 decoded
+  ZSensor arrays; all 360 SHA-256 values match the pre-task audit.
+- M16a/M16b configs and manifests now explicitly record that the architecture
+  was developed retrospectively on the 28-growth cohort and was not frozen
+  before cohort expansion. Strict outer-fold exclusion remains valid, but this
+  is not presented as a prospective untouched test.
+- The wider `pytest tests/` run produced `377 passed`, `24 failed`, `6 errors`.
+  Every failure/error is outside the changed pipeline and is caused by
+  worktree-local absence of historical paper-freeze/peak-saddle artifacts or
+  the optional `pyarrow` dependency. A repository-root `pytest` additionally
+  has three pre-existing duplicate module names inside a historical
+  `paper_freeze/.../tests` snapshot. No frozen directory was modified to make
+  these unrelated tests pass.

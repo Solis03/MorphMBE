@@ -1,4 +1,4 @@
-"""Deploy M15b automatic-input target heads with the frozen M12a generator."""
+"""Deploy the endpoint-aware Sq head and non-retrieval AFM generator."""
 
 from __future__ import annotations
 
@@ -79,6 +79,16 @@ from analysis.rheed_to_afm_sharp_generation.spectral import (
     ConditionalSpectralModel,
     fit_conditional_spectral_model,
 )
+from analysis.rheed_endpoint_generation.endpoint_ensemble import (
+    predict_endpoint,
+)
+from analysis.rheed_endpoint_generation.run_endpoint_ensemble import (
+    _support_risk,
+)
+from analysis.rheed_endpoint_generation.streak_features import (
+    PRIMARY_STREAK_FEATURE,
+    extract_streak_features,
+)
 from analysis.rheed_video_afm_story.pretrained_embeddings import (
     load_r3d18,
     preprocess_frames,
@@ -87,10 +97,15 @@ from analysis.rheed_video_afm_story.pretrained_embeddings import (
 from .clips import live_physics_row
 
 
-MODEL_ID = (
+LEGACY_MODEL_ID = (
     "MorphMBE-M15b-AutoR3D-AngularTTA + "
     "M12a-RangeTerrace-line3-metrology-live-v4"
 )
+MODEL_ID = (
+    "MorphMBE-M16-EndpointStreak-AutoR3D + "
+    "M16b-MicroislandTerrace-line3-metrology-live-v8"
+)
+SUPPORTED_MODEL_IDS = {LEGACY_MODEL_ID, MODEL_ID}
 QUERY_ID = "__live_stream__"
 
 _FROZEN_GENERATOR_KEYS = (
@@ -155,6 +170,9 @@ class DeploymentBundle:
     retrieval_at_inference: bool
     measured_afm_patch_at_inference: bool
     automatic_input_domain: bool = False
+    endpoint_streak_reference: np.ndarray | None = None
+    endpoint_confidence_risk_reference: np.ndarray | None = None
+    endpoint_confidence_error_reference: np.ndarray | None = None
 
 
 @dataclass(frozen=True)
@@ -267,7 +285,7 @@ def build_deployment_bundle(
     *,
     progress: Callable[[str], None] | None = None,
 ) -> DeploymentBundle:
-    """Refit M15b and frozen M12a on the configured allowed cohort."""
+    """Refit the configured audited deployment on the allowed cohort."""
 
     log = progress or (lambda _: None)
     repository = Path(config.get("repository_root", ".")).resolve()
@@ -302,11 +320,14 @@ def build_deployment_bundle(
     frozen_generator_config = json.loads(
         m14_generator_parameters.read_text(encoding="utf-8")
     )
+    endpoint_upgrade = bool(config.get("endpoint_rq_upgrade", False))
     if bool(config.get("metrology_audited_mode", False)):
+        upgrade_keys = {"selected_method", "selected_renderer"}
         mismatched = [
             key
             for key in _FROZEN_GENERATOR_KEYS
             if model_config.get(key) != frozen_generator_config.get(key)
+            and not (endpoint_upgrade and key in upgrade_keys)
         ]
         if mismatched:
             raise RuntimeError(
@@ -328,6 +349,16 @@ def build_deployment_bundle(
             raise RuntimeError(
                 "metrology-audited deployment must use the line-3 AFM "
                 "descriptor and manifest paths"
+            )
+        if endpoint_upgrade and (
+            model_config.get("selected_method")
+            != "M16b_regime_adaptive_microisland_terrace"
+            or model_config.get("selected_renderer", {}).get("mode")
+            != "regime_adaptive_microisland_terrace"
+        ):
+            raise RuntimeError(
+                "endpoint-upgraded deployment must use the audited M16b "
+                "micro-island/terrace renderer"
             )
     elif _hash_file(model_config_path) != _hash_file(
         m14_generator_parameters
@@ -459,6 +490,52 @@ def build_deployment_bundle(
                 "absolute_error"
             ].to_numpy(float)
 
+    endpoint_streak_reference: np.ndarray | None = None
+    endpoint_confidence_risk_reference: np.ndarray | None = None
+    endpoint_confidence_error_reference: np.ndarray | None = None
+    if endpoint_upgrade:
+        streak_table = pd.read_csv(
+            repository / str(config["endpoint_streak_features"]),
+            dtype={"growth_run_id": str},
+        ).set_index("growth_run_id")
+        endpoint_predictions = pd.read_csv(
+            repository / str(config["endpoint_strict_predictions"]),
+            dtype={"growth_run_id": str},
+        )
+        endpoint_predictions = (
+            endpoint_predictions.loc[
+                (endpoint_predictions["target"] == "Rq_nm")
+                & (
+                    endpoint_predictions["method"]
+                    == "M16_endpoint_streak_dual_resolution"
+                )
+            ]
+            .set_index("growth_run_id")
+            .loc[groups]
+        )
+        endpoint_truth = np.exp(
+            rq_reference.log_target.loc[groups].to_numpy(float)
+        )
+        if not np.allclose(
+            endpoint_predictions["true_target"].to_numpy(float),
+            endpoint_truth,
+            rtol=1e-6,
+            atol=1e-8,
+        ):
+            raise RuntimeError(
+                "M16 endpoint confidence targets do not match the "
+                "metrology-audited deployment targets"
+            )
+        endpoint_streak_reference = streak_table.loc[
+            groups, PRIMARY_STREAK_FEATURE
+        ].to_numpy(float)
+        endpoint_confidence_risk_reference = endpoint_predictions[
+            "uncertainty_risk_score"
+        ].to_numpy(float)
+        endpoint_confidence_error_reference = endpoint_predictions[
+            "absolute_error"
+        ].to_numpy(float)
+
     condition_columns = list(model_config["condition_columns"])
     condition_scaler = ConditionScaler.fit(
         descriptors, condition_columns, set(groups)
@@ -469,7 +546,7 @@ def build_deployment_bundle(
         tables=tables,
         group_targets=group_targets,
     )
-    log("Fitting the M12a R3D-18 temporal morphology-conditioning head")
+    log("Fitting the R3D-18 temporal morphology-conditioning head")
     morphology_predictor = fit_predictor(groups, condition_scaler)
     variance_calibrator, _ = fit_variance_calibrator(
         groups=groups,
@@ -482,7 +559,7 @@ def build_deployment_bundle(
         minimum_predicted_std=float(model_config["minimum_predicted_std"]),
     )
     log(
-        "Fitting the M12a island-statistics model and non-retrieval "
+        "Fitting the island-statistics model and non-retrieval "
         "spectral prior"
     )
     island_model, _, _ = fit_island_condition_model(
@@ -530,10 +607,31 @@ def build_deployment_bundle(
             "confidence_reference": _hash_file(
                 repository / str(config["stability_predictions"])
             ),
+            **(
+                {
+                    "endpoint_streak_features": _hash_file(
+                        repository
+                        / str(config["endpoint_streak_features"])
+                    ),
+                    "endpoint_strict_predictions": _hash_file(
+                        repository
+                        / str(config["endpoint_strict_predictions"])
+                    ),
+                }
+                if endpoint_upgrade
+                else {}
+            ),
         },
         retrieval_at_inference=False,
         measured_afm_patch_at_inference=False,
         automatic_input_domain=automatic_domain,
+        endpoint_streak_reference=endpoint_streak_reference,
+        endpoint_confidence_risk_reference=(
+            endpoint_confidence_risk_reference
+        ),
+        endpoint_confidence_error_reference=(
+            endpoint_confidence_error_reference
+        ),
     )
 
 
@@ -549,7 +647,10 @@ def save_deployment_bundle(
 
 def load_deployment_bundle(path: str | Path) -> DeploymentBundle:
     bundle = joblib.load(Path(path))
-    if not isinstance(bundle, DeploymentBundle) or bundle.model_id != MODEL_ID:
+    if (
+        not isinstance(bundle, DeploymentBundle)
+        or bundle.model_id not in SUPPORTED_MODEL_IDS
+    ):
         raise RuntimeError("deployment bundle identity does not match")
     return bundle
 
@@ -819,6 +920,87 @@ class RealtimeMorphologyPredictor:
             ),
         )
 
+    def _endpoint_rq(
+        self,
+        *,
+        query_embedding: np.ndarray,
+        query_streak: float,
+        legacy: ScalarPrediction,
+    ) -> ScalarPrediction:
+        """Apply M16 to Sq while retaining target-blind angular diagnostics."""
+
+        # ``getattr`` preserves read compatibility with pre-M16 joblib bundles.
+        # Pickle does not synthesize newly added dataclass attributes when an
+        # older instance is loaded against the current class definition.
+        streak_reference = getattr(
+            self.bundle, "endpoint_streak_reference", None
+        )
+        risk_reference = getattr(
+            self.bundle, "endpoint_confidence_risk_reference", None
+        )
+        error_reference = getattr(
+            self.bundle, "endpoint_confidence_error_reference", None
+        )
+        if (
+            streak_reference is None
+            or risk_reference is None
+            or error_reference is None
+        ):
+            return legacy
+        truth = np.exp(
+            self.bundle.rq_reference.log_target.loc[
+                self.bundle.groups
+            ].to_numpy(float)
+        )
+        embeddings = self.bundle.causal_embeddings.loc[
+            self.bundle.groups
+        ].to_numpy(float)
+        endpoint = predict_endpoint(
+            embeddings=embeddings,
+            streak=np.asarray(streak_reference, dtype=float),
+            target_nm=truth,
+            train=np.arange(len(self.bundle.groups)),
+            query_embedding=np.asarray(query_embedding, dtype=float),
+            query_streak=float(query_streak),
+        )
+        risk = _support_risk(
+            endpoint,
+            training_targets=truth,
+            legacy_risk=float(legacy.risk_score),
+        )
+        expected_error = _isotonic_expected_error(
+            np.asarray(risk_reference, dtype=float),
+            np.asarray(error_reference, dtype=float),
+            risk,
+        )
+        adaptive = np.asarray(error_reference, dtype=float) / np.maximum(
+            0.50 + np.asarray(risk_reference, dtype=float), 0.25
+        )
+        radius = _higher_quantile(adaptive, 0.90) * (0.50 + risk)
+        unconstrained = float(endpoint.value_nm)
+        value = float(
+            np.clip(unconstrained, float(np.min(truth)), float(np.max(truth)))
+        )
+        support_clipped = not np.isclose(
+            value, unconstrained, rtol=1e-8, atol=1e-8
+        )
+        confidence = float(np.clip(1.0 - risk, 0.0, 1.0))
+        if support_clipped:
+            confidence *= 0.5
+        return ScalarPrediction(
+            value=value,
+            unconstrained_value=unconstrained,
+            support_clipped=bool(support_clipped),
+            expected_absolute_error=float(expected_error),
+            confidence=confidence,
+            interval_lower=float(max(value - radius, 0.0)),
+            interval_upper=float(value + radius),
+            risk_score=float(risk),
+            tta_confidence=legacy.tta_confidence,
+            rotation_period_risk=legacy.rotation_period_risk,
+            head_agreement_confidence=legacy.head_agreement_confidence,
+        )
+
     def predict(
         self,
         selected_16: np.ndarray,
@@ -889,12 +1071,18 @@ class RealtimeMorphologyPredictor:
             ],
             axis=0,
         )
-        rq = self._scalar(
+        legacy_rq = self._scalar(
             self.bundle.rq_reference,
             physics=physics,
             embeddings=embeddings,
             tta_embeddings=tta_embeddings,
             estimated_period_frames=estimated_period_frames,
+        )
+        streak_features = extract_streak_features(frames[:8])
+        rq = self._endpoint_rq(
+            query_embedding=causal_embedding,
+            query_streak=streak_features[PRIMARY_STREAK_FEATURE],
+            legacy=legacy_rq,
         )
         fsmi = self._scalar(
             self.bundle.fsmi_reference,
@@ -963,6 +1151,7 @@ class RealtimeMorphologyPredictor:
         unit_shape = render_ensemble(
             structure,
             prior,
+            conditioning_sq_nm=rq.value,
             **config["selected_renderer"],
         )[0].astype(np.float32)
         height_nm = (unit_shape * float(rq.value)).astype(np.float32)

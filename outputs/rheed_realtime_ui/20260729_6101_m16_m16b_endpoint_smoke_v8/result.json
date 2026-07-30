@@ -1,0 +1,151 @@
+{
+  "source": "/Users/ziyi/Desktop/LAB/code/data/raw/raw_RHEED/N6101/30 min GaSb.MOV",
+  "sample_id": "6101",
+  "frame_rotation_clockwise_degrees": 0,
+  "frame_count": 384,
+  "model_input_roi": {
+    "x": 240,
+    "y": 402,
+    "width": 654,
+    "height": 1044,
+    "source_width": 1080,
+    "source_height": 1920
+  },
+  "physics_feature_roi_not_generator_input": {
+    "x": 294,
+    "y": 426,
+    "width": 582,
+    "height": 1014,
+    "source_width": 1080,
+    "source_height": 1920
+  },
+  "internal_tracking_roi_not_model_input": {
+    "x": 102,
+    "y": 324,
+    "width": 696,
+    "height": 1074,
+    "source_width": 1080,
+    "source_height": 1920
+  },
+  "conservative_audit_roi_not_model_input": {
+    "x": 258,
+    "y": 354,
+    "width": 714,
+    "height": 1134,
+    "source_width": 1080,
+    "source_height": 1920
+  },
+  "estimated_period_frames": 39.25,
+  "retained_event_count": 7,
+  "events": [
+    {
+      "frame_index": 20,
+      "keyframe_quality": 0.7187097725196921,
+      "visibility_rank": 0.7345679012345678,
+      "selector_score": 0.47790123456790123,
+      "tracker": "compact",
+      "model_input_visibility": NaN,
+      "refined_from_frame_index": null
+    },
+    {
+      "frame_index": 32,
+      "keyframe_quality": 0.6888656118775265,
+      "visibility_rank": 0.6234567901234569,
+      "selector_score": 0.5740123456790124,
+      "tracker": "front",
+      "model_input_visibility": NaN,
+      "refined_from_frame_index": null
+    },
+    {
+      "frame_index": 41,
+      "keyframe_quality": 0.7072377977614885,
+      "visibility_rank": 0.6111111111111112,
+      "selector_score": 0.6555555555555556,
+      "tracker": "compact",
+      "model_input_visibility": NaN,
+      "refined_from_frame_index": null
+    },
+    {
+      "frame_index": 127,
+      "keyframe_quality": 0.7019886217863498,
+      "visibility_rank": 0.7561728395061729,
+      "selector_score": 0.38561728395061734,
+      "tracker": "front",
+      "model_input_visibility": NaN,
+      "refined_from_frame_index": null
+    },
+    {
+      "frame_index": 207,
+      "keyframe_quality": 0.837037037037037,
+      "visibility_rank": 0.6944444444444445,
+      "selector_score": 0.9344444444444444,
+      "tracker": "front",
+      "model_input_visibility": NaN,
+      "refined_from_frame_index": null
+    },
+    {
+      "frame_index": 282,
+      "keyframe_quality": 0.7593828280029443,
+      "visibility_rank": 0.6851851851851851,
+      "selector_score": 0.6968518518518519,
+      "tracker": "front",
+      "model_input_visibility": NaN,
+      "refined_from_frame_index": null
+    },
+    {
+      "frame_index": 357,
+      "keyframe_quality": 0.6593530203671517,
+      "visibility_rank": 0.40740740740740733,
+      "selector_score": 0.8540740740740741,
+      "tracker": "front",
+      "model_input_visibility": NaN,
+      "refined_from_frame_index": null
+    }
+  ],
+  "selected_smoke_event": {
+    "frame_index": 207,
+    "keyframe_quality": 0.837037037037037,
+    "visibility_rank": 0.6944444444444445,
+    "selector_score": 0.9344444444444444,
+    "tracker": "front",
+    "model_input_visibility": NaN,
+    "refined_from_frame_index": null
+  },
+  "prediction": {
+    "model_id": "MorphMBE-M16-EndpointStreak-AutoR3D + M16b-MicroislandTerrace-line3-metrology-live-v8",
+    "Sq_nm": {
+      "value": 0.481030598282814,
+      "unconstrained_value": 0.41900158311366986,
+      "support_clipped": true,
+      "expected_absolute_error": 0.5018379305816844,
+      "confidence": 0.3788882061836373,
+      "interval_lower": 0.0,
+      "interval_upper": 2.355313720480832,
+      "risk_score": 0.24222358763272542,
+      "tta_confidence": 0.5138664765561487,
+      "rotation_period_risk": 0.9137931034482759,
+      "head_agreement_confidence": 0.3275862068965517
+    },
+    "legacy_internal_target_name": "Rq_nm",
+    "FSMI_nm": {
+      "value": 0.7913112697546518,
+      "unconstrained_value": 0.7913112697546518,
+      "support_clipped": false,
+      "expected_absolute_error": 0.6127947546979444,
+      "confidence": 0.7879493777597268,
+      "interval_lower": 0.0,
+      "interval_upper": 2.7025826485639617,
+      "risk_score": 0.21205062224027316,
+      "tta_confidence": 0.5138664765561487,
+      "rotation_period_risk": 0.9137931034482759,
+      "head_agreement_confidence": 0.2586206896551724
+    },
+    "model_confidence": 0.5463924654521657,
+    "keyframe_quality": 0.837037037037037,
+    "combined_confidence": 0.6298706319799904,
+    "generated_sq_nm": 0.48103007674217224,
+    "inference_seconds": 6.738961291004671,
+    "retrieval_at_inference": false
+  },
+  "total_seconds": 26.88000012500561
+}

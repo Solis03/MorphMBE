@@ -89,8 +89,8 @@ class PredictionWorker(QThread):
     def run(self) -> None:
         try:
             self.log.emit(
-                "Loading the M15b automatic-input scalar heads, "
-                "M12a generator, and R3D-18"
+                "Loading the M16 endpoint-aware Sq head, M15b FSMI head, "
+                "M16b generator, and R3D-18"
             )
             predictor = RealtimeMorphologyPredictor.from_path(
                 self.bundle_path,

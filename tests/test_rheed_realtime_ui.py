@@ -315,20 +315,23 @@ def test_deployment_cache_identifies_frozen_nonretrieval_pipeline() -> None:
     )
     assert len(bundle.groups) == generation_config["expected_growth_count"]
     assert bundle.generation_config["selected_method"] == (
-        "M12a_edge_preserving_terrace"
+        "M16b_regime_adaptive_microisland_terrace"
     )
     assert "line3" in bundle.generation_config["afm_descriptors"]
     assert bundle.rq_reference.confidence_risk_reference is not None
     assert bundle.rq_reference.confidence_error_reference is not None
     assert bundle.fsmi_reference.confidence_risk_reference is not None
+    assert bundle.endpoint_streak_reference is not None
+    assert bundle.endpoint_confidence_risk_reference is not None
+    assert bundle.endpoint_confidence_error_reference is not None
     assert bundle.retrieval_at_inference is False
     assert bundle.measured_afm_patch_at_inference is False
 
 
-def test_realtime_config_and_ui_identify_m15b_m12a_pipeline() -> None:
+def test_realtime_config_and_ui_identify_m16_m16b_pipeline() -> None:
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     manifest_path = REPOSITORY / config["deployment_manifest"]
-    assert "m15b_m12a" in Path(config["deployment_bundle"]).name
+    assert "m16_m16b" in Path(config["deployment_bundle"]).name
     assert "line3" in Path(config["deployment_bundle"]).name
     assert "full28" in Path(config["deployment_bundle"]).name
     assert "orientation90_keyframe_locked" in Path(
@@ -347,22 +350,25 @@ def test_realtime_config_and_ui_identify_m15b_m12a_pipeline() -> None:
     assert config["replay_keyframe_override_by_sample"]["6389"][
         "source_name"
     ] == "Rampdown to 300C.avi"
-    assert "m15b_m12a" in manifest_path.name
+    assert "m16_m16b" in manifest_path.name
     assert config["metrology_audited_mode"] is True
     assert "line3" in config["generation_config"]
     if manifest_path.exists():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         assert manifest["model_id"] == MODEL_ID
         assert manifest["method"]["image_generator"] == (
-            "M12a_edge_preserving_terrace"
+            "M16b_regime_adaptive_microisland_terrace"
+        )
+        assert manifest["method"]["Sq_nm"] == (
+            "M16_endpoint_streak_dual_resolution"
         )
         assert manifest["method"]["legacy_internal_target_name"] == "Rq_nm"
         assert "third-order" in manifest["method"]["afm_metrology"]
         assert manifest["method"]["retrieval_at_inference"] is False
         assert manifest["method"]["measured_afm_patch_at_inference"] is False
     source = inspect.getsource(RealtimeMainWindow._build_ui)
-    assert "M15b causal R3D" in source
-    assert "actually passed to M15b/M12a" in source
+    assert "M16 endpoint-aware R3D" in source
+    assert "actually passed to M16/M16b" in source
     assert "actually passed to M14i/M12a" not in source
 
 
