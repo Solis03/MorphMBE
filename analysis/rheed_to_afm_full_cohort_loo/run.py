@@ -521,6 +521,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         selected = render_ensemble(
             structure,
             m5,
+            conditioning_sq_nm=predicted_rq,
             **config["selected_renderer"],
         )
         methods = {M10: m10, selected_method: selected}
@@ -763,7 +764,12 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             if external
             else None
         ),
-        "selected_method_frozen_before_expanded_cohort_run": True,
+        "selected_method_frozen_before_expanded_cohort_run": bool(
+            config.get(
+                "selected_method_frozen_before_expanded_cohort_run",
+                True,
+            )
+        ),
         "retrieval_at_inference": False,
         "measured_afm_patch_used_at_inference": False,
         "all_outer_fold_leakage_checks_passed": bool(
@@ -781,12 +787,15 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             orient="records"
         ),
         "runtime_seconds": time.time() - started,
-        "claim_boundary": (
-            "Retrospective full-cohort cross-validation. Every displayed "
-            "growth target, AFM texture model and island model is excluded "
-            "from its own outer fit, but the M12a method family was developed "
-            "using earlier partitions. This is not a prospective untouched "
-            "test."
+        "claim_boundary": str(
+            config.get(
+                "claim_boundary",
+                "Retrospective full-cohort cross-validation. Every displayed "
+                "growth target, AFM texture model and island model is excluded "
+                "from its own outer fit, but the M12a method family was "
+                "developed using earlier partitions. This is not a "
+                "prospective untouched test.",
+            )
         ),
     }
     write_json(manifest, report / "best_model_manifest.json")

@@ -1,0 +1,9 @@
+{
+  "group_count": 1,
+  "methods": [
+    "M16b_regime_adaptive_microisland_terrace",
+    "M10_dense_island_spectral_pareto"
+  ],
+  "scan_count": 6,
+  "selection_policy": "AFM texture gate first; among passing methods use morphology composite and condition-control evidence. No old test reuse."
+}

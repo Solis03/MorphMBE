@@ -55,6 +55,8 @@ def _external_target_confidence(
     path: str | Path,
     fallback: pd.DataFrame,
     method: str = "M14i_target_specific_robust",
+    fsmi_path: str | Path | None = None,
+    fsmi_method: str | None = None,
 ) -> pd.DataFrame:
     predictions = pd.read_csv(
         repo_path(path), dtype={"growth_run_id": str}
@@ -88,9 +90,26 @@ def _external_target_confidence(
     rq = selected.loc[selected["target"] == "Rq_nm"].set_index(
         "growth_run_id"
     )
-    fsmi = selected.loc[selected["target"] == "FSMI_nm"].set_index(
-        "growth_run_id"
-    )
+    fsmi_source = selected
+    if fsmi_path is not None:
+        fsmi_predictions = pd.read_csv(
+            repo_path(fsmi_path), dtype={"growth_run_id": str}
+        )
+        fsmi_selected_method = str(fsmi_method or method)
+        fsmi_source = fsmi_predictions.loc[
+            fsmi_predictions["method"] == fsmi_selected_method
+        ]
+        if fsmi_source.empty:
+            available = sorted(
+                fsmi_predictions["method"].astype(str).unique()
+            )
+            raise RuntimeError(
+                f"external FSMI confidence method "
+                f"{fsmi_selected_method!r} is unavailable; found {available}"
+            )
+    fsmi = fsmi_source.loc[
+        fsmi_source["target"] == "FSMI_nm"
+    ].set_index("growth_run_id")
     expected = int(fallback["growth_run_id"].astype(str).nunique())
     if set(rq.index) != set(fsmi.index) or len(rq) != expected:
         raise RuntimeError(
@@ -740,6 +759,12 @@ def run(config: dict[str, Any]) -> None:
                     "external_confidence_method",
                     "M14i_target_specific_robust",
                 )
+            ),
+            fsmi_path=config.get(
+                "external_fsmi_confidence_predictions"
+            ),
+            fsmi_method=config.get(
+                "external_fsmi_confidence_method"
             ),
         )
     cohort = _read(report / "cohort_manifest.csv")

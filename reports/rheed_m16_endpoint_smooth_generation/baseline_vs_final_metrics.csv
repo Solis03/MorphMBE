@@ -1,0 +1,3 @@
+model,protocol,growth_count,mae_nm,median_absolute_error_nm,rmse_nm,bias_nm,pearson_r,spearman_rho,smooth_true_lt_1p2_mae_nm,rough_true_ge_5_mae_nm,confidence_vs_absolute_error_spearman,prediction_min_nm,prediction_max_nm
+M15b_auto_r3d_angular_tta,strict retrospective leave-one-growth-out,28,1.320587,0.905043,1.716382,-0.316909,0.622098,0.523810,1.259077,2.927217,-0.458464,0.624332,5.240299
+M16_endpoint_streak_dual_resolution,strict retrospective leave-one-growth-out,28,1.070134,0.674849,1.484437,0.006332,0.737681,0.599891,0.758968,1.232971,-0.469075,0.566643,7.691433
