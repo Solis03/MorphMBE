@@ -1,0 +1,23 @@
+{
+  "accepted_event_count": 13,
+  "accepted_event_frames": [
+    129,
+    221,
+    312,
+    495,
+    678,
+    862,
+    1045,
+    1228,
+    1321,
+    1595,
+    1962,
+    2054,
+    2145
+  ],
+  "decoded_frame_count": 2201,
+  "fallback_event_count": 0,
+  "sample_id": "6342",
+  "strict_event_count": 13,
+  "validation_role": "fallback_non_regression"
+}

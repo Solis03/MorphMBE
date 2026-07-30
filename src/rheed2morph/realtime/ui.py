@@ -56,7 +56,7 @@ def event_pipeline_complete(
         int(completed),
         int(scatter_points),
     )
-    return min(counts) >= 0 and len(set(counts)) == 1
+    return min(counts) > 0 and len(set(counts)) == 1
 
 
 class VideoCanvas(QWidget):
@@ -843,6 +843,25 @@ class RealtimeMainWindow(QMainWindow):
                 f"DRAINING {self._completed_count}/{self._submitted_count}"
             )
             self.start_button.setEnabled(False)
+            return
+        if (
+            self._detected_count == 0
+            and self._worker_triggered_count == 0
+            and self._submitted_count == 0
+            and self._completed_count == 0
+            and scatter_points == 0
+        ):
+            self.stream_state.setText("NO CLEAR MOMENT")
+            self.start_button.setEnabled(
+                self._model_ready
+                and self.mode_combo.currentData() == "video"
+            )
+            if not self._completion_announced:
+                self._completion_announced = True
+                self.append_log(
+                    "ERROR · no clear rotational moment passed either the "
+                    "strict tracker or the full-lattice safety fallback"
+                )
             return
         if event_pipeline_complete(
             self._detected_count,

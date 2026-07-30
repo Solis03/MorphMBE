@@ -38,12 +38,12 @@ def main() -> None:
     if len(maps) != len(timeline):
         raise RuntimeError("One generated AFM map is required per timeline row")
 
-    columns = 4
+    columns = min(4, len(maps))
     rows = int(math.ceil(len(maps) / columns))
     figure, axes = plt.subplots(
         rows,
         columns,
-        figsize=(12.4, 3.05 * rows),
+        figsize=(max(8.0, 3.1 * columns), 3.05 * rows),
         constrained_layout=True,
     )
     flat_axes = np.asarray(axes).reshape(-1)

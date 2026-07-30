@@ -1332,3 +1332,26 @@ Status: completed locally on branch
   and `ui_thirteen_prediction_timeline.csv`.
 - N6342 raw-video SHA-256 remains
   `44d5fd8442380d2e8cbbc7481461c104b6645160518de557da841f760c659986`.
+
+## 2026-07-29 — N6056 zero-event full-lattice fallback
+
+- Root cause: N6056 produced nine primary geometric vertices, but the fixed
+  0.40 score threshold and warm-up tracking ROI rejected all of them. The
+  compact tracking ROI ended at source x=1044 and omitted the rightmost
+  diffraction lattice; the model-input ROI extended to x=1308.
+- Added a conservative second causal path on the full-lattice ROI. It is active
+  only while the strict path has never succeeded, requires score >=0.30,
+  visibility >=1.30, shadow <=0.20, at least eight spots and clarity >=8.0,
+  waits through k+8 and separates fallback events by at least 3.0 seconds.
+- A four-zero stream is no longer marked `COMPLETE 0/0`; the explicit terminal
+  state is `NO CLEAR MOMENT`.
+- N6056 full 488-frame audit recovered frames 157 and 314. Frame 157 is four
+  frames from the human frame 161. End-to-end Qt replay produced two M15b
+  scalar predictions, two M12a AFM maps and exactly two timeline points with
+  confidence 59.8% and 80.2%.
+- N6342 non-regression passed: all original 13 strict frames are identical and
+  zero fallback events were added.
+- Tests, figures and report:
+  `reports/rheed_realtime_ui/causal_stream_v2_N6056_fallback/`.
+- N6056 raw SHA-256 remains
+  `8e36f1a697af4986a0f004de8e46be1181f32f0c7eb13ab19bd378f93907c0e6`.

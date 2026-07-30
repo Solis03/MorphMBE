@@ -210,6 +210,30 @@ def causal_candidate_rows(
     return result
 
 
+def full_lattice_fallback_eligible(
+    candidate: dict[str, float | int | bool | str],
+    score: float,
+    *,
+    minimum_score: float,
+    minimum_visibility_proxy: float,
+    maximum_shadow_fraction: float,
+    minimum_spot_peak_count: float,
+    minimum_clarity: float,
+) -> bool:
+    """Gate a conservative full-lattice candidate without future frames."""
+
+    return bool(
+        float(score) >= float(minimum_score)
+        and float(candidate["visibility_proxy"])
+        >= float(minimum_visibility_proxy)
+        and float(candidate["raw_shadow_fraction"])
+        <= float(maximum_shadow_fraction)
+        and float(candidate["spot_peak_count"])
+        >= float(minimum_spot_peak_count)
+        and float(candidate["clarity"]) >= float(minimum_clarity)
+    )
+
+
 class CausalClearMomentDetector:
     """Causal multi-cycle detector calibrated against human keyframes."""
 
@@ -223,6 +247,14 @@ class CausalClearMomentDetector:
         lookahead_frames: int = 4,
         history_frames: int = 41,
         minimum_vertex_separation_frames: int = 8,
+        fallback_roi: ROIPrediction | None = None,
+        fallback_minimum_score: float = 0.30,
+        fallback_minimum_visibility_proxy: float = 1.30,
+        fallback_maximum_shadow_fraction: float = 0.20,
+        fallback_minimum_spot_peak_count: float = 8.0,
+        fallback_minimum_clarity: float = 8.0,
+        fallback_confirmation_delay_frames: int = 8,
+        fallback_minimum_separation_frames: int = 90,
     ) -> None:
         import joblib
 
@@ -256,11 +288,40 @@ class CausalClearMomentDetector:
         self.minimum_vertex_separation_frames = int(
             minimum_vertex_separation_frames
         )
+        self.fallback_roi = fallback_roi
+        self.fallback_minimum_score = float(fallback_minimum_score)
+        self.fallback_minimum_visibility_proxy = float(
+            fallback_minimum_visibility_proxy
+        )
+        self.fallback_maximum_shadow_fraction = float(
+            fallback_maximum_shadow_fraction
+        )
+        self.fallback_minimum_spot_peak_count = float(
+            fallback_minimum_spot_peak_count
+        )
+        self.fallback_minimum_clarity = float(fallback_minimum_clarity)
+        self.fallback_confirmation_delay_frames = max(
+            self.lookahead_frames,
+            int(fallback_confirmation_delay_frames),
+        )
+        self.fallback_minimum_separation_frames = int(
+            fallback_minimum_separation_frames
+        )
         self.history: deque[dict[str, float | int]] = deque(
             maxlen=max(int(history_frames), 2 * self.lookahead_frames + 9)
         )
+        self.fallback_history: deque[dict[str, float | int]] = deque(
+            maxlen=max(int(history_frames), 2 * self.lookahead_frames + 9)
+        )
         self.geometric_vertices: list[int] = []
+        self.fallback_geometric_vertices: list[int] = []
         self.accepted_events: list[ReplayEvent] = []
+        self.strict_event_count = 0
+        self.pending_fallbacks: dict[
+            int,
+            tuple[dict[str, float | int | bool | str], float],
+        ] = {}
+        self.last_fallback_frame: int | None = None
 
     @property
     def estimated_period_frames(self) -> float | None:
@@ -288,28 +349,29 @@ class CausalClearMomentDetector:
             / len(self.score_reference)
         )
 
-    def observe(
+    def _features(
         self,
         frame_index: int,
         frame: np.ndarray,
-    ) -> ReplayEvent | None:
+        roi: ROIPrediction,
+    ) -> dict[str, float | int]:
+        tracking = _spot_features(frame, roi.rect)
+        visibility = analyze_spot_visibility(frame, roi.rect).features
+        return {
+            "frame_index": int(frame_index),
+            **tracking,
+            **visibility,
+            "visibility_proxy": visibility_proxy(visibility),
+        }
+
+    def _best_candidate(
+        self,
+        history: Sequence[dict[str, float | int]],
+    ) -> tuple[dict[str, float | int | bool | str], float] | None:
         import pandas as pd
 
-        tracking = _spot_features(frame, self.tracking_roi.rect)
-        visibility = analyze_spot_visibility(
-            frame,
-            self.tracking_roi.rect,
-        ).features
-        self.history.append(
-            {
-                "frame_index": int(frame_index),
-                **tracking,
-                **visibility,
-                "visibility_proxy": visibility_proxy(visibility),
-            }
-        )
         candidates = causal_candidate_rows(
-            list(self.history),
+            history,
             lookahead_frames=self.lookahead_frames,
         )
         if not candidates:
@@ -320,41 +382,148 @@ class CausalClearMomentDetector:
             dtype=float,
         )
         position = int(np.argmax(scores))
-        candidate = candidates[position]
-        candidate_frame = int(candidate["frame_index"])
-        if (
-            self.geometric_vertices
-            and candidate_frame - self.geometric_vertices[-1]
-            < self.minimum_vertex_separation_frames
-        ):
-            return None
-        self.geometric_vertices.append(candidate_frame)
+        return candidates[position], float(scores[position])
 
-        score = float(scores[position])
-        accepted = (
-            candidate_frame >= self.minimum_event_frame
-            and score >= self.minimum_score
-            and float(candidate["visibility_proxy"])
-            >= self.minimum_visibility_proxy
-            and float(candidate["raw_shadow_fraction"])
-            <= self.maximum_shadow_fraction
-            and float(candidate["spot_peak_count"])
-            >= self.minimum_spot_peak_count
-        )
-        if not accepted:
+    def _fallback_event_due(
+        self,
+        current_frame: int,
+    ) -> ReplayEvent | None:
+        if self.strict_event_count:
+            self.pending_fallbacks.clear()
             return None
-        percentile = self._score_percentile(score)
+        due = [
+            frame
+            for frame in self.pending_fallbacks
+            if frame + self.fallback_confirmation_delay_frames
+            <= current_frame
+        ]
+        if not due:
+            return None
+        eligible = []
+        for frame in due:
+            candidate, score = self.pending_fallbacks.pop(frame)
+            if (
+                self.last_fallback_frame is None
+                or frame - self.last_fallback_frame
+                >= self.fallback_minimum_separation_frames
+            ):
+                eligible.append((score, frame, candidate))
+        if not eligible:
+            return None
+        score, candidate_frame, candidate = max(eligible, key=lambda item: item[0])
+        self.last_fallback_frame = int(candidate_frame)
+        percentile = self._score_percentile(float(score))
         event = ReplayEvent(
-            frame_index=candidate_frame,
-            keyframe_quality=float(0.35 + 0.65 * percentile),
+            frame_index=int(candidate_frame),
+            keyframe_quality=float(0.25 + 0.50 * percentile),
             visibility_rank=percentile,
-            selector_score=score,
-            tracker=f"causal_online_{candidate['tracker']}",
+            selector_score=float(score),
+            tracker=f"causal_full_lattice_fallback_{candidate['tracker']}",
             model_input_visibility=percentile,
             refined_from_frame_index=None,
         )
         self.accepted_events.append(event)
         return event
+
+    def observe(
+        self,
+        frame_index: int,
+        frame: np.ndarray,
+    ) -> ReplayEvent | None:
+        self.history.append(
+            self._features(
+                frame_index,
+                frame,
+                self.tracking_roi,
+            )
+        )
+        primary = self._best_candidate(list(self.history))
+        if primary is not None:
+            candidate, score = primary
+            candidate_frame = int(candidate["frame_index"])
+            separated = (
+                not self.geometric_vertices
+                or candidate_frame - self.geometric_vertices[-1]
+                >= self.minimum_vertex_separation_frames
+            )
+            if separated:
+                self.geometric_vertices.append(candidate_frame)
+                accepted = (
+                    candidate_frame >= self.minimum_event_frame
+                    and score >= self.minimum_score
+                    and float(candidate["visibility_proxy"])
+                    >= self.minimum_visibility_proxy
+                    and float(candidate["raw_shadow_fraction"])
+                    <= self.maximum_shadow_fraction
+                    and float(candidate["spot_peak_count"])
+                    >= self.minimum_spot_peak_count
+                )
+                if accepted:
+                    self.strict_event_count += 1
+                    self.pending_fallbacks.clear()
+                    if (
+                        self.last_fallback_frame is not None
+                        and abs(candidate_frame - self.last_fallback_frame)
+                        < self.fallback_minimum_separation_frames
+                    ):
+                        return None
+                    percentile = self._score_percentile(score)
+                    event = ReplayEvent(
+                        frame_index=candidate_frame,
+                        keyframe_quality=float(0.35 + 0.65 * percentile),
+                        visibility_rank=percentile,
+                        selector_score=score,
+                        tracker=f"causal_online_{candidate['tracker']}",
+                        model_input_visibility=percentile,
+                        refined_from_frame_index=None,
+                    )
+                    self.accepted_events.append(event)
+                    return event
+
+        if self.fallback_roi is not None and not self.strict_event_count:
+            self.fallback_history.append(
+                self._features(
+                    frame_index,
+                    frame,
+                    self.fallback_roi,
+                )
+            )
+            fallback = self._best_candidate(list(self.fallback_history))
+            if fallback is not None:
+                candidate, score = fallback
+                candidate_frame = int(candidate["frame_index"])
+                separated = (
+                    not self.fallback_geometric_vertices
+                    or candidate_frame - self.fallback_geometric_vertices[-1]
+                    >= self.minimum_vertex_separation_frames
+                )
+                if separated:
+                    self.fallback_geometric_vertices.append(candidate_frame)
+                    if (
+                        candidate_frame >= self.minimum_event_frame
+                        and full_lattice_fallback_eligible(
+                            candidate,
+                            score,
+                            minimum_score=self.fallback_minimum_score,
+                            minimum_visibility_proxy=(
+                                self.fallback_minimum_visibility_proxy
+                            ),
+                            maximum_shadow_fraction=(
+                                self.fallback_maximum_shadow_fraction
+                            ),
+                            minimum_spot_peak_count=(
+                                self.fallback_minimum_spot_peak_count
+                            ),
+                            minimum_clarity=self.fallback_minimum_clarity,
+                        )
+                    ):
+                        previous = self.pending_fallbacks.get(candidate_frame)
+                        if previous is None or score > previous[1]:
+                            self.pending_fallbacks[candidate_frame] = (
+                                candidate,
+                                score,
+                            )
+        return self._fallback_event_due(int(frame_index))
 
 
 def initialize_causal_stream(

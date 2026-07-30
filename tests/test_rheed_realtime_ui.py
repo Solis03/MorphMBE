@@ -29,6 +29,7 @@ from rheed2morph.realtime.selector import (
     _event_rows,
     _lattice_vertex_scores,
     causal_candidate_rows,
+    full_lattice_fallback_eligible,
 )
 from rheed2morph.realtime.workers import PredictionWorker, ReplayWorker
 from rheed2morph.rheed.automatic_roi_keyframe import Rect
@@ -250,21 +251,54 @@ def test_default_ui_uses_causal_multi_event_streaming_without_drops() -> None:
     assert config["replay_detection_mode"] == "causal_stream"
     assert config["replay_event_policy"] == "all_eligible_cycles"
     assert config["prediction_queue_capacity"] == 0
+    assert config["online_full_lattice_fallback_enabled"] is True
+    assert config["online_fallback_confirmation_delay_frames"] == 8
     source = inspect.getsource(ReplayWorker._run_causal_stream)
     assert "analyze_replay" not in source
     assert "detector.observe" in source
     assert "pending[trigger]" in source
     assert "prediction_job.emit" in source
     assert "stream_summary.emit" in source
+    assert "fallback_roi" in source
+    assert "full-lattice safety fallback" in source
     worker = PredictionWorker(bundle_path="unused.joblib")
     assert worker.jobs.maxsize == 0
 
 
 def test_session_completes_only_when_every_clear_moment_is_plotted() -> None:
     assert event_pipeline_complete(13, 13, 13, 13)
+    assert not event_pipeline_complete(0, 0, 0, 0)
     assert not event_pipeline_complete(13, 13, 3, 3)
     assert not event_pipeline_complete(13, 12, 12, 12)
     assert not event_pipeline_complete(13, 13, 13, 12)
+
+
+def test_full_lattice_fallback_rejects_shadow_and_sparse_patterns() -> None:
+    clear = {
+        "visibility_proxy": 1.44,
+        "raw_shadow_fraction": 0.04,
+        "spot_peak_count": 11.0,
+        "clarity": 8.28,
+    }
+    thresholds = {
+        "minimum_score": 0.30,
+        "minimum_visibility_proxy": 1.30,
+        "maximum_shadow_fraction": 0.20,
+        "minimum_spot_peak_count": 8.0,
+        "minimum_clarity": 8.0,
+    }
+    assert full_lattice_fallback_eligible(clear, 0.34, **thresholds)
+    assert not full_lattice_fallback_eligible(
+        {**clear, "raw_shadow_fraction": 0.60},
+        0.34,
+        **thresholds,
+    )
+    assert not full_lattice_fallback_eligible(
+        {**clear, "spot_peak_count": 2.0},
+        0.34,
+        **thresholds,
+    )
+    assert not full_lattice_fallback_eligible(clear, 0.20, **thresholds)
 
 
 def test_deployment_cache_identifies_frozen_nonretrieval_pipeline() -> None:

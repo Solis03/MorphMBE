@@ -77,6 +77,11 @@ def main() -> None:
     )
     detector = CausalClearMomentDetector(
         tracking_roi=selection.tracking_roi,
+        fallback_roi=(
+            selection.model_input_roi
+            if config.get("online_full_lattice_fallback_enabled", True)
+            else None
+        ),
         bundle_path=repository / config["online_clear_moment_detector"],
         minimum_event_frame=warmup_count,
         minimum_score=float(config["online_minimum_clear_score"]),
@@ -84,6 +89,50 @@ def main() -> None:
         history_frames=int(config["online_detector_history_frames"]),
         minimum_vertex_separation_frames=int(
             config["online_minimum_vertex_separation_frames"]
+        ),
+        fallback_minimum_score=float(
+            config.get("online_fallback_minimum_clear_score", 0.30)
+        ),
+        fallback_minimum_visibility_proxy=float(
+            config.get(
+                "online_fallback_minimum_visibility_proxy",
+                1.30,
+            )
+        ),
+        fallback_maximum_shadow_fraction=float(
+            config.get(
+                "online_fallback_maximum_shadow_fraction",
+                0.20,
+            )
+        ),
+        fallback_minimum_spot_peak_count=float(
+            config.get(
+                "online_fallback_minimum_spot_peak_count",
+                8.0,
+            )
+        ),
+        fallback_minimum_clarity=float(
+            config.get("online_fallback_minimum_clarity", 8.0)
+        ),
+        fallback_confirmation_delay_frames=int(
+            config.get(
+                "online_fallback_confirmation_delay_frames",
+                8,
+            )
+        ),
+        fallback_minimum_separation_frames=max(
+            8,
+            int(
+                round(
+                    fps
+                    * float(
+                        config.get(
+                            "online_fallback_minimum_separation_seconds",
+                            3.0,
+                        )
+                    )
+                )
+            ),
         ),
     )
     for index, frame in enumerate(warmup):
@@ -124,6 +173,18 @@ def main() -> None:
         "decoded_frame_count": last_index + 1,
         "accepted_event_count": len(rows),
         "accepted_event_frames": [int(row["frame_index"]) for row in rows],
+        "accepted_event_trackers": [str(row["tracker"]) for row in rows],
+        "strict_event_count": int(detector.strict_event_count),
+        "fallback_event_count": int(
+            sum(
+                "full_lattice_fallback" in str(row["tracker"])
+                for row in rows
+            )
+        ),
+        "primary_geometric_vertex_count": len(detector.geometric_vertices),
+        "fallback_geometric_vertex_count": len(
+            detector.fallback_geometric_vertices
+        ),
         "model_input_roi": asdict(selection.model_input_roi.rect),
         "tracking_roi_not_model_input": asdict(selection.tracking_roi.rect),
         "frame_rotation_clockwise_degrees": rotation,

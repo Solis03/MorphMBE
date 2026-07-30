@@ -236,6 +236,14 @@ class ReplayWorker(QThread):
         )
         detector = CausalClearMomentDetector(
             tracking_roi=selection.tracking_roi,
+            fallback_roi=(
+                selection.model_input_roi
+                if self.config.get(
+                    "online_full_lattice_fallback_enabled",
+                    True,
+                )
+                else None
+            ),
             bundle_path=(
                 repository / self.config["online_clear_moment_detector"]
             ),
@@ -256,6 +264,56 @@ class ReplayWorker(QThread):
                     "online_minimum_vertex_separation_frames",
                     8,
                 )
+            ),
+            fallback_minimum_score=float(
+                self.config.get(
+                    "online_fallback_minimum_clear_score",
+                    0.30,
+                )
+            ),
+            fallback_minimum_visibility_proxy=float(
+                self.config.get(
+                    "online_fallback_minimum_visibility_proxy",
+                    1.30,
+                )
+            ),
+            fallback_maximum_shadow_fraction=float(
+                self.config.get(
+                    "online_fallback_maximum_shadow_fraction",
+                    0.20,
+                )
+            ),
+            fallback_minimum_spot_peak_count=float(
+                self.config.get(
+                    "online_fallback_minimum_spot_peak_count",
+                    8.0,
+                )
+            ),
+            fallback_minimum_clarity=float(
+                self.config.get(
+                    "online_fallback_minimum_clarity",
+                    8.0,
+                )
+            ),
+            fallback_confirmation_delay_frames=int(
+                self.config.get(
+                    "online_fallback_confirmation_delay_frames",
+                    8,
+                )
+            ),
+            fallback_minimum_separation_frames=max(
+                8,
+                int(
+                    round(
+                        fps
+                        * float(
+                            self.config.get(
+                                "online_fallback_minimum_separation_seconds",
+                                3.0,
+                            )
+                        )
+                    )
+                ),
             ),
         )
         override = value_for_sample(
@@ -321,10 +379,14 @@ class ReplayWorker(QThread):
                         event,
                         detector.estimated_period_frames,
                     )
+                    if "full_lattice_fallback" in event.tracker:
+                        route = "full-lattice safety fallback"
+                    else:
+                        route = "strict tracking path"
                     self.log.emit(
                         f"Online clear moment #{detected_count}: keyframe "
-                        f"{event.frame_index}, score={event.selector_score:.3f}; "
-                        f"prediction scheduled at frame {trigger}"
+                        f"{event.frame_index}, score={event.selector_score:.3f} "
+                        f"via {route}; prediction scheduled at frame {trigger}"
                     )
 
                 pending_item = pending.pop(index, None)

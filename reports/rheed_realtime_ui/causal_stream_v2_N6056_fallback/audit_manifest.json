@@ -1,0 +1,50 @@
+{
+  "accepted_event_count": 2,
+  "accepted_event_frames": [
+    157,
+    314
+  ],
+  "accepted_event_trackers": [
+    "causal_full_lattice_fallback_front",
+    "causal_full_lattice_fallback_front"
+  ],
+  "decoded_frame_count": 488,
+  "end_to_end_verification": {
+    "completed_prediction_count": 2,
+    "generated_afm_archive_count": 2,
+    "maximum_generated_vs_conditioning_sq_error_nm": 3.1743984632015554e-06,
+    "queue_accepted_trigger_count": 2,
+    "scatter_point_count": 2,
+    "ui_screenshot": "outputs/rheed_realtime_ui/causal_stream_v2_ui_N6056_two_predictions_final.png"
+  },
+  "fallback_event_count": 2,
+  "fallback_geometric_vertex_count": 14,
+  "frame_rotation_clockwise_degrees": 0,
+  "full_video_preanalysis": false,
+  "model_input_roi": {
+    "height": 888,
+    "source_height": 1080,
+    "source_width": 1920,
+    "width": 690,
+    "x": 618,
+    "y": 114
+  },
+  "prediction_context_delay_frames": 8,
+  "primary_geometric_vertex_count": 9,
+  "sample_id": "6056",
+  "selection_mode": "causal_stream",
+  "source": "/Users/ziyi/Desktop/LAB/code/data/raw/raw_RHEED/N6056 - Copy/After rampdown to 200 C.MOV",
+  "source_read_only": true,
+  "source_sha256": "8e36f1a697af4986a0f004de8e46be1181f32f0c7eb13ab19bd378f93907c0e6",
+  "strict_event_count": 0,
+  "tracking_roi_not_model_input": {
+    "height": 732,
+    "source_height": 1080,
+    "source_width": 1920,
+    "width": 474,
+    "x": 570,
+    "y": 0
+  },
+  "vertex_lookahead_frames": 4,
+  "warmup_frame_count": 48
+}
