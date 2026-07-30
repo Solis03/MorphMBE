@@ -1,7 +1,9 @@
 # Audited Sq metrology and endpoint-aware RHEED-to-AFM generation
 
-Date: 2026-07-29  
-Models: **M16 endpoint-aware Sq** + **M16b micro-island/terrace generator**  
+Date: 2026-07-29
+
+Models: **M16 endpoint-aware Sq** + **M16b micro-island/terrace generator**
+
 Evaluation: retrospective strict leave-one-growth-out (LOO), 28 growths.
 
 ## Outcome
