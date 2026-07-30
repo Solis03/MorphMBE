@@ -1,6 +1,7 @@
 # Independent AFM Sq/Rq re-audit with Gwyddion 2.71
 
-Date: 2026-07-29  
+Date: 2026-07-29
+
 Scope: the metrology-audited full-28 dataset; raw AFM files are read-only.
 
 ## Decision
