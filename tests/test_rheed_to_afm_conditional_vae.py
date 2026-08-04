@@ -72,8 +72,9 @@ class ConditionalAFMVAETest(unittest.TestCase):
         removed = set(tables["removelist"].sample_ids)
         self.assertEqual(
             tables["removelist"].sha256,
-            "8fe844f8c8c9ab6e457b8b9ebbd4e80284b784f80bbfd9602a315c9a5cd7fe3b",
+            "87bbce33d0b4e9b9297a8fb447c3581c59a8f3c5402b399042046c094d567c9f",
         )
+        self.assertIn("6081", removed)
         for name in ("descriptors", "folds", "physics", "phase1"):
             frame = tables[name]
             for column in ("sample_id", "growth_run_id"):
@@ -84,7 +85,7 @@ class ConditionalAFMVAETest(unittest.TestCase):
                     )
         self.assertEqual(
             set(tables["removelist_excluded_rows"]["sample_id"]),
-            {"6023", "6087"},
+            {"6023", "6081", "6087"},
         )
 
     def test_removelist_samples_are_removed_from_embedding_payload(self) -> None:

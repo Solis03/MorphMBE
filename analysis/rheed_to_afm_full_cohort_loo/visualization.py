@@ -46,6 +46,21 @@ SOURCE_LABELS = {
 }
 
 
+def _method_label(method: str) -> str:
+    labels = {
+        "M17c_topology_sparse_finetexture_terrace": (
+            "M17c topology-conditioned sparse-peak texture"
+        ),
+        "M17b_topology_sparse_peak_terrace": (
+            "M17b topology-conditioned sparse peaks"
+        ),
+        "M16b_regime_adaptive_microisland_terrace": (
+            "M16b regime-adaptive micro-island terrace"
+        ),
+    }
+    return labels.get(method, method.replace("_", " "))
+
+
 def _read(path: Path) -> pd.DataFrame:
     return pd.read_csv(path, dtype={"growth_run_id": str})
 
@@ -300,10 +315,10 @@ def plot_protocol_comparison(
     fit_count = cohort_count - 1
     labels = {
         "prior_M12_strict15_train14": "M12: 15-growth LOO\n(14 fit)",
-        f"new_M13_full{cohort_count}_train{fit_count}_same15": (
+        f"current_full{cohort_count}_train{fit_count}_same15": (
             f"{current_method_label}: same 15 points\n({fit_count} fit)"
         ),
-        f"new_M13_full{cohort_count}_train{fit_count}_all{cohort_count}": (
+        f"current_full{cohort_count}_train{fit_count}_all{cohort_count}": (
             f"{current_method_label}: all {cohort_count} points\n"
             f"({fit_count} fit)"
         ),
@@ -554,7 +569,7 @@ def plot_renderer_strata(
             selected,
             vmin=float(vmin),
             vmax=float(vmax),
-            title="M12a edge-preserving generator",
+            title=_method_label(selected_method),
         )
         _surface_panel(
             axes[row_index, 3],
@@ -676,7 +691,7 @@ def plot_highlighted_renderer_comparison(
         m10, _ = _generated(
             output, split="crossfit", method=M10, group=group
         )
-        m12a, _ = _generated(
+        selected, _ = _generated(
             output,
             split="crossfit",
             method=selected_method,
@@ -684,7 +699,7 @@ def plot_highlighted_renderer_comparison(
         )
         real = _real_afm(phase1, group)
         real_label = _real_afm_label(phase1, group)
-        scale = np.concatenate([m10.ravel(), m12a.ravel(), real.ravel()])
+        scale = np.concatenate([m10.ravel(), selected.ravel(), real.ravel()])
         vmin, vmax = np.quantile(scale, [0.01, 0.99])
         axes[row_index, 0].imshow(rheed, cmap="gray")
         axes[row_index, 0].set_xticks([])
@@ -706,10 +721,10 @@ def plot_highlighted_renderer_comparison(
         )
         image = _surface_panel(
             axes[row_index, 2],
-            m12a,
+            selected,
             vmin=float(vmin),
             vmax=float(vmax),
-            title="M12a edge-preserving terrace",
+            title=_method_label(selected_method),
         )
         _surface_panel(
             axes[row_index, 3],

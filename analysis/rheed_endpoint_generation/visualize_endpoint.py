@@ -6,7 +6,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.stats import spearmanr
+from scipy.stats import pearsonr, spearmanr
 
 
 def _save(figure: plt.Figure, path: Path) -> None:
@@ -28,6 +28,7 @@ def run(args: argparse.Namespace) -> None:
     prediction = pd.read_csv(
         args.predictions, dtype={"growth_run_id": str}
     )
+    cohort_count = int(prediction["growth_run_id"].nunique())
     baseline = pd.read_csv(
         args.baseline, dtype={"growth_run_id": str}
     )
@@ -98,7 +99,10 @@ def run(args: argparse.Namespace) -> None:
     axis.legend(frameon=False, ncol=3, loc="upper left")
     colorbar = figure.colorbar(scatter, ax=axis, pad=0.01)
     colorbar.set_label("Error-related confidence index (0–100)")
-    _save(figure, figure_dir / "Fig1_m16_all28_ordered_sq")
+    _save(
+        figure,
+        figure_dir / f"Fig1_m16_all{cohort_count}_ordered_sq",
+    )
 
     figure, axes = plt.subplots(
         1, 2, figsize=(9.2, 4.0), constrained_layout=True
@@ -120,10 +124,20 @@ def run(args: argparse.Namespace) -> None:
     axes[0].plot([0, maximum], [0, maximum], "k--", lw=1)
     axes[0].set_xlabel("Measured Sq (nm)")
     axes[0].set_ylabel("Strict LOO predicted Sq (nm)")
-    axes[0].set_title(
-        "MAE 1.07 nm; Pearson r=0.74; Spearman ρ=0.60"
+    mae = float(prediction["absolute_error"].mean())
+    linear = pearsonr(
+        prediction["true_target"], prediction["predicted_target"]
     )
-    for sample in ("6101", "N6342", "6095", "6099", "6081"):
+    rank = spearmanr(
+        prediction["true_target"], prediction["predicted_target"]
+    )
+    axes[0].set_title(
+        f"MAE {mae:.2f} nm; Pearson r={linear.statistic:.2f}; "
+        f"Spearman ρ={rank.statistic:.2f}"
+    )
+    for sample in ("6101", "N6342", "6095", "6099"):
+        if sample not in set(prediction["growth_run_id"]):
+            continue
         row = prediction.loc[prediction["growth_run_id"] == sample].iloc[0]
         axes[0].annotate(
             sample,
@@ -179,8 +193,9 @@ def run(args: argparse.Namespace) -> None:
         "N6358",
         "6095",
         "6099",
-        "6081",
     ):
+        if sample not in set(prediction["growth_run_id"]):
+            continue
         row = prediction.loc[prediction["growth_run_id"] == sample].iloc[0]
         axis.annotate(
             sample,

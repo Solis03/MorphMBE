@@ -11,6 +11,8 @@ from analysis.rheed_to_afm_functional_morphology.metrics import (
 )
 from analysis.rheed_to_afm_functional_morphology.render import (
     edge_preserving_terrace_blend,
+    render_ensemble,
+    topology_conditioned_sparse_microisland_blend,
 )
 
 
@@ -83,3 +85,59 @@ def test_terrace_renderer_is_novel_finite_and_unit_rq() -> None:
     assert np.isclose(np.std(rendered), 1.0, atol=1e-5)
     assert not np.array_equal(rendered, structure)
     assert not np.array_equal(rendered, prior)
+
+
+def test_topology_sparse_renderer_is_unit_rq_and_condition_sensitive() -> None:
+    rng = np.random.default_rng(43)
+    structure = rng.normal(size=(128, 128))
+    prior = rng.normal(size=(128, 128))
+    sparse = topology_conditioned_sparse_microisland_blend(
+        structure,
+        prior,
+        island_target={"log_component_count_q82": np.log1p(12.0)},
+        peak_count_scale=0.5,
+    )
+    dense = topology_conditioned_sparse_microisland_blend(
+        structure,
+        prior,
+        island_target={"log_component_count_q82": np.log1p(60.0)},
+        peak_count_scale=0.5,
+    )
+    hierarchical = topology_conditioned_sparse_microisland_blend(
+        structure,
+        prior,
+        island_target={"log_component_count_q82": np.log1p(36.0)},
+        fine_texture_weight=0.12,
+        sparse_peak_weight=0.07,
+        shoulder_peak_weight=0.16,
+    )
+
+    assert sparse.shape == structure.shape
+    assert np.isfinite(sparse).all()
+    assert np.isclose(np.std(sparse), 1.0, atol=1e-5)
+    assert np.isclose(np.std(dense), 1.0, atol=1e-5)
+    assert np.isclose(np.std(hierarchical), 1.0, atol=1e-5)
+    assert not np.array_equal(sparse, dense)
+    assert not np.array_equal(sparse, hierarchical)
+
+
+def test_topology_sparse_regime_render_ensemble_preserves_roughness() -> None:
+    rng = np.random.default_rng(47)
+    structure = [rng.normal(size=(64, 64)) for _ in range(2)]
+    prior = [rng.normal(size=(64, 64)) for _ in range(2)]
+    rendered = render_ensemble(
+        structure,
+        prior,
+        mode="regime_adaptive_topology_sparse_terrace",
+        conditioning_sq_nm=0.9,
+        island_target={"log_component_count_q82": np.log1p(24.0)},
+        boundary_width_px=0.75,
+        structure_weight=0.50,
+        plateau_weight=0.14,
+        relief_weight=0.18,
+        spectral_weight=0.13,
+        texture_weight=0.05,
+    )
+
+    assert len(rendered) == 2
+    assert all(np.isclose(np.std(array), 1.0, atol=1e-5) for array in rendered)

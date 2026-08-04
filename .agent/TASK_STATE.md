@@ -1,6 +1,55 @@
 # RHEED-to-AFM Generative Modeling Task State
 
-Last updated: 2026-07-29 (America/Detroit)
+Last updated: 2026-08-04 (America/Detroit)
+
+## N6342 sparse-island morphology continuation (completed 2026-08-04)
+
+- Working branch/worktree:
+  `codex/n6342-sparse-island-20260804` at
+  `/Users/ziyi/Desktop/LAB/code-worktrees/n6342-sparse-island-20260804`.
+- Baseline source is the frozen M16/M16b commit `a6aecb6`; desktop archives,
+  previous branches, and raw AFM/RHEED data are read-only.
+- Domain-expert correction: growth 6081 is now explicitly listed in
+  `removelist.txt` and must be absent from all new fitting, validation,
+  confidence, tables, atlases, and UI artifacts. The previous 28-growth result
+  remains preserved as historical evidence rather than silently overwritten.
+- Scientific objective: reduce the excess bright micro-island/peak density in
+  the strict held-growth N6342 generated AFM while retaining its Sq/FSMI and
+  avoiding degradation across the remaining 26 growths.
+- Added 6081 to the canonical removelist before any new fit. The final cohort
+  is exactly 27 growths; every outer fold fits 26, and no fold contains 6081
+  or its held growth in condition, spectral, or island training.
+- Preserved M16b and evaluated ten additional paired renderers using the same
+  strict-fold fields and seeds. M17b topology-conditioned sparse-peak terrace
+  is selected. It replaces M16b's fixed dense maxima/tanh compression with a
+  peak layer whose count comes from the outer-fold RHEED-conditioned q82
+  component prediction, while retaining fine spectral texture.
+- N6342 strict LOO Sq is 0.833 nm versus measured 0.804 nm (absolute error
+  0.029 nm). Relative to M16b, N6342 normalized PSD distance improves
+  2.832→0.260, island-feature MAE 1.010→0.890, bright area fraction
+  0.0680→0.0509 (measured 0.0540), bright median area 17.0→19.5 px
+  (measured 26.0), and height kurtosis 2.651→3.337 (measured 3.327).
+- Cohort-wide M17b versus M16b: mean PSD distance 1.454→0.969, island MAE
+  1.738→1.718, peak-signature MAE 1.457→1.327, and sharpness ratio
+  0.810→0.836. Texture-gate rate decreases 0.852→0.815 and is explicitly
+  retained as a limitation. All predictions at/above the 1.6-nm terrace gate
+  are bitwise unchanged; 18/27 ensembles are exactly unchanged overall.
+- Full 27-growth scalar results after excluding 6081: Sq MAE 1.107 nm,
+  Pearson r=0.741, Spearman rho=0.684; FSMI MAE 1.126 nm, r=0.675,
+  rho=0.583. M17b joint confidence versus realized error has Spearman
+  rho=-0.565 (p=0.0021); it is a reliability index, not a probability.
+- All 27 selected maps pass ID, strict-LOO condition, non-retrieval,
+  no-measured-patch and SHA-256 integrity checks. Complete atlas, scalar,
+  confidence, failure, extra-five, N6342 ablation and peak-topology figures
+  are saved as PNG/PDF under
+  `reports/rheed_m17_end_to_end_generation/20260804_m17_sparse_topology_line3_full27_v1/full27_loo/figures`.
+- Final report and registries:
+  `reports/rheed_n6342_sparse_island/REPORT.md`,
+  `experiment_registry.csv`, `baseline_vs_final_metrics.csv`,
+  `selected_map_integrity.csv`, and `renderer_branch_invariance.csv`.
+- N6342 was used for renderer development; its result is retrospective LOO
+  evidence, not an untouched prospective-test claim. Desktop archives, raw
+  AFM/RHEED data and UI deployment files were not modified in this task.
 
 ## M15b automatic-video end-to-end AFM generation (2026-07-29)
 

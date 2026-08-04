@@ -263,6 +263,188 @@ def smooth_microisland_blend(
     return project_unit_rq_np(texture).astype(np.float32)
 
 
+def _top_k_local_maxima(
+    field: np.ndarray,
+    *,
+    count: int,
+    spacing_px: int,
+    minimum_quantile: float,
+) -> np.ndarray:
+    """Return a deterministic sparse peak impulse map.
+
+    Candidate locations are local maxima of the generated spectral field.
+    Selecting the strongest ``count`` candidates keeps the renderer
+    stochastic through its generated inputs while making the number of
+    visually dominant hilltops explicit and auditable.
+    """
+
+    spacing = max(int(spacing_px), 3)
+    if spacing % 2 == 0:
+        spacing += 1
+    source = np.asarray(field, dtype=float)
+    maxima = source == ndimage.maximum_filter(
+        source, size=spacing, mode="wrap"
+    )
+    maxima &= source >= float(np.quantile(source, minimum_quantile))
+    coordinates = np.argwhere(maxima)
+    impulses = np.zeros_like(source)
+    if count <= 0 or not len(coordinates):
+        return impulses
+    strengths = source[coordinates[:, 0], coordinates[:, 1]]
+    order = np.argsort(strengths, kind="stable")[::-1][: int(count)]
+    selected = coordinates[order]
+    baseline = float(np.median(source))
+    impulses[selected[:, 0], selected[:, 1]] = np.maximum(
+        source[selected[:, 0], selected[:, 1]] - baseline,
+        0.0,
+    )
+    return impulses
+
+
+def topology_conditioned_sparse_microisland_blend(
+    structure: np.ndarray,
+    prior: np.ndarray,
+    *,
+    island_target: dict[str, float] | None,
+    spectral_weight: float = 0.74,
+    spectral_sigma_px: float = 0.90,
+    structure_sigma_px: float = 1.35,
+    fine_texture_weight: float = 0.10,
+    sparse_peak_weight: float = 0.075,
+    shoulder_peak_weight: float = 0.0,
+    peak_count_scale: float = 0.30,
+    peak_count_min: int = 4,
+    peak_count_max: int = 24,
+    peak_spacing_px: int = 9,
+    peak_sigma_px: float = 1.15,
+    peak_minimum_quantile: float = 0.70,
+    shoulder_count_scale: float = 0.85,
+    shoulder_count_min: int = 20,
+    shoulder_count_max: int = 48,
+    shoulder_spacing_px: int = 7,
+    shoulder_sigma_px: float = 2.4,
+    shoulder_minimum_quantile: float = 0.58,
+    winsor_quantile: float = 0.997,
+) -> np.ndarray:
+    """Render fine smooth-surface texture with a few persistent hilltops.
+
+    M16b used a fixed dense local-maximum field and a final tanh operation.
+    That combination made many moderate peaks similarly bright.  Here the
+    q82 connected-component count predicted from RHEED in the enclosing
+    leave-one-growth fold controls the number of persistent peaks.  Fine
+    spectral residuals remain present, so reducing bright peaks does not turn
+    the AFM into a featureless plane.  No sample identifier or held AFM enters
+    this function.
+    """
+
+    for name, value in {
+        "spectral_weight": spectral_weight,
+        "fine_texture_weight": fine_texture_weight,
+        "sparse_peak_weight": sparse_peak_weight,
+        "shoulder_peak_weight": shoulder_peak_weight,
+    }.items():
+        if not 0.0 <= float(value) <= 1.0:
+            raise ValueError(f"{name} must lie in [0, 1]")
+    if (
+        float(fine_texture_weight)
+        + float(sparse_peak_weight)
+        + float(shoulder_peak_weight)
+        >= 1.0
+    ):
+        raise ValueError(
+            "fine-texture, sparse-peak and shoulder weights must sum to < 1"
+        )
+    if not 0.5 < float(winsor_quantile) < 1.0:
+        raise ValueError("winsor quantile must lie in (0.5, 1)")
+
+    spectral = np.asarray(prior, dtype=float)
+    island = np.asarray(structure, dtype=float)
+    spectral_base = project_unit_rq_np(
+        ndimage.gaussian_filter(
+            spectral, sigma=float(spectral_sigma_px), mode="wrap"
+        )
+    )
+    structure_base = project_unit_rq_np(
+        ndimage.gaussian_filter(
+            island, sigma=float(structure_sigma_px), mode="wrap"
+        )
+    )
+    base = project_unit_rq_np(
+        float(spectral_weight) * spectral_base
+        + (1.0 - float(spectral_weight)) * structure_base
+    )
+    fine = spectral - ndimage.gaussian_filter(
+        spectral, sigma=0.72, mode="wrap"
+    )
+    if float(np.std(fine)) > 1e-8:
+        fine = project_unit_rq_np(fine)
+
+    predicted_count = 32.0
+    if island_target is not None and "log_component_count_q82" in island_target:
+        predicted_count = float(
+            np.expm1(float(island_target["log_component_count_q82"]))
+        )
+    peak_count = int(
+        np.clip(
+            np.rint(predicted_count * float(peak_count_scale)),
+            int(peak_count_min),
+            int(peak_count_max),
+        )
+    )
+    peak_source = ndimage.gaussian_filter(spectral, sigma=0.75, mode="wrap")
+    impulses = _top_k_local_maxima(
+        peak_source,
+        count=peak_count,
+        spacing_px=int(peak_spacing_px),
+        minimum_quantile=float(peak_minimum_quantile),
+    )
+    sparse_peaks = ndimage.gaussian_filter(
+        impulses, sigma=float(peak_sigma_px), mode="wrap"
+    )
+    if float(np.std(sparse_peaks)) > 1e-8:
+        sparse_peaks = project_unit_rq_np(sparse_peaks)
+
+    shoulder_count = int(
+        np.clip(
+            np.rint(predicted_count * float(shoulder_count_scale)),
+            int(shoulder_count_min),
+            int(shoulder_count_max),
+        )
+    )
+    shoulder_impulses = _top_k_local_maxima(
+        peak_source,
+        count=shoulder_count,
+        spacing_px=int(shoulder_spacing_px),
+        minimum_quantile=float(shoulder_minimum_quantile),
+    )
+    shoulders = ndimage.gaussian_filter(
+        shoulder_impulses,
+        sigma=float(shoulder_sigma_px),
+        mode="wrap",
+    )
+    if float(np.std(shoulders)) > 1e-8:
+        shoulders = project_unit_rq_np(shoulders)
+
+    base_weight = (
+        1.0
+        - float(fine_texture_weight)
+        - float(sparse_peak_weight)
+        - float(shoulder_peak_weight)
+    )
+    texture = (
+        base_weight * base
+        + float(fine_texture_weight) * fine
+        + float(sparse_peak_weight) * sparse_peaks
+        + float(shoulder_peak_weight) * shoulders
+    )
+    # Preserve naturally sparse tails.  M16b's tanh compressed them into a
+    # broad, nearly uniform population of medium-height yellow plateaus.
+    lower = float(np.quantile(texture, 1.0 - float(winsor_quantile)))
+    upper = float(np.quantile(texture, float(winsor_quantile)))
+    texture = np.clip(texture, lower, upper)
+    return project_unit_rq_np(texture).astype(np.float32)
+
+
 def regime_adaptive_terrace_blend(
     structure: np.ndarray,
     prior: np.ndarray,
@@ -379,6 +561,91 @@ def regime_adaptive_microisland_terrace_blend(
     ).astype(np.float32)
 
 
+def regime_adaptive_topology_sparse_terrace_blend(
+    structure: np.ndarray,
+    prior: np.ndarray,
+    *,
+    conditioning_sq_nm: float,
+    island_target: dict[str, float] | None,
+    smooth_full_below_nm: float,
+    terrace_full_above_nm: float,
+    boundary_width_px: float,
+    structure_weight: float,
+    plateau_weight: float,
+    relief_weight: float,
+    spectral_weight: float,
+    texture_weight: float,
+    smooth_spectral_weight: float = 0.74,
+    smooth_spectral_sigma_px: float = 0.90,
+    smooth_structure_sigma_px: float = 1.35,
+    smooth_fine_texture_weight: float = 0.10,
+    smooth_sparse_peak_weight: float = 0.075,
+    smooth_shoulder_peak_weight: float = 0.0,
+    smooth_peak_count_scale: float = 0.30,
+    smooth_peak_count_min: int = 4,
+    smooth_peak_count_max: int = 24,
+    smooth_peak_spacing_px: int = 9,
+    smooth_peak_sigma_px: float = 1.15,
+    smooth_peak_minimum_quantile: float = 0.70,
+    smooth_shoulder_count_scale: float = 0.85,
+    smooth_shoulder_count_min: int = 20,
+    smooth_shoulder_count_max: int = 48,
+    smooth_shoulder_spacing_px: int = 7,
+    smooth_shoulder_sigma_px: float = 2.4,
+    smooth_shoulder_minimum_quantile: float = 0.58,
+    smooth_winsor_quantile: float = 0.997,
+) -> np.ndarray:
+    """Interpolate topology-conditioned smooth texture into M12a terraces."""
+
+    if terrace_full_above_nm <= smooth_full_below_nm:
+        raise ValueError("terrace threshold must exceed smooth threshold")
+    smooth = topology_conditioned_sparse_microisland_blend(
+        structure,
+        prior,
+        island_target=island_target,
+        spectral_weight=smooth_spectral_weight,
+        spectral_sigma_px=smooth_spectral_sigma_px,
+        structure_sigma_px=smooth_structure_sigma_px,
+        fine_texture_weight=smooth_fine_texture_weight,
+        sparse_peak_weight=smooth_sparse_peak_weight,
+        shoulder_peak_weight=smooth_shoulder_peak_weight,
+        peak_count_scale=smooth_peak_count_scale,
+        peak_count_min=smooth_peak_count_min,
+        peak_count_max=smooth_peak_count_max,
+        peak_spacing_px=smooth_peak_spacing_px,
+        peak_sigma_px=smooth_peak_sigma_px,
+        peak_minimum_quantile=smooth_peak_minimum_quantile,
+        shoulder_count_scale=smooth_shoulder_count_scale,
+        shoulder_count_min=smooth_shoulder_count_min,
+        shoulder_count_max=smooth_shoulder_count_max,
+        shoulder_spacing_px=smooth_shoulder_spacing_px,
+        shoulder_sigma_px=smooth_shoulder_sigma_px,
+        shoulder_minimum_quantile=smooth_shoulder_minimum_quantile,
+        winsor_quantile=smooth_winsor_quantile,
+    )
+    terrace = edge_preserving_terrace_blend(
+        structure,
+        prior,
+        boundary_width_px=boundary_width_px,
+        structure_weight=structure_weight,
+        plateau_weight=plateau_weight,
+        relief_weight=relief_weight,
+        spectral_weight=spectral_weight,
+        texture_weight=texture_weight,
+    )
+    terrace_fraction = float(
+        np.clip(
+            (float(conditioning_sq_nm) - float(smooth_full_below_nm))
+            / (float(terrace_full_above_nm) - float(smooth_full_below_nm)),
+            0.0,
+            1.0,
+        )
+    )
+    return project_unit_rq_np(
+        (1.0 - terrace_fraction) * smooth + terrace_fraction * terrace
+    ).astype(np.float32)
+
+
 def render_ensemble(
     structure: list[np.ndarray],
     spectral: list[np.ndarray],
@@ -392,6 +659,7 @@ def render_ensemble(
     plateau_weight: float = 0.15,
     spectral_weight: float = 0.12,
     conditioning_sq_nm: float | None = None,
+    island_target: dict[str, float] | None = None,
     smooth_full_below_nm: float = 0.80,
     terrace_full_above_nm: float = 1.60,
     smooth_low_frequency_weight: float = 0.10,
@@ -401,6 +669,22 @@ def render_ensemble(
     smooth_microisland_weight: float = 0.18,
     smooth_microisland_spacing_px: int = 5,
     smooth_microisland_sigma_px: float = 1.55,
+    smooth_fine_texture_weight: float = 0.10,
+    smooth_sparse_peak_weight: float = 0.075,
+    smooth_shoulder_peak_weight: float = 0.0,
+    smooth_peak_count_scale: float = 0.30,
+    smooth_peak_count_min: int = 4,
+    smooth_peak_count_max: int = 24,
+    smooth_peak_spacing_px: int = 9,
+    smooth_peak_sigma_px: float = 1.15,
+    smooth_peak_minimum_quantile: float = 0.70,
+    smooth_shoulder_count_scale: float = 0.85,
+    smooth_shoulder_count_min: int = 20,
+    smooth_shoulder_count_max: int = 48,
+    smooth_shoulder_spacing_px: int = 7,
+    smooth_shoulder_sigma_px: float = 2.4,
+    smooth_shoulder_minimum_quantile: float = 0.58,
+    smooth_winsor_quantile: float = 0.997,
 ) -> list[np.ndarray]:
     result = []
     for index in range(max(len(structure), len(spectral))):
@@ -476,6 +760,46 @@ def render_ensemble(
                     smooth_microisland_spacing_px
                 ),
                 smooth_microisland_sigma_px=smooth_microisland_sigma_px,
+            )
+        elif mode == "regime_adaptive_topology_sparse_terrace":
+            if conditioning_sq_nm is None:
+                raise ValueError(
+                    "regime-adaptive rendering requires conditioning Sq"
+                )
+            rendered = regime_adaptive_topology_sparse_terrace_blend(
+                island,
+                prior,
+                conditioning_sq_nm=conditioning_sq_nm,
+                island_target=island_target,
+                smooth_full_below_nm=smooth_full_below_nm,
+                terrace_full_above_nm=terrace_full_above_nm,
+                boundary_width_px=boundary_width_px,
+                structure_weight=structure_weight,
+                plateau_weight=plateau_weight,
+                relief_weight=relief_weight,
+                spectral_weight=spectral_weight,
+                texture_weight=texture_weight,
+                smooth_spectral_weight=smooth_spectral_weight,
+                smooth_spectral_sigma_px=smooth_spectral_sigma_px,
+                smooth_structure_sigma_px=smooth_structure_sigma_px,
+                smooth_fine_texture_weight=smooth_fine_texture_weight,
+                smooth_sparse_peak_weight=smooth_sparse_peak_weight,
+                smooth_shoulder_peak_weight=smooth_shoulder_peak_weight,
+                smooth_peak_count_scale=smooth_peak_count_scale,
+                smooth_peak_count_min=smooth_peak_count_min,
+                smooth_peak_count_max=smooth_peak_count_max,
+                smooth_peak_spacing_px=smooth_peak_spacing_px,
+                smooth_peak_sigma_px=smooth_peak_sigma_px,
+                smooth_peak_minimum_quantile=smooth_peak_minimum_quantile,
+                smooth_shoulder_count_scale=smooth_shoulder_count_scale,
+                smooth_shoulder_count_min=smooth_shoulder_count_min,
+                smooth_shoulder_count_max=smooth_shoulder_count_max,
+                smooth_shoulder_spacing_px=smooth_shoulder_spacing_px,
+                smooth_shoulder_sigma_px=smooth_shoulder_sigma_px,
+                smooth_shoulder_minimum_quantile=(
+                    smooth_shoulder_minimum_quantile
+                ),
+                smooth_winsor_quantile=smooth_winsor_quantile,
             )
         else:
             raise ValueError(f"unknown renderer mode: {mode}")

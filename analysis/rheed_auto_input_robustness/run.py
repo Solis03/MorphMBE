@@ -533,15 +533,32 @@ def main() -> None:
     report_root.mkdir(parents=True, exist_ok=True)
     set_publication_style()
 
-    payload = np.load(
-        output_root / "r3d_causal8_input_perturbations.npz",
-        allow_pickle=False,
+    perturbation_path = config.get("perturbation_embeddings")
+    if perturbation_path is None:
+        perturbation_path = output_root / "r3d_causal8_input_perturbations.npz"
+    elif isinstance(perturbation_path, str):
+        perturbation_path = ROOT / perturbation_path
+    source_payload = np.load(perturbation_path, allow_pickle=False)
+    source_groups = [
+        str(value) for value in source_payload["growth_run_ids"].tolist()
+    ]
+    excluded_growths = set(map(str, config["excluded_growths"]))
+    keep = np.asarray(
+        [group not in excluded_growths for group in source_groups],
+        dtype=bool,
     )
-    groups = [str(value) for value in payload["growth_run_ids"].tolist()]
-    view_names = [str(value) for value in payload["view_names"].tolist()]
+    groups = [
+        group for group, retained in zip(source_groups, keep) if retained
+    ]
+    payload = {
+        "embeddings": np.asarray(source_payload["embeddings"])[keep],
+    }
+    view_names = [
+        str(value) for value in source_payload["view_names"].tolist()
+    ]
     if len(groups) != int(config["cohort_count"]):
         raise RuntimeError("unexpected automatic-input cohort size")
-    if set(groups) & set(map(str, config["excluded_growths"])):
+    if set(groups) & excluded_growths:
         raise RuntimeError("excluded growth entered robustness cohort")
 
     target_parameters = json.loads(

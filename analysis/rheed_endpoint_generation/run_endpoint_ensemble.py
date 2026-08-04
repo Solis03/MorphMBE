@@ -12,6 +12,7 @@ from scipy.stats import pearsonr, spearmanr
 from analysis.rheed_auto_input_robustness.confidence import (
     _isotonic_expected_error,
 )
+from analysis.rheed_single_frame.removelist import load_removelist_audit
 
 from .endpoint_ensemble import EndpointPrediction, predict_endpoint
 from .streak_features import (
@@ -157,10 +158,21 @@ def _feature_table(manifest: pd.DataFrame, data_root: Path) -> pd.DataFrame:
 
 def run(args: argparse.Namespace) -> None:
     payload = np.load(args.perturbation_embeddings, allow_pickle=False)
-    groups = [str(value) for value in payload["growth_run_ids"]]
+    source_groups = [str(value) for value in payload["growth_run_ids"]]
+    excluded: set[str] = set()
+    removelist_audit = None
+    if args.removelist is not None:
+        removelist_audit = load_removelist_audit(Path.cwd(), args.removelist)
+        excluded = set(map(str, removelist_audit.sample_ids))
+    keep = np.asarray(
+        [group not in excluded for group in source_groups], dtype=bool
+    )
+    groups = [
+        group for group, retained in zip(source_groups, keep) if retained
+    ]
     views = [str(value) for value in payload["view_names"]]
     base = views.index("base")
-    embeddings = np.asarray(payload["embeddings"][:, base], dtype=float)
+    embeddings = np.asarray(payload["embeddings"][keep, base], dtype=float)
     targets = (
         pd.read_csv(args.targets, dtype={"growth_run_id": str})
         .set_index("growth_run_id")
@@ -379,6 +391,13 @@ def run(args: argparse.Namespace) -> None:
         "model": MODEL_NAME,
         "protocol": "strict nested leave-one-growth-out",
         "growth_count": len(groups),
+        "growth_run_ids": groups,
+        "excluded_growths_present_in_source": sorted(
+            set(source_groups) & excluded
+        ),
+        "removelist_sha256": (
+            removelist_audit.sha256 if removelist_audit is not None else None
+        ),
         "outer_target_used_for_training_or_calibration": False,
         "r3d_temporal_experts": [
             {"components": 5, "alpha": 30.0, "calibration": "range30"},
@@ -414,6 +433,7 @@ def main() -> None:
     parser.add_argument("--baseline-nested", type=Path, required=True)
     parser.add_argument("--data-root", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--removelist", type=Path)
     run(parser.parse_args())
 
 

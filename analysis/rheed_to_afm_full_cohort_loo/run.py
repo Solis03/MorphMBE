@@ -244,8 +244,8 @@ def _comparison_target_rows(
     current_rq: pd.DataFrame,
     current_fsmi: pd.DataFrame,
     prior_report: Path,
-    current_protocol: str = "new_M13_full23_train22_all23",
-    current_same_protocol: str = "new_M13_full23_train22_same15",
+    current_protocol: str = "current_full23_train22_all23",
+    current_same_protocol: str = "current_full23_train22_same15",
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     prior_rq = pd.read_csv(
         prior_report / "rq_crossfit_predictions.csv",
@@ -383,9 +383,23 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             morphology_weight=float(config["morphology_head_weight"]),
             confidence_alpha=float(config["confidence_alpha"]),
         )
-    groups = groups_all[
-        : int(config["smoke_growth_count"])
-    ] if smoke else groups_all
+    if smoke and config.get("smoke_growths"):
+        requested_smoke_groups = [
+            str(group) for group in config["smoke_growths"]
+        ]
+        unknown_smoke_groups = sorted(
+            set(requested_smoke_groups) - set(groups_all)
+        )
+        if unknown_smoke_groups:
+            raise RuntimeError(
+                "smoke_growths contains unavailable or excluded growths: "
+                f"{unknown_smoke_groups}"
+            )
+        groups = requested_smoke_groups
+    else:
+        groups = groups_all[
+            : int(config["smoke_growth_count"])
+        ] if smoke else groups_all
     cross_rq = cross_rq_all.loc[
         cross_rq_all["growth_run_id"].isin(groups)
     ].copy()
@@ -423,7 +437,8 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     condition_records: list[dict[str, Any]] = []
     fold_audits: list[dict[str, Any]] = []
 
-    for fold, held in enumerate(groups):
+    for evaluation_index, held in enumerate(groups):
+        fold = groups_all.index(held)
         fold_started = time.time()
         fit_groups = [group for group in groups_all if group != held]
         fit_group_set = set(fit_groups)
@@ -518,13 +533,24 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             weight=float(config["m10_structure_weight"]),
         )
         selected_method = str(config["selected_method"])
-        selected = render_ensemble(
-            structure,
-            m5,
-            conditioning_sq_nm=predicted_rq,
-            **config["selected_renderer"],
-        )
-        methods = {M10: m10, selected_method: selected}
+        renderer_definitions = config.get("candidate_renderers")
+        if renderer_definitions is None:
+            renderer_definitions = {
+                selected_method: config["selected_renderer"]
+            }
+        if selected_method not in renderer_definitions:
+            raise RuntimeError(
+                "selected method is absent from candidate_renderers"
+            )
+        methods = {M10: m10}
+        for renderer_name, renderer_parameters in renderer_definitions.items():
+            methods[str(renderer_name)] = render_ensemble(
+                structure,
+                m5,
+                conditioning_sq_nm=predicted_rq,
+                island_target=island_target,
+                **renderer_parameters,
+            )
         for method, arrays in methods.items():
             _save_generated(
                 output / "crossfit",
@@ -641,7 +667,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         )
         write_json(fold_audit, fold_dir / "fold_manifest.json")
         print(
-            f"[{fold + 1:02d}/{len(groups):02d}] held={held} "
+            f"[{evaluation_index + 1:02d}/{len(groups):02d}] held={held} "
             f"fit={len(fit_groups)} runtime={fold_audit['runtime_seconds']:.1f}s",
             flush=True,
         )
@@ -691,10 +717,10 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     cohort_count = len(groups_all)
     fit_count = cohort_count - 1
     current_protocol = (
-        f"new_M13_full{cohort_count}_train{fit_count}_all{cohort_count}"
+        f"current_full{cohort_count}_train{fit_count}_all{cohort_count}"
     )
     current_same_protocol = (
-        f"new_M13_full{cohort_count}_train{fit_count}_same15"
+        f"current_full{cohort_count}_train{fit_count}_same15"
     )
     comparison, paired = _comparison_target_rows(
         current_rq=cross_rq,
