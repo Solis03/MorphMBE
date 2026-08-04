@@ -89,8 +89,8 @@ class PredictionWorker(QThread):
     def run(self) -> None:
         try:
             self.log.emit(
-                "Loading the M16 endpoint-aware Sq head, M15b FSMI head, "
-                "M16b generator, and R3D-18"
+                "Loading the configured Sq/FSMI heads, non-retrieval AFM "
+                "generator, and R3D-18"
             )
             predictor = RealtimeMorphologyPredictor.from_path(
                 self.bundle_path,
@@ -106,7 +106,7 @@ class PredictionWorker(QThread):
                     "selected-16 inference"
                 )
                 seed = (
-                    int(job.sample_id) * 1_000_003
+                    int(str(job.sample_id).lstrip("Nn")) * 1_000_003
                     + int(job.event.frame_index) * 97
                 ) % (2**31 - 1)
                 prediction = predictor.predict(

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run one raw-video event through ROI, keyframe, M16 and M16b."""
+"""Run one raw-video event through ROI, keyframe and configured models."""
 
 from __future__ import annotations
 
@@ -164,7 +164,10 @@ def main() -> None:
         causal_8_views=causal_views,
         estimated_period_frames=selection.estimated_period_frames,
         keyframe_quality=event.keyframe_quality,
-        seed=int(args.sample_id) * 1_000_003 + event.frame_index * 97,
+        seed=(
+            int(str(args.sample_id).lstrip("Nn")) * 1_000_003
+            + event.frame_index * 97
+        ),
     )
     np.savez_compressed(
         output / "prediction.npz",

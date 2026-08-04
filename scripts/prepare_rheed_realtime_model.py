@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare the audited full-28 M16 + M16b deployment refit."""
+"""Prepare an audited real-time MorphMBE deployment refit."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from rheed2morph.realtime.model import (
     build_deployment_bundle,
     save_deployment_bundle,
 )
+from rheed2morph.realtime.cli import repository_root_from_config
 
 
 def parse_args() -> argparse.Namespace:
@@ -36,7 +37,7 @@ def main() -> None:
     args = parse_args()
     config_path = Path(args.config).resolve()
     config = json.loads(config_path.read_text(encoding="utf-8"))
-    repository = config_path.parent.parent
+    repository = repository_root_from_config(config_path, config)
     config["repository_root"] = str(repository)
     destination = repository / config["deployment_bundle"]
     manifest = repository / config["deployment_manifest"]

@@ -1467,3 +1467,23 @@ Status: completed locally on branch
   has three pre-existing duplicate module names inside a historical
   `paper_freeze/.../tests` snapshot. No frozen directory was modified to make
   these unrelated tests pass.
+
+## 2026-08-04 — M17b standalone/UI freeze
+
+- Active research branch:
+  `codex/n6342-sparse-island-20260804`.
+- Active generator: `M17b_topology_sparse_peak_terrace`; active scalar route:
+  M16 endpoint-aware Sq plus causal-R3D FSMI, trained on 27 growths after
+  excluding erroneous growth 6081.
+- Added a backward-compatible M17 real-time deployment identity and passed the
+  live event's predicted island-topology target into the M17b renderer.
+- Fixed repository-root discovery for UI configs located below
+  `configs/standalone/`, preventing the historical `configs/configs/...`
+  failure.
+- Built deployment bundle:
+  `outputs/rheed_realtime_ui/morphmbe_m16_m17b_line3_full27_exclude6081_live_v9.joblib`.
+- N6342 raw-video smoke: Sq `0.7917 nm`, generated Sq `0.7917 nm`, M17b model
+  identity verified, no retrieval, inference `7.18 s` after selection.
+- New standalone target:
+  `/Users/ziyi/Desktop/MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804`.
+- Historical Desktop archives remain read-only.

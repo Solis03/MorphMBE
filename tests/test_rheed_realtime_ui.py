@@ -20,7 +20,13 @@ from rheed2morph.realtime.clips import (
     build_model_clip,
     live_physics_row,
 )
-from rheed2morph.realtime.model import MODEL_ID, load_deployment_bundle
+from rheed2morph.realtime.cli import repository_root_from_config
+from rheed2morph.realtime.model import (
+    MODEL_ID,
+    M17_MODEL_ID,
+    RealtimeMorphologyPredictor,
+    load_deployment_bundle,
+)
 from rheed2morph.realtime.ui import (
     RealtimeMainWindow,
     event_pipeline_complete,
@@ -41,6 +47,10 @@ from rheed2morph.rheed.orientation import (
 
 REPOSITORY = Path(__file__).resolve().parents[1]
 CONFIG_PATH = REPOSITORY / "configs/rheed_realtime_ui.json"
+M17_CONFIG_PATH = (
+    REPOSITORY
+    / "configs/rheed_realtime_ui_m17_full27_line3_exclude6081_v9.json"
+)
 
 
 def test_video_catalog_groups_samples_and_excludes_removelist(
@@ -368,8 +378,52 @@ def test_realtime_config_and_ui_identify_m16_m16b_pipeline() -> None:
         assert manifest["method"]["measured_afm_patch_at_inference"] is False
     source = inspect.getsource(RealtimeMainWindow._build_ui)
     assert "M16 endpoint-aware R3D" in source
-    assert "actually passed to M16/M16b" in source
+    assert "actually passed to the scalar and" in source
     assert "actually passed to M14i/M12a" not in source
+
+
+def test_m17_realtime_config_excludes_6081_and_selects_sparse_generator() -> None:
+    config = json.loads(M17_CONFIG_PATH.read_text(encoding="utf-8"))
+    generation = json.loads(
+        (REPOSITORY / config["generation_config"]).read_text(
+            encoding="utf-8"
+        )
+    )
+    excluded = read_removelist(REPOSITORY / config["removelist_path"])
+    excluded.update(map(str, config["ui_excluded_sample_ids"]))
+    assert "6081" in excluded
+    assert generation["expected_growth_count"] == 27
+    assert "6081" in generation["explicitly_excluded_growths"]
+    assert generation["selected_method"] == (
+        "M17b_topology_sparse_peak_terrace"
+    )
+    assert generation["selected_renderer"]["mode"] == (
+        "regime_adaptive_topology_sparse_terrace"
+    )
+    assert "m17b" in config["deployment_bundle"]
+    assert config["ui_model_badge"] == "M16 + M17b | READY"
+
+
+def test_standalone_nested_config_resolves_archive_root(tmp_path: Path) -> None:
+    root = tmp_path / "archive"
+    nested = root / "configs" / "standalone"
+    (root / "src" / "rheed2morph").mkdir(parents=True)
+    nested.mkdir(parents=True)
+    config_path = nested / "ui.json"
+    config_path.write_text("{}\n", encoding="utf-8")
+    assert repository_root_from_config(
+        config_path, {"repository_root": "."}
+    ) == root
+
+
+def test_realtime_renderer_receives_predicted_island_target() -> None:
+    source = inspect.getsource(RealtimeMorphologyPredictor.predict)
+    assert "island_target=island_target" in source
+    assert "config[\"selected_renderer\"]" in source
+
+
+def test_m17_model_identity_is_supported() -> None:
+    assert "M17b-TopologySparsePeakTerrace" in M17_MODEL_ID
 
 
 def test_realtime_ui_source_contains_no_cjk_text() -> None:

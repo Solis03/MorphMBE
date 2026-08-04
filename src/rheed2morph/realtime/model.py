@@ -101,11 +101,19 @@ LEGACY_MODEL_ID = (
     "MorphMBE-M15b-AutoR3D-AngularTTA + "
     "M12a-RangeTerrace-line3-metrology-live-v4"
 )
-MODEL_ID = (
+M16_MODEL_ID = (
     "MorphMBE-M16-EndpointStreak-AutoR3D + "
     "M16b-MicroislandTerrace-line3-metrology-live-v8"
 )
-SUPPORTED_MODEL_IDS = {LEGACY_MODEL_ID, MODEL_ID}
+M17_MODEL_ID = (
+    "MorphMBE-M16-EndpointStreak-AutoR3D + "
+    "M17b-TopologySparsePeakTerrace-line3-metrology-live-v9"
+)
+# Keep the historical public name stable for callers that load the default
+# M16/M16b configuration. New M17 deployments identify themselves from the
+# selected generator below.
+MODEL_ID = M16_MODEL_ID
+SUPPORTED_MODEL_IDS = {LEGACY_MODEL_ID, M16_MODEL_ID, M17_MODEL_ID}
 QUERY_ID = "__live_stream__"
 
 _FROZEN_GENERATOR_KEYS = (
@@ -350,15 +358,24 @@ def build_deployment_bundle(
                 "metrology-audited deployment must use the line-3 AFM "
                 "descriptor and manifest paths"
             )
-        if endpoint_upgrade and (
-            model_config.get("selected_method")
-            != "M16b_regime_adaptive_microisland_terrace"
-            or model_config.get("selected_renderer", {}).get("mode")
-            != "regime_adaptive_microisland_terrace"
-        ):
+        selected_generator = str(model_config.get("selected_method", ""))
+        selected_mode = str(
+            model_config.get("selected_renderer", {}).get("mode", "")
+        )
+        audited_endpoint_generators = {
+            "M16b_regime_adaptive_microisland_terrace": (
+                "regime_adaptive_microisland_terrace"
+            ),
+            "M17b_topology_sparse_peak_terrace": (
+                "regime_adaptive_topology_sparse_terrace"
+            ),
+        }
+        if endpoint_upgrade and audited_endpoint_generators.get(
+            selected_generator
+        ) != selected_mode:
             raise RuntimeError(
-                "endpoint-upgraded deployment must use the audited M16b "
-                "micro-island/terrace renderer"
+                "endpoint-upgraded deployment must use an audited M16b or "
+                "M17b renderer/mode pair"
             )
     elif _hash_file(model_config_path) != _hash_file(
         m14_generator_parameters
@@ -575,8 +592,14 @@ def build_deployment_bundle(
         resolution=int(model_config["resolution"]),
         removelist_sample_ids=tables["removelist"].sample_ids,
     )
+    deployment_model_id = (
+        M17_MODEL_ID
+        if model_config.get("selected_method")
+        == "M17b_topology_sparse_peak_terrace"
+        else M16_MODEL_ID
+    )
     return DeploymentBundle(
-        model_id=MODEL_ID,
+        model_id=deployment_model_id,
         created_at=time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         groups=groups,
         physics=target_physics,
@@ -1152,6 +1175,7 @@ class RealtimeMorphologyPredictor:
             structure,
             prior,
             conditioning_sq_nm=rq.value,
+            island_target=island_target,
             **config["selected_renderer"],
         )[0].astype(np.float32)
         height_nm = (unit_shape * float(rq.value)).astype(np.float32)
