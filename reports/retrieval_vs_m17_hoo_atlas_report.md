@@ -27,8 +27,9 @@ The one-page PDF contains the 27-sample intersection. The legacy-only target 608
 Each target shows:
 
 1. the current frozen RHEED keyframe, with the model ROI overlaid when the raw frame is present;
-2. the legacy held-one-out retrieved AFM morphology, labeled with rendered output Sq, bank source group, bank scan ID, and source Sq;
-3. draw 1 of 4 from the current M17b held-one-out generator, labeled with the HOO predicted Sq.
+2. the current audited representative measured AFM, labeled with its scan ID, the displayed array's directly computed Sq, and the sample-level median target Sq;
+3. the legacy held-one-out retrieved AFM morphology, labeled with rendered output Sq, bank source group, bank scan ID, and source Sq;
+4. draw 1 of 4 from the current M17b held-one-out generator, labeled with the HOO predicted Sq.
 
 Each AFM panel is independently contrast-scaled to its 1st-99th percentile so that morphology remains visible. Height amplitude is stated by the Sq label and should not be inferred from panel color. The legacy files called areal RMS height `Rq`; the atlas corrects the display name to `Sq` without altering any frozen numeric value. N6358 is explicitly marked as clipped because its legacy raw prediction was -0.274953 nm and the frozen renderer clipped it to 0.001 nm.
 
@@ -37,9 +38,10 @@ Each AFM panel is independently contrast-scaled to its 1st-99th percentile so th
 - Legacy: 28/28 targets are absent from their fold AFM banks; the comparison contains no self-retrievals.
 - Current: 27/27 targets are absent from their outer training folds; every fold fits 26 growth groups.
 - Current: all 27 generated-map files certify `retrieval_at_inference=false` and `measured_afm_patch_used_at_inference=false`.
+- Measured AFM: all 27 representative line-3 arrays are present, finite, hashed in the row manifest, and used only for comparison display.
 - Reconstructed legacy map Sq agrees with the frozen rendered Sq to a worst-case absolute error of `1.65085e-06` nm.
 - Current rendered map Sq agrees with the stored HOO prediction to a worst-case absolute error of `9.32417e-06` nm.
-- PDF QA: one page, 2160 x 2988 pt (30 x 41.5 in); all 27 target labels, 27 legacy labels, and 27 current labels are extractable; overview and high-resolution top/middle/bottom crops were visually inspected.
+- PDF QA: one page, 2880 x 2988 pt (40 x 41.5 in); all 27 target labels, 27 measured-AFM labels, 27 legacy labels, and 27 current labels are extractable; overview and high-resolution top/middle/bottom crops were visually inspected.
 - No raw RHEED or AFM file was modified. The reproducible PDF, row manifest, and provenance record are in `output/pdf`; temporary QA renders are not part of the deliverable.
 
 ## Reproduction
@@ -54,4 +56,4 @@ Each AFM panel is independently contrast-scaled to its 1st-99th percentile so th
   --output-provenance output/pdf/NN_retrieval_vs_M17b_HOO_intersection_provenance.json
 ```
 
-The final PDF SHA-256 is `a3d40a358997ef6c889172da6f13088bea947e865b277337b3e86d33df1856b0`.
+The final PDF SHA-256 is `112c91e63a5bfc4a3873782ead5380fab7e64c0e42995bc8814c54450082180d`.

@@ -1,6 +1,6 @@
 {
   "artifact": "output/pdf/NN_retrieval_vs_M17b_HOO_intersection_atlas.pdf",
-  "artifact_sha256": "a3d40a358997ef6c889172da6f13088bea947e865b277337b3e86d33df1856b0",
+  "artifact_sha256": "112c91e63a5bfc4a3873782ead5380fab7e64c0e42995bc8814c54450082180d",
   "current": {
     "best_model_manifest": "/Users/ziyi/Desktop/MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804/reports/rheed_m17_end_to_end_generation/20260804_m17_sparse_topology_line3_full27_v1/full27_loo/best_model_manifest.json",
     "best_model_manifest_sha256": "c2a149e501982ceaf54e6faabddd4a3a4b933aa7b2c29935d75054dcb7ae1c5d",
@@ -30,6 +30,7 @@
     "note": "Legacy numeric values are preserved; only the display label is corrected to Sq."
   },
   "validation": {
+    "all_measured_afm_arrays_present_and_finite": true,
     "current_all_npz_measured_afm_patch_at_inference_false": true,
     "current_all_npz_retrieval_at_inference_false": true,
     "current_all_targets_absent_from_outer_training": true,
@@ -72,11 +73,13 @@
     ],
     "legacy_target_count": 28,
     "max_current_rendered_sq_error_nm": 9.324165933577433e-06,
+    "max_current_target_manifest_sq_error_nm": 0.0,
     "max_legacy_rendered_sq_error_nm": 1.6508470706000367e-06
   },
   "visualization": {
     "afm_height_scale": "independent per panel, 1st-99th percentile; Sq labels preserve amplitude",
     "current_generated_draw_index": 0,
+    "measured_afm": "current phase-1 representative line-3 AFM array for each target",
     "rheed_roi_overlay": "cyan rectangle from current phase-1 manifest"
   }
 }

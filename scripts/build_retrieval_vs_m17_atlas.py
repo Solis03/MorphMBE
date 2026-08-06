@@ -67,6 +67,15 @@ def resolve_under(root: Path, relative: str) -> Path:
     return path if path.is_absolute() else root / path
 
 
+def resolve_existing(relative: str, *roots: Path) -> Path:
+    path = Path(relative)
+    candidates = [path] if path.is_absolute() else [root / path for root in roots]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    raise FileNotFoundError(f"Could not resolve {relative}; tried {candidates}")
+
+
 def scalar(npz: np.lib.npyio.NpzFile, key: str) -> Any:
     return np.asarray(npz[key]).item()
 
@@ -180,6 +189,7 @@ def load_rows(
     rows: list[dict[str, Any]] = []
     max_old_sq_error = 0.0
     max_current_sq_error = 0.0
+    max_target_manifest_sq_error = 0.0
 
     for target_id in intersection:
         old = legacy.loc[target_id]
@@ -187,6 +197,28 @@ def load_rows(
         rheed = phase1.loc[target_id]
         if isinstance(rheed, pd.DataFrame):
             raise AssertionError(f"Duplicate phase-1 rows for {target_id}")
+        target_manifest_sq = float(rheed["primary_rq_nm_median"])
+        target_table_sq = float(new["true_target"])
+        target_manifest_sq_error = abs(target_manifest_sq - target_table_sq)
+        max_target_manifest_sq_error = max(
+            max_target_manifest_sq_error, target_manifest_sq_error
+        )
+        if target_manifest_sq_error > 1e-10:
+            raise AssertionError(
+                f"Current target Sq manifest/table mismatch for {target_id}: "
+                f"{target_manifest_sq} vs {target_table_sq}"
+            )
+
+        measured_afm_path = resolve_existing(
+            str(rheed["representative_afm_height_array"]),
+            package_root,
+            legacy_data_root,
+        )
+        measured_afm = np.load(measured_afm_path, allow_pickle=False).astype(np.float32)
+        measured_afm = measured_afm - float(np.nanmean(measured_afm))
+        measured_afm_sq = measured_sq(measured_afm)
+        if not np.isfinite(measured_afm_sq) or measured_afm_sq <= 0:
+            raise AssertionError(f"Invalid measured AFM Sq for {target_id}: {measured_afm_sq}")
 
         source_target_id = display_id(old["display_source_sample_id"])
         if source_target_id == target_id:
@@ -271,10 +303,19 @@ def load_rows(
 
         legacy_height_low, legacy_height_high = np.nanpercentile(legacy_map, [1.0, 99.0])
         current_height_low, current_height_high = np.nanpercentile(current_map, [1.0, 99.0])
+        measured_height_low, measured_height_high = np.nanpercentile(
+            measured_afm, [1.0, 99.0]
+        )
         rows.append(
             {
                 "target_id": target_id,
-                "measured_sq_nm": float(new["true_target"]),
+                "measured_sq_nm": target_table_sq,
+                "measured_afm_scan_id": str(rheed["representative_afm_scan_id"]),
+                "measured_afm_path": str(measured_afm_path),
+                "measured_afm_sha256": sha256(measured_afm_path),
+                "measured_afm_scan_sq_nm": measured_afm_sq,
+                "measured_afm_shape": f"{measured_afm.shape[0]}x{measured_afm.shape[1]}",
+                "measured_afm": measured_afm,
                 "keyframe_index": int(rheed["keyframe_index"]),
                 "keyframe_path": str(keyframe_path),
                 "keyframe_sha256": sha256(keyframe_path),
@@ -302,6 +343,8 @@ def load_rows(
                 "legacy_height_scale_high_nm": float(legacy_height_high),
                 "current_height_scale_low_nm": float(current_height_low),
                 "current_height_scale_high_nm": float(current_height_high),
+                "measured_height_scale_low_nm": float(measured_height_low),
+                "measured_height_scale_high_nm": float(measured_height_high),
             }
         )
 
@@ -319,6 +362,8 @@ def load_rows(
         "current_sq_predictor_method": current_sq_methods[0],
         "max_legacy_rendered_sq_error_nm": max_old_sq_error,
         "max_current_rendered_sq_error_nm": max_current_sq_error,
+        "max_current_target_manifest_sq_error_nm": max_target_manifest_sq_error,
+        "all_measured_afm_arrays_present_and_finite": True,
     }
     return rows, validation
 
@@ -336,11 +381,11 @@ def draw_atlas(rows: list[dict[str, Any]], output_pdf: Path) -> None:
         }
     )
     block_rows = math.ceil(len(rows) / 2)
-    fig = plt.figure(figsize=(30, 41.5), constrained_layout=False)
+    fig = plt.figure(figsize=(40, 41.5), constrained_layout=False)
     grid = fig.add_gridspec(
         block_rows,
-        7,
-        width_ratios=[1.45, 1.0, 1.0, 0.16, 1.45, 1.0, 1.0],
+        9,
+        width_ratios=[1.45, 1.0, 1.0, 1.0, 0.18, 1.45, 1.0, 1.0, 1.0],
         left=0.018,
         right=0.987,
         bottom=0.035,
@@ -361,8 +406,8 @@ def draw_atlas(rows: list[dict[str, Any]], output_pdf: Path) -> None:
         0.5,
         0.970,
         (
-            "Intersection n=27 | Legacy A3: target excluded from regressor fit and AFM bank | "
-            "M17b: target excluded from 26-growth fit; no AFM retrieval or measured AFM patch at inference"
+            "Per target: RHEED keyframe | measured AFM | legacy A3 NN retrieval | current M17b generation. "
+            "Both prediction routes are held-one-out (intersection n=27)."
         ),
         ha="center",
         va="center",
@@ -370,13 +415,19 @@ def draw_atlas(rows: list[dict[str, Any]], output_pdf: Path) -> None:
         color="#405267",
     )
 
-    colors = {"rheed": "#315e8a", "legacy": "#c26d21", "current": "#117a7a"}
+    colors = {
+        "rheed": "#315e8a",
+        "measured": "#6b4c9a",
+        "legacy": "#c26d21",
+        "current": "#117a7a",
+    }
     for index, row in enumerate(rows):
         grid_row = index // 2
-        base_col = 0 if index % 2 == 0 else 4
+        base_col = 0 if index % 2 == 0 else 5
         ax_rheed = fig.add_subplot(grid[grid_row, base_col])
-        ax_old = fig.add_subplot(grid[grid_row, base_col + 1])
-        ax_new = fig.add_subplot(grid[grid_row, base_col + 2])
+        ax_measured = fig.add_subplot(grid[grid_row, base_col + 1])
+        ax_old = fig.add_subplot(grid[grid_row, base_col + 2])
+        ax_new = fig.add_subplot(grid[grid_row, base_col + 3])
 
         frame = row["keyframe"]
         rlow, rhigh = np.nanpercentile(frame, [1, 99.7])
@@ -413,6 +464,22 @@ def draw_atlas(rows: list[dict[str, Any]], output_pdf: Path) -> None:
             "vmax": row["current_height_scale_high_nm"],
             "interpolation": "nearest",
         }
+        measured_kwargs = {
+            "cmap": "viridis",
+            "vmin": row["measured_height_scale_low_nm"],
+            "vmax": row["measured_height_scale_high_nm"],
+            "interpolation": "nearest",
+        }
+        ax_measured.imshow(row["measured_afm"], **measured_kwargs)
+        ax_measured.set_title(
+            (
+                f"Measured AFM | scan Sq {row['measured_afm_scan_sq_nm']:.3f} nm\n"
+                f"{row['measured_afm_scan_id']}\n"
+                f"sample target Sq {row['measured_sq_nm']:.3f} nm"
+            ),
+            color=colors["measured"],
+            pad=4,
+        )
         ax_old.imshow(row["legacy_map"], **old_kwargs)
         clipping_label = " [clipped]" if row["legacy_output_was_clipped"] else ""
         ax_old.set_title(
@@ -429,14 +496,18 @@ def draw_atlas(rows: list[dict[str, Any]], output_pdf: Path) -> None:
             (
                 f"Current M17b HOO generation | predicted Sq {row['current_predicted_sq_nm']:.3f} nm\n"
                 "generated draw 1 of 4 | retrieval = false\n"
-                f"display scale {row['current_height_scale_low_nm']:.2f} to "
-                f"{row['current_height_scale_high_nm']:.2f} nm"
+                "no measured AFM patch at inference"
             ),
             color=colors["current"],
             pad=4,
         )
 
-        for axis, color in ((ax_rheed, colors["rheed"]), (ax_old, colors["legacy"]), (ax_new, colors["current"])):
+        for axis, color in (
+            (ax_rheed, colors["rheed"]),
+            (ax_measured, colors["measured"]),
+            (ax_old, colors["legacy"]),
+            (ax_new, colors["current"]),
+        ):
             axis.set_xticks([])
             axis.set_yticks([])
             for spine in axis.spines.values():
@@ -482,6 +553,11 @@ def write_outputs(
     manifest_columns = [
         "target_id",
         "measured_sq_nm",
+        "measured_afm_scan_id",
+        "measured_afm_path",
+        "measured_afm_sha256",
+        "measured_afm_scan_sq_nm",
+        "measured_afm_shape",
         "keyframe_index",
         "keyframe_path",
         "keyframe_sha256",
@@ -505,6 +581,8 @@ def write_outputs(
         "legacy_height_scale_high_nm",
         "current_height_scale_low_nm",
         "current_height_scale_high_nm",
+        "measured_height_scale_low_nm",
+        "measured_height_scale_high_nm",
     ]
     args.output_manifest.parent.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(rows)[manifest_columns].to_csv(args.output_manifest, index=False)
@@ -543,6 +621,7 @@ def write_outputs(
         "visualization": {
             "current_generated_draw_index": 0,
             "afm_height_scale": "independent per panel, 1st-99th percentile; Sq labels preserve amplitude",
+            "measured_afm": "current phase-1 representative line-3 AFM array for each target",
             "rheed_roi_overlay": "cyan rectangle from current phase-1 manifest",
         },
         "validation": validation,

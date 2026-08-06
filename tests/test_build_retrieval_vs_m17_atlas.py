@@ -23,3 +23,8 @@ def test_project_unit_sq_reproduces_requested_physical_sq() -> None:
     requested_sq = 4.25
     rendered = MODULE.project_unit_sq(source) * requested_sq
     assert np.isclose(MODULE.measured_sq(rendered), requested_sq, atol=2e-5)
+
+
+def test_measured_sq_is_invariant_to_height_offset() -> None:
+    source = np.arange(25, dtype=np.float32).reshape(5, 5)
+    assert np.isclose(MODULE.measured_sq(source), MODULE.measured_sq(source + 91.0))
