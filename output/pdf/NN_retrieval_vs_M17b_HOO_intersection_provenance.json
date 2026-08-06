@@ -1,0 +1,82 @@
+{
+  "artifact": "output/pdf/NN_retrieval_vs_M17b_HOO_intersection_atlas.pdf",
+  "artifact_sha256": "a3d40a358997ef6c889172da6f13088bea947e865b277337b3e86d33df1856b0",
+  "current": {
+    "best_model_manifest": "/Users/ziyi/Desktop/MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804/reports/rheed_m17_end_to_end_generation/20260804_m17_sparse_topology_line3_full27_v1/full27_loo/best_model_manifest.json",
+    "best_model_manifest_sha256": "c2a149e501982ceaf54e6faabddd4a3a4b933aa7b2c29935d75054dcb7ae1c5d",
+    "method": "M17b_topology_sparse_peak_terrace",
+    "package_commit": "99bb75b3ed22d385367eb6622f7f05ddbc6a754e",
+    "phase1_manifest": "/Users/ziyi/Desktop/MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804/outputs/extra_five_integration/20260729_line3_full28_orientation90_keyframe_locked_v3/machine_dataset_full28/modeling_manifest.csv",
+    "phase1_manifest_sha256": "266c14ff5cb4ad21c9d65fd862110f026b3a8af7d2b2e140fd07b779dea3944c",
+    "result_commit": "6a42ab2",
+    "rq_crossfit_predictions_csv": "/Users/ziyi/Desktop/MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804/reports/rheed_m17_end_to_end_generation/20260804_m17_sparse_topology_line3_full27_v1/full27_loo/rq_crossfit_predictions.csv",
+    "rq_crossfit_predictions_sha256": "6706b8f43782d580dcd066e01360ad98b0d970c7be707915e86982b15b45119b",
+    "sq_predictor_method": "M16_endpoint_streak_dual_resolution"
+  },
+  "legacy": {
+    "commit": "6973e08753a6008a2b7480b7400efdf29d0b1469",
+    "method": "A3_full_cohort_rq_conditioned_held_one_out",
+    "reference_atlas": "/Users/ziyi/Desktop/MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/figures/main/Figure3_held_one_out_afm_prediction_atlas.pdf",
+    "reference_atlas_sha256": "2e58cc52a7413d5420e203ea66ce306ce2c4775b9273255f0b2b64131ef526a6",
+    "retrieval_results_csv": "/Users/ziyi/Desktop/MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/predictions/held_one_out_afm_28/retrieval_results.csv",
+    "retrieval_results_sha256": "af4ba9b88f6b332117142714862e94231ca0f5f312b56c56fa7204730d547f0f",
+    "run_provenance": "/Users/ziyi/Desktop/MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804/publication_freeze/prospective_retrained_6358_6382_single_frame_v1/predictions/held_one_out_afm_28/run_provenance.json",
+    "run_provenance_sha256": "dceedfd0bcedafca761ef4283c4f97e0680a693edfa5238157f3de4e71f85ce9"
+  },
+  "nomenclature": {
+    "definition": "areal RMS height in nm",
+    "display_label": "Sq",
+    "legacy_source_label": "Rq",
+    "note": "Legacy numeric values are preserved; only the display label is corrected to Sq."
+  },
+  "validation": {
+    "current_all_npz_measured_afm_patch_at_inference_false": true,
+    "current_all_npz_retrieval_at_inference_false": true,
+    "current_all_targets_absent_from_outer_training": true,
+    "current_outer_fit_growth_count": 26,
+    "current_sq_predictor_method": "M16_endpoint_streak_dual_resolution",
+    "current_target_count": 27,
+    "intersection_target_count": 27,
+    "intersection_target_ids": [
+      "6022",
+      "6028",
+      "6029",
+      "6033",
+      "6047",
+      "6048",
+      "6056",
+      "6057",
+      "6062",
+      "6063",
+      "6070",
+      "6072",
+      "6078",
+      "6080",
+      "6082",
+      "6084",
+      "6085",
+      "6090",
+      "6094",
+      "6095",
+      "6099",
+      "6101",
+      "N6342",
+      "N6358",
+      "N6382",
+      "N6389",
+      "N6390"
+    ],
+    "legacy_all_targets_absent_from_fold_banks": true,
+    "legacy_only_target_ids": [
+      "6081"
+    ],
+    "legacy_target_count": 28,
+    "max_current_rendered_sq_error_nm": 9.324165933577433e-06,
+    "max_legacy_rendered_sq_error_nm": 1.6508470706000367e-06
+  },
+  "visualization": {
+    "afm_height_scale": "independent per panel, 1st-99th percentile; Sq labels preserve amplitude",
+    "current_generated_draw_index": 0,
+    "rheed_roi_overlay": "cyan rectangle from current phase-1 manifest"
+  }
+}
