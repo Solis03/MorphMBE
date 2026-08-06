@@ -56,4 +56,4 @@ Each AFM panel is independently contrast-scaled to its 1st-99th percentile so th
   --output-provenance output/pdf/NN_retrieval_vs_M17b_HOO_intersection_provenance.json
 ```
 
-The final PDF SHA-256 is `112c91e63a5bfc4a3873782ead5380fab7e64c0e42995bc8814c54450082180d`.
+The final PDF SHA-256 is `c43b4abea154ddca8cf43dd9ce3c77086fd370ce72253bdbecbdf667af9174e0`.

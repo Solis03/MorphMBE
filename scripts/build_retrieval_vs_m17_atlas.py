@@ -495,7 +495,7 @@ def draw_atlas(rows: list[dict[str, Any]], output_pdf: Path) -> None:
         ax_new.set_title(
             (
                 f"Current M17b HOO generation | predicted Sq {row['current_predicted_sq_nm']:.3f} nm\n"
-                "generated draw 1 of 4 | retrieval = false\n"
+                "retrieval = false\n"
                 "no measured AFM patch at inference"
             ),
             color=colors["current"],

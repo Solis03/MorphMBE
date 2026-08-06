@@ -1,6 +1,6 @@
 {
   "artifact": "output/pdf/NN_retrieval_vs_M17b_HOO_intersection_atlas.pdf",
-  "artifact_sha256": "112c91e63a5bfc4a3873782ead5380fab7e64c0e42995bc8814c54450082180d",
+  "artifact_sha256": "c43b4abea154ddca8cf43dd9ce3c77086fd370ce72253bdbecbdf667af9174e0",
   "current": {
     "best_model_manifest": "/Users/ziyi/Desktop/MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804/reports/rheed_m17_end_to_end_generation/20260804_m17_sparse_topology_line3_full27_v1/full27_loo/best_model_manifest.json",
     "best_model_manifest_sha256": "c2a149e501982ceaf54e6faabddd4a3a4b933aa7b2c29935d75054dcb7ae1c5d",
