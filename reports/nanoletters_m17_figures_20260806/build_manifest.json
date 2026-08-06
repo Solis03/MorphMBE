@@ -1,0 +1,123 @@
+{
+  "experiment": "MorphMBE M17b Nano Letters figure package",
+  "git_source_commit": "99bb75b3ed22d385367eb6622f7f05ddbc6a754e",
+  "selected_method": "M17b_topology_sparse_peak_terrace",
+  "sample_label_policy": "two-digit public IDs 01-27; internal mapping is not manuscript-facing",
+  "selected_samples": [
+    {
+      "public_sample_id": "23",
+      "internal_growth_run_id": "N6342",
+      "roughness_regime": "smooth",
+      "source_sha256": {
+        "rheed_clip": "b40668b74e6e0a65645d4d29fa2283708883e9c93a46ed691f3484cb5d30f5a4",
+        "measured_afm": "da1a1d1078953919dbbcd4eabd44943935f6bc162fca4fdd693ee4e89dde8433",
+        "generated_outer_loo": "0de31097944eab6ea89ec89938ecaefbcf2101077044c21be42d4af5149d4954"
+      }
+    },
+    {
+      "public_sample_id": "04",
+      "internal_growth_run_id": "6033",
+      "roughness_regime": "intermediate",
+      "source_sha256": {
+        "rheed_clip": "099b99385db4ee782d0e6c6d0f2fc346e15a812845220927b74214877b1312e3",
+        "measured_afm": "f141b1b45186950f1677401b88ef6274ca5375263f2e38d9100d47714100f8a6",
+        "generated_outer_loo": "fd78abf1669e6a78988d5b8d656c7ada71be58f752b2311ff1fc46b259af9cb1"
+      }
+    },
+    {
+      "public_sample_id": "20",
+      "internal_growth_run_id": "6095",
+      "roughness_regime": "rough",
+      "source_sha256": {
+        "rheed_clip": "1ce008ed73c3a0ffc91bdcd5ad1455afacb42284ffdf882abaa5e6ae2ea57ad2",
+        "measured_afm": "27161f35ec0c7ed41a703638c00468dfc6cbf3a1c501c29967fad613a80a83f0",
+        "generated_outer_loo": "f8c47e45b2ec26ebd31e5d01b03ed8e50b06920fd0fd4d554f2301a49e6b0409"
+      }
+    }
+  ],
+  "inference_boundary": {
+    "validation": "strict outer leave-one-growth-out by growth group",
+    "retrieval_at_inference": false,
+    "measured_afm_patch_used_at_inference": false,
+    "generated_image_interpretation": "stochastic conditional morphology realization; not pixel-registered reconstruction",
+    "sample_23_claim_boundary": "retrospective method-development evidence; not prospectively untouched"
+  },
+  "afm_colormap": {
+    "name": "Gwyddion 2.71 Gold",
+    "mapping": "piecewise-linear",
+    "control_points": [
+      {
+        "position": 0.0,
+        "rgb": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      {
+        "position": 0.333333,
+        "rgb": [
+          0.345098,
+          0.109804,
+          0.0
+        ]
+      },
+      {
+        "position": 0.666667,
+        "rgb": [
+          0.737255,
+          0.501961,
+          0.0
+        ]
+      },
+      {
+        "position": 1.0,
+        "rgb": [
+          0.988235,
+          0.988235,
+          0.501961
+        ]
+      }
+    ],
+    "display_range": "pooled generated/measured 1st-99th percentile per pair, symmetric about zero",
+    "units": "nm"
+  },
+  "outputs": [
+    {
+      "stem": "Figure_1_AutoRHEED_overview",
+      "width_px": 4200,
+      "height_px": 2670,
+      "dpi_x": 599.9988,
+      "dpi_y": 599.9988,
+      "files": {
+        "png": "reports/nanoletters_m17_figures_20260806/figures/Figure_1_AutoRHEED_overview.png",
+        "tiff": "reports/nanoletters_m17_figures_20260806/figures/Figure_1_AutoRHEED_overview.tiff",
+        "pdf": "reports/nanoletters_m17_figures_20260806/figures/Figure_1_AutoRHEED_overview.pdf"
+      }
+    },
+    {
+      "stem": "Figure_2_model_and_validation",
+      "width_px": 4200,
+      "height_px": 3690,
+      "dpi_x": 599.9988,
+      "dpi_y": 599.9988,
+      "files": {
+        "png": "reports/nanoletters_m17_figures_20260806/figures/Figure_2_model_and_validation.png",
+        "tiff": "reports/nanoletters_m17_figures_20260806/figures/Figure_2_model_and_validation.tiff",
+        "pdf": "reports/nanoletters_m17_figures_20260806/figures/Figure_2_model_and_validation.pdf"
+      }
+    },
+    {
+      "stem": "Figure_3_selected_results",
+      "width_px": 4200,
+      "height_px": 5010,
+      "dpi_x": 599.9988,
+      "dpi_y": 599.9988,
+      "files": {
+        "png": "reports/nanoletters_m17_figures_20260806/figures/Figure_3_selected_results.png",
+        "tiff": "reports/nanoletters_m17_figures_20260806/figures/Figure_3_selected_results.tiff",
+        "pdf": "reports/nanoletters_m17_figures_20260806/figures/Figure_3_selected_results.pdf"
+      }
+    }
+  ]
+}
