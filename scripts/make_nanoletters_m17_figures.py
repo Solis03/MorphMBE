@@ -877,7 +877,7 @@ def _make_figure_2() -> dict[str, object]:
     axis_c.text(
         0.51,
         0.12,
-        "27 outer folds | growth groups are the leakage boundary | operator-invalid growth 6081 excluded before fitting",
+        "27 outer folds | growth groups are the leakage boundary | one operator-invalid growth excluded before fitting",
         ha="center",
         fontsize=5.8,
         color=MID_GRAY,

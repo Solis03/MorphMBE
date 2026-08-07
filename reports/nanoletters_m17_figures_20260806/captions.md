@@ -35,7 +35,7 @@ at inference. All AFM images use the linear Gwyddion Gold scale; scale bars,
 250 nm. (c) In each of 27 outer
 leave-one-growth-out folds, one complete growth group is held out, the remaining
 26 growths are fitted, and the held sample is predicted before comparison with
-AFM. Growth group is the leakage boundary; operator-invalid growth 6081 was
+AFM. Growth group is the leakage boundary; one operator-invalid growth was
 excluded before fitting.
 
 **Figure 3. Selected cross-validated predictions across the measured roughness
