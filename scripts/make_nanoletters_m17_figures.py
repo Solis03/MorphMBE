@@ -459,7 +459,7 @@ def _save_figure(figure: plt.Figure, stem: str) -> dict[str, object]:
 def _make_figure_1() -> dict[str, object]:
     sample = SAMPLES[0]
     frames, frame_indices = _load_clip(sample)
-    generated, _, predicted_sq, predicted_fsmi = _load_generated(sample)
+    generated, _, predicted_sq, _ = _load_generated(sample)
     measured = _load_measured(sample)
     vmin, vmax = _display_limits(generated, measured)
 
@@ -489,7 +489,6 @@ def _make_figure_1() -> dict[str, object]:
     axis_a.text(0.06, 0.61, "MBE growth", ha="center", fontweight="bold")
     axis_a.text(0.06, 0.46, "epilayer", ha="center", va="center", fontsize=5.8)
     axis_a.text(0.06, 0.31, "substrate", ha="center", va="center", fontsize=5.8)
-    axis_a.plot([0.02, 0.05, 0.08, 0.10], [0.72, 0.62, 0.67, 0.58], color=VERMILLION, lw=0.8)
     _arrow(axis_a, (0.125, 0.48), (0.18, 0.48))
 
     thumb_positions = [0.18, 0.225, 0.27, 0.315]
@@ -592,22 +591,20 @@ def _make_figure_1() -> dict[str, object]:
     axis_c.set_ylim(0, 1)
     axis_c.axis("off")
     _panel_label(axis_c, "c", x=-0.02, y=1.01)
-    axis_c.text(0.005, 0.90, "Quantitative output", fontweight="bold")
-    generated_axis = _inset_image(figure, axis_c, (0.02, 0.05, 0.20, 0.76))
+    axis_c.text(0.005, 0.97, "Quantitative output", fontweight="bold")
+    generated_axis = _inset_image(figure, axis_c, (0.02, 0.07, 0.20, 0.64))
     image = _show_afm(generated_axis, generated, vmin=vmin, vmax=vmax)
     generated_axis.set_title(f"generated AFM | Sample {sample.public_id}", pad=2.5)
-    cbar_axis = _inset_image(figure, axis_c, (0.225, 0.10, 0.015, 0.66))
+    cbar_axis = _inset_image(figure, axis_c, (0.225, 0.11, 0.015, 0.54))
     colorbar = figure.colorbar(image, cax=cbar_axis)
     colorbar.set_label("height (nm)", labelpad=1.5)
     colorbar.ax.tick_params(length=2, width=0.5, pad=1)
 
     metrics = [
-        ("Sq", f"{predicted_sq:.2f} nm"),
-        ("FSMI", f"{predicted_fsmi:.2f} nm"),
-        ("reliability", "71 / 100"),
+        (0.39, "Sq", f"{predicted_sq:.2f} nm"),
+        (0.61, "reliability", "71 / 100"),
     ]
-    for index, (label, value) in enumerate(metrics):
-        x = 0.30 + 0.16 * index
+    for x, label, value in metrics:
         axis_c.text(x, 0.65, label, fontsize=6.0, color=MID_GRAY, ha="center")
         axis_c.text(x, 0.44, value, fontsize=10.0, fontweight="bold", ha="center")
     axis_c.plot([0.27, 0.76], [0.31, 0.31], color=LIGHT_GRAY, lw=0.6)
@@ -619,10 +616,10 @@ def _make_figure_1() -> dict[str, object]:
         fontsize=5.8,
         color=MID_GRAY,
     )
-    measured_axis = _inset_image(figure, axis_c, (0.80, 0.05, 0.18, 0.76))
+    measured_axis = _inset_image(figure, axis_c, (0.80, 0.07, 0.18, 0.64))
     _show_afm(measured_axis, measured, vmin=vmin, vmax=vmax)
     measured_axis.set_title("measured AFM | evaluation only", pad=2.5)
-    axis_c.text(0.89, 0.00, "not an inference input", ha="center", fontsize=5.6, color=VERMILLION)
+    axis_c.text(0.89, 0.015, "not an inference input", ha="center", fontsize=5.6, color=VERMILLION)
 
     return _save_figure(figure, "Figure_1_AutoRHEED_overview")
 

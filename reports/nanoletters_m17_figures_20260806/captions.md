@@ -9,8 +9,8 @@ heads predict surface roughness (Sq), the functional surface morphology index
 (FSMI), morphology conditions, and reliability; these quantities condition the
 nonretrieval M17b stochastic AFM generator. Measured AFM is unavailable to the
 model at inference. (c) One physically scaled M17b realization for Sample 23
-is shown with the predicted Sq (0.83 nm), predicted FSMI (1.29 nm), and
-cross-fitted reliability index (71/100). The measured AFM is revealed only
+is shown with the predicted Sq (0.83 nm) and cross-fitted reliability index
+(71/100). The measured AFM is revealed only
 after prediction for evaluation. Generated and measured AFM images share a
 linear Gwyddion Gold false-color scale defined by the pooled 1st--99th
 percentiles and made symmetric about zero; the colorbar is in nanometers. AFM
