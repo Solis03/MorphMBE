@@ -18,14 +18,21 @@ scan width, 1.0 µm; scale bars, 250 nm.
 
 **Figure 2. Physics-guided stochastic AFM generation and leakage-controlled
 validation.** (a) Sixteen real RHEED frames from Sample 23 are processed by an
-R3D-18 temporal branch and a streak-endpoint branch. Strictly cross-fitted
-condition heads predict Sq and a nine-dimensional morphology condition while
-excluding the held growth from fitting. (b) The M17b topology-conditioned
-sparse-peak terrace generator combines a learned spectral population prior
-with RHEED-conditioned island topology, followed by physical Sq scaling. Four
-genuine stochastic realizations (independent seeds) are shown for Sample 23;
-no retrieval or measured AFM patch is used at inference. All AFM images use the
-linear Gwyddion Gold scale; scale bars, 250 nm. (c) In each of 27 outer
+RHEED representation stack comprising a 1536-dimensional DINOv2 key-frame
+descriptor, a 512-dimensional R3D-18 16-frame descriptor, and a causal
+eight-frame R3D descriptor augmented by six streak features. A hybrid
+PCA/physics condition head and a gated three-expert endpoint ensemble predict
+the nine-dimensional condition vector and Sq, respectively; the latter sets
+the physical amplitude coordinate. Every scaler, dimensionality reduction,
+and prediction head excludes the held growth from fitting. (b) The M17b
+generator predicts a conditional spectral prior by inner-LOO-selected ridge
+regression and 35-step IAAFT synthesis, while a separate ridge model generates
+coarse/fine Laguerre island topology. A roughness-dependent regime blend
+(0.8--1.6 nm) adds 4--24 sparse peaks before unit-Sq normalization and physical
+scaling. Four genuine stochastic realizations (independent seeds) are shown
+for Sample 23 at 128 × 128 pixels; no retrieval or measured AFM patch is used
+at inference. All AFM images use the linear Gwyddion Gold scale; scale bars,
+250 nm. (c) In each of 27 outer
 leave-one-growth-out folds, one complete growth group is held out, the remaining
 26 growths are fitted, and the held sample is predicted before comparison with
 AFM. Growth group is the leakage boundary; operator-invalid growth 6081 was

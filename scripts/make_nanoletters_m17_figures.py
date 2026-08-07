@@ -635,12 +635,12 @@ def _make_figure_2() -> dict[str, object]:
     grid = figure.add_gridspec(
         3,
         1,
-        height_ratios=[1.05, 1.05, 0.80],
+        height_ratios=[1.16, 1.08, 0.74],
         left=0.045,
         right=0.985,
         top=0.975,
         bottom=0.055,
-        hspace=0.22,
+        hspace=0.20,
     )
 
     # (a) Actual input geometry and hybrid condition prediction.
@@ -650,35 +650,105 @@ def _make_figure_2() -> dict[str, object]:
     axis_a.axis("off")
     _panel_label(axis_a, "a", x=-0.03, y=1.01)
     axis_a.text(0.005, 0.93, "RHEED representation and condition prediction", fontweight="bold")
-    for index, x in enumerate(np.linspace(0.01, 0.16, 6)):
-        frame_axis = _inset_image(figure, axis_a, (x, 0.31, 0.085, 0.44))
+    for index, x in enumerate(np.linspace(0.01, 0.15, 5)):
+        frame_axis = _inset_image(figure, axis_a, (x, 0.34, 0.070, 0.37))
         _show_rheed(frame_axis, frames[index * 3])
-    axis_a.text(0.12, 0.22, "16 real frames", ha="center", fontsize=5.8, color=MID_GRAY)
-    _arrow(axis_a, (0.26, 0.52), (0.32, 0.52))
-    _flow_box(axis_a, (0.32, 0.54), 0.17, 0.28, "R3D-18\ntemporal branch", edge=BLUE, face="#EAF3F9", weight="bold")
-    _flow_box(axis_a, (0.32, 0.19), 0.17, 0.22, "streak endpoint\nbranch", edge=TEAL, face="#ECF8F4")
-    _arrow(axis_a, (0.26, 0.42), (0.32, 0.30), color=TEAL)
-    _arrow(axis_a, (0.49, 0.68), (0.56, 0.57))
-    _arrow(axis_a, (0.49, 0.30), (0.56, 0.45), color=TEAL)
+    axis_a.text(0.115, 0.77, "causal RHEED input", ha="center", fontsize=5.7, color=MID_GRAY)
+    axis_a.text(0.115, 0.25, "16 real frames | 224 × 224", ha="center", fontsize=5.7, color=MID_GRAY)
+
+    # One explicit split point keeps every input arrow registered to the
+    # vertical centre of its destination box.
+    axis_a.plot(0.235, 0.50, marker="o", ms=2.3, color=INK, zorder=4)
+    _arrow(axis_a, (0.22, 0.50), (0.235, 0.50))
+    _arrow(axis_a, (0.235, 0.50), (0.27, 0.76), color=BLUE)
+    _arrow(axis_a, (0.235, 0.50), (0.27, 0.49), color=BLUE)
+    _arrow(axis_a, (0.235, 0.50), (0.27, 0.22), color=TEAL)
     _flow_box(
         axis_a,
-        (0.56, 0.30),
+        (0.27, 0.66),
         0.18,
-        0.39,
-        "strictly cross-fitted\ncondition heads",
+        0.20,
+        "DINOv2 ViT-S/14\nkey-frame descriptor | 1536-D",
+        edge=BLUE,
+        face="#EAF3F9",
+        fontsize=5.7,
+    )
+    _flow_box(
+        axis_a,
+        (0.27, 0.39),
+        0.18,
+        0.20,
+        "R3D-18 (K400)\n16-frame descriptor | 512-D",
+        edge=BLUE,
+        face="#EAF3F9",
+        fontsize=5.7,
+    )
+    _flow_box(
+        axis_a,
+        (0.27, 0.12),
+        0.18,
+        0.20,
+        "causal 8-frame R3D\n+ 6 streak descriptors",
+        edge=TEAL,
+        face="#ECF8F4",
+        fontsize=5.7,
+    )
+    _arrow(axis_a, (0.45, 0.76), (0.50, 0.73), color=BLUE)
+    _arrow(axis_a, (0.45, 0.49), (0.50, 0.63), color=BLUE)
+    _flow_box(
+        axis_a,
+        (0.50, 0.55),
+        0.19,
+        0.27,
+        "hybrid condition head\nPCA8 + 5 physics summaries\nPLS1 shape | SVR C = 0.1",
         edge=PURPLE,
         face="#FAF0F7",
+        fontsize=5.7,
+    )
+    _arrow(axis_a, (0.45, 0.22), (0.50, 0.26), color=TEAL)
+    _flow_box(
+        axis_a,
+        (0.50, 0.14),
+        0.19,
+        0.24,
+        "Sq endpoint ensemble\nPCA5 / PCA8 / streak-PCA3\nridge α = 30 / 30 / 3",
+        edge=TEAL,
+        face="#ECF8F4",
+        fontsize=5.7,
+    )
+
+    # Equal-size outputs and centre-to-centre arrows make the two predictions
+    # visually parallel while preserving their distinct model paths.
+    _arrow(axis_a, (0.69, 0.685), (0.80, 0.685), color=PURPLE)
+    _arrow(axis_a, (0.69, 0.26), (0.80, 0.26), color=TEAL)
+    _flow_box(
+        axis_a,
+        (0.80, 0.575),
+        0.18,
+        0.22,
+        "9-D condition vector z\n(amplitude + morphology)",
+        edge=ORANGE,
+        face="#FFF7E5",
+        fontsize=5.9,
         weight="bold",
     )
-    _arrow(axis_a, (0.74, 0.50), (0.81, 0.50))
-    _flow_box(axis_a, (0.81, 0.59), 0.17, 0.24, f"Sq\n{predicted_sq:.2f} nm", edge=BLUE, face="#EAF3F9", weight="bold")
-    _flow_box(axis_a, (0.81, 0.30), 0.17, 0.21, "9-D morphology\ncondition", edge=ORANGE, face="#FFF7E5", weight="bold")
+    _flow_box(
+        axis_a,
+        (0.80, 0.15),
+        0.18,
+        0.22,
+        f"physical Sq\n{predicted_sq:.2f} nm",
+        edge=BLUE,
+        face="#EAF3F9",
+        fontsize=6.1,
+        weight="bold",
+    )
     axis_a.text(
-        0.895,
-        0.19,
-        "held-out growth excluded from fit",
+        0.74,
+        0.045,
+        "strict outer LOO: every scaler, PCA and head is fitted on 26 growths",
         ha="center",
-        fontsize=5.7,
+        fontsize=5.6,
         color=VERMILLION,
     )
 
@@ -689,26 +759,99 @@ def _make_figure_2() -> dict[str, object]:
     axis_b.axis("off")
     _panel_label(axis_b, "b", x=-0.03, y=1.01)
     axis_b.text(0.005, 0.93, "M17b topology-conditioned sparse-peak terrace generator", fontweight="bold")
-    _flow_box(axis_b, (0.01, 0.56), 0.15, 0.24, "learned spectral\npopulation prior", edge=BLUE, face="#EAF3F9")
-    _flow_box(axis_b, (0.01, 0.25), 0.15, 0.24, "RHEED-conditioned\nisland topology", edge=TEAL, face="#ECF8F4")
-    _flow_box(axis_b, (0.23, 0.41), 0.15, 0.25, "sparse peaks\n+ terrace field", edge=ORANGE, face="#FFF7E5", weight="bold")
-    _arrow(axis_b, (0.16, 0.68), (0.23, 0.55), color=BLUE)
-    _arrow(axis_b, (0.16, 0.37), (0.23, 0.50), color=TEAL)
-    _arrow(axis_b, (0.38, 0.535), (0.44, 0.535))
-    _flow_box(axis_b, (0.44, 0.41), 0.13, 0.25, "physical\nSq scaling", edge=PURPLE, face="#FAF0F7", weight="bold")
-    _arrow(axis_b, (0.57, 0.535), (0.625, 0.535))
-
-    for index, x in enumerate([0.625, 0.715, 0.805, 0.895]):
-        image_axis = _inset_image(figure, axis_b, (x, 0.31, 0.083, 0.45))
-        _show_afm(image_axis, ensemble[index], vmin=vmin, vmax=vmax)
-        image_axis.set_title(f"seed {index + 1}", fontsize=5.7, pad=1.5)
-    axis_b.text(0.80, 0.20, f"four true M17b realizations | Sample {sample.public_id}", ha="center", fontsize=5.8, color=MID_GRAY)
-    axis_b.text(
-        0.80,
+    _flow_box(
+        axis_b,
+        (0.01, 0.40),
+        0.10,
+        0.27,
+        "cross-fitted\n9-D z + Sq",
+        edge=PURPLE,
+        face="#FAF0F7",
+        fontsize=5.7,
+        weight="bold",
+    )
+    _arrow(axis_b, (0.11, 0.535), (0.14, 0.70), color=BLUE)
+    _arrow(axis_b, (0.11, 0.535), (0.14, 0.35), color=TEAL)
+    _flow_box(
+        axis_b,
+        (0.14, 0.59),
+        0.13,
+        0.22,
+        "spectral ridge grid\nα: 0.1 / 1 / 10 / 100",
+        edge=BLUE,
+        face="#EAF3F9",
+        fontsize=5.4,
+    )
+    _flow_box(
+        axis_b,
+        (0.14, 0.24),
+        0.13,
+        0.22,
+        "island ridge grid\nα: 0.3 / 1 / 3 / 10 / 30",
+        edge=TEAL,
+        face="#ECF8F4",
+        fontsize=5.25,
+    )
+    _arrow(axis_b, (0.27, 0.70), (0.30, 0.70), color=BLUE)
+    _arrow(axis_b, (0.27, 0.35), (0.30, 0.35), color=TEAL)
+    _flow_box(
+        axis_b,
+        (0.30, 0.59),
+        0.12,
+        0.22,
+        "IAAFT ×35\n128 × 128 prior",
+        edge=BLUE,
+        face="#EAF3F9",
+        fontsize=5.6,
+    )
+    _flow_box(
+        axis_b,
+        (0.30, 0.24),
+        0.12,
+        0.22,
+        "Laguerre q70 / q82\n128 × 128 topology",
+        edge=TEAL,
+        face="#ECF8F4",
+        fontsize=5.4,
+    )
+    _arrow(axis_b, (0.42, 0.70), (0.45, 0.60), color=BLUE)
+    _arrow(axis_b, (0.42, 0.35), (0.45, 0.47), color=TEAL)
+    _flow_box(
+        axis_b,
+        (0.45, 0.38),
+        0.14,
+        0.29,
+        "M17b regime blend\n0.8–1.6 nm gate\n4–24 sparse peaks",
+        edge=ORANGE,
+        face="#FFF7E5",
+        fontsize=5.6,
+        weight="bold",
+    )
+    _arrow(axis_b, (0.59, 0.525), (0.62, 0.525))
+    _flow_box(
+        axis_b,
+        (0.62, 0.415),
         0.09,
-        "no retrieval and no measured AFM patch at inference",
+        0.22,
+        f"unit Sq\n→ {predicted_sq:.2f} nm",
+        edge=PURPLE,
+        face="#FAF0F7",
+        fontsize=5.7,
+        weight="bold",
+    )
+    _arrow(axis_b, (0.71, 0.525), (0.735, 0.525))
+
+    for index, x in enumerate([0.735, 0.800, 0.865, 0.930]):
+        image_axis = _inset_image(figure, axis_b, (x, 0.35, 0.058, 0.35))
+        _show_afm(image_axis, ensemble[index], vmin=vmin, vmax=vmax)
+        image_axis.set_title(f"seed {index + 1}", fontsize=5.2, pad=1.5)
+    axis_b.text(0.86, 0.25, f"4 stochastic draws | 128 × 128 | Sample {sample.public_id}", ha="center", fontsize=5.5, color=MID_GRAY)
+    axis_b.text(
+        0.75,
+        0.10,
+        "nonretrieval: measured AFM is unavailable at inference",
         ha="center",
-        fontsize=6.0,
+        fontsize=5.7,
         fontweight="bold",
         color=VERMILLION,
     )
