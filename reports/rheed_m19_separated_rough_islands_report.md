@@ -119,3 +119,17 @@ ignored output tree and have SHA-256 checksums recorded in their run provenance.
   rough scans.
 - Sq errors are improved as a stratum, not eliminated sample-by-sample; the
   scalar branch can still overpredict individual intermediate-roughness cases.
+
+## Validation
+
+- `uvx ruff check` passed on all changed Python modules and their tests.
+- The 21 directly relevant renderer, generator, full-cohort and M19 tests
+  passed.
+- The wider `tests/` run produced 384 passes, 29 failures and 6 setup errors.
+  The non-passing tests depend on pre-existing missing publication-freeze
+  manifests, unreached manual peak-saddle checkpoints, an already-mismatched
+  frozen `removelist` hash, or an unavailable parquet engine. None exercises
+  the M19 code path.
+- Running pytest recursively from the repository root additionally encounters
+  three pre-existing duplicate module names inside a paper code snapshot; the
+  snapshot was not modified or deleted to work around collection.
