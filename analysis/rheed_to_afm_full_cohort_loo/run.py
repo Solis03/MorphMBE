@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import time
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -74,7 +74,6 @@ from analysis.rheed_video_afm_story.common import (
     write_csv,
     write_json,
 )
-
 
 FULL_SPLIT = "retrospective_full23_loo"
 
@@ -717,7 +716,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     island, island_summary = _aggregate(
         island_frames, output=report / "crossfit", stem="island"
     )
-    surface, surface_summary = _aggregate(
+    _surface, surface_summary = _aggregate(
         surface_frames,
         output=report / "crossfit",
         stem="functional_surface",

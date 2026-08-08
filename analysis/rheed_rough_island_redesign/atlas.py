@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import math
 from pathlib import Path
 
 import matplotlib
@@ -62,7 +61,7 @@ def run(config: dict, *, baseline_method: str) -> None:
     figure_dir = report / "figures" / "atlas_compare_m17_m19"
     stems: list[str] = []
     page_size = 5
-    page_count = int(math.ceil(len(groups) / page_size))
+    page_count = (len(groups) + page_size - 1) // page_size
     for page, start in enumerate(range(0, len(groups), page_size), start=1):
         subset = groups[start : start + page_size]
         figure, axes = plt.subplots(

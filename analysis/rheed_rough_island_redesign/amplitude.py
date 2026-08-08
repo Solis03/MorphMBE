@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-
 MODEL_NAME = "M19_rough_support_tail_rescue"
 
 
@@ -66,7 +65,7 @@ def _metric_record(
     residual = predicted - truth
     return {
         "stratum": label,
-        "count": int(len(subset)),
+        "count": len(subset),
         "mae_nm": float(np.mean(np.abs(residual))),
         "rmse_nm": float(np.sqrt(np.mean(np.square(residual)))),
         "bias_nm": float(np.mean(residual)),

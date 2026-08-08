@@ -1,8 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-import json
-from typing import Iterable
 
 import numpy as np
 import pandas as pd
@@ -17,7 +16,6 @@ from analysis.rheed_to_afm_generation.data import (
 )
 from analysis.rheed_to_afm_sharp_generation.spectral import load_unit_map
 from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_np
-
 
 LEVELS = (0.55, 0.70, 0.82)
 ISLAND_FEATURE_COLUMNS = [
