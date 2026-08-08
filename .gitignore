@@ -1,4 +1,5 @@
 .venv/
+.pytest_cache/
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -20,6 +21,7 @@ data/rheed_keyframe_selection/**/frames/*.png
 data/plane_corrected_afm/
 outputs/
 checkpoints/
+tmp/
 
 # Local decode/cache files from prospective unseen keyframe selection.
 publication_freeze/prospective_unseen_single_frame_v1/cache/
