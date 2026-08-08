@@ -1,0 +1,42 @@
+{
+  "base_config": "configs/rheed_m19_separated_rough_islands_full27_v3.json",
+  "experiment_id": "20260807_m19_rough_tail_large_separated_islands_full27_v4",
+  "seed": 141421,
+  "selected_method": "M19k_rough_tail_large_separated_islands",
+  "claim_boundary": "Retrospective 27-growth method-development LOO redesign from the frozen M17 standalone baseline. The M19 tail-rescue decision never reads query truth, and every displayed growth morphology-statistic fit excludes the displayed growth in its outer fold. Thresholds and renderer were developed retrospectively on this cohort; the historical test remains closed and prospective 3-10 nm confirmation is required.",
+  "external_target_predictions": {
+    "Rq_nm": "outputs/rheed_m19_separated_rough_islands/20260807_m19_rough_tail_endpoint_full27/m19_strict_loo_predictions.csv",
+    "FSMI_nm": "outputs/rheed_m19_separated_rough_islands/20260807_m19_source_predictions/m15b_strict_loo_predictions.csv"
+  },
+  "selected_renderer": {
+    "mode": "regime_adaptive_separated_islands",
+    "island_generator_mode": "separated_ellipse_strict_sparse",
+    "rough_start_nm": 2.2,
+    "rough_full_nm": 3.6,
+    "rough_structure_weight": 0.85,
+    "rough_texture_weight": 0.15,
+    "rough_texture_sigma_px": 2.0,
+    "rough_tip_sigma_px": 0.5
+  },
+  "candidate_renderers": {
+    "M17b_topology_sparse_peak_terrace": {
+      "mode": "regime_adaptive_topology_sparse_terrace"
+    },
+    "M19k_rough_tail_large_separated_islands": {
+      "mode": "regime_adaptive_separated_islands",
+      "island_generator_mode": "separated_ellipse_strict_sparse",
+      "rough_start_nm": 2.2,
+      "rough_full_nm": 3.6,
+      "rough_structure_weight": 0.85,
+      "rough_texture_weight": 0.15,
+      "rough_texture_sigma_px": 2.0,
+      "rough_tip_sigma_px": 0.5
+    }
+  },
+  "publication_ablation_methods": [
+    "M17b_topology_sparse_peak_terrace",
+    "M19k_rough_tail_large_separated_islands"
+  ],
+  "output_root": "outputs/rheed_m19_separated_rough_islands/20260807_m19_m17base_full27_v4",
+  "report_root": "reports/rheed_m19_separated_rough_islands/20260807_m19_m17base_full27_v4"
+}

@@ -1,0 +1,59 @@
+{
+  "base_config": "configs/rheed_m19_separated_rough_islands_full27_v1.json",
+  "experiment_id": "20260807_m19_m17base_strict_sparse_rough_islands_full27_v2",
+  "seed": 271828,
+  "selected_method": "M19g_strict_sparse_textured",
+  "selected_renderer": {
+    "mode": "regime_adaptive_separated_islands",
+    "island_generator_mode": "separated_ellipse_strict_sparse",
+    "rough_start_nm": 2.2,
+    "rough_full_nm": 3.6,
+    "rough_structure_weight": 0.85,
+    "rough_texture_weight": 0.15,
+    "rough_texture_sigma_px": 2.0,
+    "rough_tip_sigma_px": 0.5
+  },
+  "candidate_renderers": {
+    "M17b_topology_sparse_peak_terrace": {
+      "mode": "regime_adaptive_topology_sparse_terrace"
+    },
+    "M19f_strict_sparse_islands": {
+      "mode": "regime_adaptive_separated_islands",
+      "island_generator_mode": "separated_ellipse_strict_sparse",
+      "rough_start_nm": 2.2,
+      "rough_full_nm": 3.6,
+      "rough_structure_weight": 0.9,
+      "rough_texture_weight": 0.1,
+      "rough_texture_sigma_px": 2.4,
+      "rough_tip_sigma_px": 0.4
+    },
+    "M19g_strict_sparse_textured": {
+      "mode": "regime_adaptive_separated_islands",
+      "island_generator_mode": "separated_ellipse_strict_sparse",
+      "rough_start_nm": 2.2,
+      "rough_full_nm": 3.6,
+      "rough_structure_weight": 0.85,
+      "rough_texture_weight": 0.15,
+      "rough_texture_sigma_px": 2.0,
+      "rough_tip_sigma_px": 0.5
+    },
+    "M19h_strict_sparse_clean": {
+      "mode": "regime_adaptive_separated_islands",
+      "island_generator_mode": "separated_ellipse_strict_sparse",
+      "rough_start_nm": 2.2,
+      "rough_full_nm": 3.6,
+      "rough_structure_weight": 0.94,
+      "rough_texture_weight": 0.06,
+      "rough_texture_sigma_px": 2.8,
+      "rough_tip_sigma_px": 0.3
+    }
+  },
+  "publication_ablation_methods": [
+    "M17b_topology_sparse_peak_terrace",
+    "M19f_strict_sparse_islands",
+    "M19g_strict_sparse_textured",
+    "M19h_strict_sparse_clean"
+  ],
+  "output_root": "outputs/rheed_m19_separated_rough_islands/20260807_m19_m17base_full27_v2",
+  "report_root": "reports/rheed_m19_separated_rough_islands/20260807_m19_m17base_full27_v2"
+}
