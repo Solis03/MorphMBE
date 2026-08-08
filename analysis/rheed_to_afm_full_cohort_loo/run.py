@@ -80,7 +80,13 @@ FULL_SPLIT = "retrospective_full23_loo"
 
 
 def load_config(path: str | Path) -> dict[str, Any]:
-    return json.loads(repo_path(path).read_text(encoding="utf-8"))
+    payload = json.loads(repo_path(path).read_text(encoding="utf-8"))
+    base_path = payload.pop("base_config", None)
+    if base_path is None:
+        return payload
+    base = load_config(str(base_path))
+    base.update(payload)
+    return base
 
 
 def prepare_full_cohort(
@@ -521,14 +527,14 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             alphas=config["island_ridge_alphas"],
         )
         island_target = island_model.predict(condition_z)
-        structure = island_generator.generate_ensemble(
+        baseline_structure = island_generator.generate_ensemble(
             island_target,
             draws=int(config["draws"]),
             seed=fold_seed + 300_000,
             mode="laguerre",
         )
         m10 = _structure_blend(
-            structure,
+            baseline_structure,
             m5,
             weight=float(config["m10_structure_weight"]),
         )
@@ -542,14 +548,47 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             raise RuntimeError(
                 "selected method is absent from candidate_renderers"
             )
+        structure_cache: dict[str, list[np.ndarray]] = {
+            "laguerre": baseline_structure
+        }
+        requested_modes = sorted(
+            {
+                str(
+                    renderer_parameters.get(
+                        "island_generator_mode", "laguerre"
+                    )
+                )
+                for renderer_parameters in renderer_definitions.values()
+            }
+            - {"laguerre"}
+        )
+        for mode_index, generator_mode in enumerate(
+            requested_modes, start=1
+        ):
+            structure_cache[generator_mode] = (
+                island_generator.generate_ensemble(
+                    island_target,
+                    draws=int(config["draws"]),
+                    seed=fold_seed + 300_000 + mode_index * 100_000,
+                    mode=generator_mode,
+                )
+            )
         methods = {M10: m10}
         for renderer_name, renderer_parameters in renderer_definitions.items():
+            parameters = dict(
+                config.get("candidate_renderer_defaults", {})
+            )
+            parameters.update(renderer_parameters)
+            generator_mode = str(
+                parameters.pop("island_generator_mode", "laguerre")
+            )
             methods[str(renderer_name)] = render_ensemble(
-                structure,
+                structure_cache[generator_mode],
                 m5,
+                baseline_structure=baseline_structure,
                 conditioning_sq_nm=predicted_rq,
                 island_target=island_target,
-                **renderer_parameters,
+                **parameters,
             )
         for method, arrays in methods.items():
             _save_generated(

@@ -646,11 +646,134 @@ def regime_adaptive_topology_sparse_terrace_blend(
     ).astype(np.float32)
 
 
+def regime_adaptive_separated_island_blend(
+    structure: np.ndarray,
+    prior: np.ndarray,
+    baseline_structure: np.ndarray,
+    *,
+    conditioning_sq_nm: float,
+    island_target: dict[str, float] | None,
+    rough_start_nm: float = 2.20,
+    rough_full_nm: float = 3.60,
+    rough_structure_weight: float = 0.90,
+    rough_texture_weight: float = 0.10,
+    rough_texture_sigma_px: float = 2.4,
+    rough_tip_sigma_px: float = 0.35,
+    smooth_full_below_nm: float = 0.80,
+    terrace_full_above_nm: float = 1.60,
+    boundary_width_px: float = 0.75,
+    structure_weight: float = 0.50,
+    plateau_weight: float = 0.14,
+    relief_weight: float = 0.18,
+    spectral_weight: float = 0.13,
+    texture_weight: float = 0.05,
+    smooth_spectral_weight: float = 0.74,
+    smooth_spectral_sigma_px: float = 0.90,
+    smooth_structure_sigma_px: float = 1.35,
+    smooth_fine_texture_weight: float = 0.10,
+    smooth_sparse_peak_weight: float = 0.075,
+    smooth_shoulder_peak_weight: float = 0.0,
+    smooth_peak_count_scale: float = 0.30,
+    smooth_peak_count_min: int = 4,
+    smooth_peak_count_max: int = 24,
+    smooth_peak_spacing_px: int = 9,
+    smooth_peak_sigma_px: float = 1.15,
+    smooth_peak_minimum_quantile: float = 0.70,
+    smooth_shoulder_count_scale: float = 0.85,
+    smooth_shoulder_count_min: int = 20,
+    smooth_shoulder_count_max: int = 48,
+    smooth_shoulder_spacing_px: int = 7,
+    smooth_shoulder_sigma_px: float = 2.4,
+    smooth_shoulder_minimum_quantile: float = 0.58,
+    smooth_winsor_quantile: float = 0.997,
+) -> np.ndarray:
+    """Keep M17 below the rough regime, then reveal finite domed islands.
+
+    Only high-pass AFM-prior texture is admitted to the rough branch.  Broad
+    prior modes would recreate the low, flat basins this branch is designed to
+    remove.  The M17 baseline receives its original Laguerre structure, so the
+    already-strong smooth-surface behavior is unchanged below ``rough_start``.
+    """
+
+    if rough_full_nm <= rough_start_nm:
+        raise ValueError("rough full threshold must exceed rough start")
+    if not 0.0 <= rough_structure_weight <= 1.0:
+        raise ValueError("rough structure weight must be in [0, 1]")
+    if rough_texture_weight < 0.0:
+        raise ValueError("rough texture weight must be nonnegative")
+
+    baseline = regime_adaptive_topology_sparse_terrace_blend(
+        baseline_structure,
+        prior,
+        conditioning_sq_nm=conditioning_sq_nm,
+        island_target=island_target,
+        smooth_full_below_nm=smooth_full_below_nm,
+        terrace_full_above_nm=terrace_full_above_nm,
+        boundary_width_px=boundary_width_px,
+        structure_weight=structure_weight,
+        plateau_weight=plateau_weight,
+        relief_weight=relief_weight,
+        spectral_weight=spectral_weight,
+        texture_weight=texture_weight,
+        smooth_spectral_weight=smooth_spectral_weight,
+        smooth_spectral_sigma_px=smooth_spectral_sigma_px,
+        smooth_structure_sigma_px=smooth_structure_sigma_px,
+        smooth_fine_texture_weight=smooth_fine_texture_weight,
+        smooth_sparse_peak_weight=smooth_sparse_peak_weight,
+        smooth_shoulder_peak_weight=smooth_shoulder_peak_weight,
+        smooth_peak_count_scale=smooth_peak_count_scale,
+        smooth_peak_count_min=smooth_peak_count_min,
+        smooth_peak_count_max=smooth_peak_count_max,
+        smooth_peak_spacing_px=smooth_peak_spacing_px,
+        smooth_peak_sigma_px=smooth_peak_sigma_px,
+        smooth_peak_minimum_quantile=smooth_peak_minimum_quantile,
+        smooth_shoulder_count_scale=smooth_shoulder_count_scale,
+        smooth_shoulder_count_min=smooth_shoulder_count_min,
+        smooth_shoulder_count_max=smooth_shoulder_count_max,
+        smooth_shoulder_spacing_px=smooth_shoulder_spacing_px,
+        smooth_shoulder_sigma_px=smooth_shoulder_sigma_px,
+        smooth_shoulder_minimum_quantile=smooth_shoulder_minimum_quantile,
+        smooth_winsor_quantile=smooth_winsor_quantile,
+    )
+    if float(conditioning_sq_nm) <= float(rough_start_nm):
+        return baseline
+    rounded = ndimage.gaussian_filter(
+        project_unit_rq_np(structure),
+        sigma=max(float(rough_tip_sigma_px), 0.0),
+        mode="wrap",
+    )
+    rounded = project_unit_rq_np(rounded)
+    highpass = np.asarray(prior, dtype=np.float64) - ndimage.gaussian_filter(
+        np.asarray(prior, dtype=np.float64),
+        sigma=max(float(rough_texture_sigma_px), 0.5),
+        mode="wrap",
+    )
+    highpass = project_unit_rq_np(highpass)
+    rough = project_unit_rq_np(
+        float(rough_structure_weight) * rounded
+        + float(rough_texture_weight) * highpass
+    )
+    fraction = float(
+        np.clip(
+            (float(conditioning_sq_nm) - float(rough_start_nm))
+            / (float(rough_full_nm) - float(rough_start_nm)),
+            0.0,
+            1.0,
+        )
+    )
+    # Smoothstep avoids a visible model-regime seam around 3 nm.
+    fraction = fraction * fraction * (3.0 - 2.0 * fraction)
+    return project_unit_rq_np(
+        (1.0 - fraction) * baseline + fraction * rough
+    ).astype(np.float32)
+
+
 def render_ensemble(
     structure: list[np.ndarray],
     spectral: list[np.ndarray],
     *,
     mode: str,
+    baseline_structure: list[np.ndarray] | None = None,
     structure_weight: float = 0.65,
     boundary_width_px: float = 0.55,
     relief_weight: float = 0.65,
@@ -685,6 +808,12 @@ def render_ensemble(
     smooth_shoulder_sigma_px: float = 2.4,
     smooth_shoulder_minimum_quantile: float = 0.58,
     smooth_winsor_quantile: float = 0.997,
+    rough_start_nm: float = 2.20,
+    rough_full_nm: float = 3.60,
+    rough_structure_weight: float = 0.90,
+    rough_texture_weight: float = 0.10,
+    rough_texture_sigma_px: float = 2.4,
+    rough_tip_sigma_px: float = 0.35,
 ) -> list[np.ndarray]:
     result = []
     for index in range(max(len(structure), len(spectral))):
@@ -791,6 +920,59 @@ def render_ensemble(
                 smooth_peak_spacing_px=smooth_peak_spacing_px,
                 smooth_peak_sigma_px=smooth_peak_sigma_px,
                 smooth_peak_minimum_quantile=smooth_peak_minimum_quantile,
+                smooth_shoulder_count_scale=smooth_shoulder_count_scale,
+                smooth_shoulder_count_min=smooth_shoulder_count_min,
+                smooth_shoulder_count_max=smooth_shoulder_count_max,
+                smooth_shoulder_spacing_px=smooth_shoulder_spacing_px,
+                smooth_shoulder_sigma_px=smooth_shoulder_sigma_px,
+                smooth_shoulder_minimum_quantile=(
+                    smooth_shoulder_minimum_quantile
+                ),
+                smooth_winsor_quantile=smooth_winsor_quantile,
+            )
+        elif mode == "regime_adaptive_separated_islands":
+            if conditioning_sq_nm is None:
+                raise ValueError(
+                    "regime-adaptive rendering requires conditioning Sq"
+                )
+            if baseline_structure is None:
+                raise ValueError(
+                    "separated-island rendering requires baseline structure"
+                )
+            rendered = regime_adaptive_separated_island_blend(
+                island,
+                prior,
+                baseline_structure[index % len(baseline_structure)],
+                conditioning_sq_nm=conditioning_sq_nm,
+                island_target=island_target,
+                rough_start_nm=rough_start_nm,
+                rough_full_nm=rough_full_nm,
+                rough_structure_weight=rough_structure_weight,
+                rough_texture_weight=rough_texture_weight,
+                rough_texture_sigma_px=rough_texture_sigma_px,
+                rough_tip_sigma_px=rough_tip_sigma_px,
+                smooth_full_below_nm=smooth_full_below_nm,
+                terrace_full_above_nm=terrace_full_above_nm,
+                boundary_width_px=boundary_width_px,
+                structure_weight=structure_weight,
+                plateau_weight=plateau_weight,
+                relief_weight=relief_weight,
+                spectral_weight=spectral_weight,
+                texture_weight=texture_weight,
+                smooth_spectral_weight=smooth_spectral_weight,
+                smooth_spectral_sigma_px=smooth_spectral_sigma_px,
+                smooth_structure_sigma_px=smooth_structure_sigma_px,
+                smooth_fine_texture_weight=smooth_fine_texture_weight,
+                smooth_sparse_peak_weight=smooth_sparse_peak_weight,
+                smooth_shoulder_peak_weight=smooth_shoulder_peak_weight,
+                smooth_peak_count_scale=smooth_peak_count_scale,
+                smooth_peak_count_min=smooth_peak_count_min,
+                smooth_peak_count_max=smooth_peak_count_max,
+                smooth_peak_spacing_px=smooth_peak_spacing_px,
+                smooth_peak_sigma_px=smooth_peak_sigma_px,
+                smooth_peak_minimum_quantile=(
+                    smooth_peak_minimum_quantile
+                ),
                 smooth_shoulder_count_scale=smooth_shoulder_count_scale,
                 smooth_shoulder_count_min=smooth_shoulder_count_min,
                 smooth_shoulder_count_max=smooth_shoulder_count_max,

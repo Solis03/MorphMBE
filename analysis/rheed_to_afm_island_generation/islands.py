@@ -275,6 +275,14 @@ def _periodic_delta(axis: np.ndarray, center: float, size: int) -> np.ndarray:
     return np.minimum(delta, size - delta)
 
 
+def _periodic_signed_delta(
+    axis: np.ndarray, center: float, size: int
+) -> np.ndarray:
+    """Shortest signed displacement on a periodic image domain."""
+
+    return (axis - center + size / 2.0) % size - size / 2.0
+
+
 @dataclass(frozen=True)
 class IslandPrimitiveGenerator:
     """Generate AFM topography from sampled island/valley primitives.
@@ -288,6 +296,240 @@ class IslandPrimitiveGenerator:
     residual_weight: float = 0.08
     laguerre_count_factor: float = 3.0
     fine_count_factor: float = 3.0
+
+    def _separated_island_field(
+        self,
+        target: dict[str, float],
+        rng: np.random.Generator,
+        *,
+        layout: str,
+    ) -> np.ndarray:
+        """Place finite round/elliptical mounds on a connected deep base.
+
+        Laguerre cells assign a height to every pixel and can therefore turn a
+        low capture zone into a broad flat basin.  Rough AFM instead contains
+        finite island footprints separated by a connected substrate.  This
+        generator models that distinction explicitly: repulsive centers form
+        a denuded zone, each island has a closed domed footprint, and overlap
+        is limited but not prohibited so that early coalescence remains
+        possible.
+        """
+
+        presets = {
+            "balanced": {
+                "count_factor": 1.90,
+                "area_factor": 1.05,
+                "separation": 0.52,
+                "eccentricity_scale": 0.92,
+                "size_sigma": 0.24,
+                "secondary_fraction": 0.10,
+                "secondary_scale": 0.50,
+                "secondary_height": 0.58,
+                "tip_sigma": 0.55,
+            },
+            "sparse": {
+                "count_factor": 1.55,
+                "area_factor": 1.35,
+                "separation": 0.65,
+                "eccentricity_scale": 0.88,
+                "size_sigma": 0.22,
+                "secondary_fraction": 0.0,
+                "secondary_scale": 0.50,
+                "secondary_height": 0.55,
+                "tip_sigma": 0.62,
+            },
+            "round": {
+                "count_factor": 1.80,
+                "area_factor": 1.15,
+                "separation": 0.58,
+                "eccentricity_scale": 0.70,
+                "size_sigma": 0.20,
+                "secondary_fraction": 0.04,
+                "secondary_scale": 0.48,
+                "secondary_height": 0.55,
+                "tip_sigma": 0.65,
+            },
+            "hierarchical": {
+                "count_factor": 1.50,
+                "area_factor": 1.15,
+                "separation": 0.57,
+                "eccentricity_scale": 0.88,
+                "size_sigma": 0.28,
+                "secondary_fraction": 0.34,
+                "secondary_scale": 0.46,
+                "secondary_height": 0.62,
+                "tip_sigma": 0.52,
+            },
+            "strict_sparse": {
+                "count_factor": 2.05,
+                "area_factor": 1.25,
+                "separation": 0.75,
+                "eccentricity_scale": 0.90,
+                "size_sigma": 0.20,
+                "secondary_fraction": 0.0,
+                "secondary_scale": 0.50,
+                "secondary_height": 0.55,
+                "tip_sigma": 0.72,
+            },
+        }
+        if layout not in presets:
+            raise ValueError(f"Unknown separated-island layout: {layout}")
+        settings = presets[layout]
+        n = self.resolution
+        yy, xx = np.mgrid[:n, :n]
+
+        # q55 tracks the visible footprint while q70 is more stable when
+        # neighboring mounds begin to touch.  Their maximum avoids the small,
+        # under-covered islands produced by the original superellipse mode.
+        footprint_area = max(_area(target, 55), 1.55 * _area(target, 70))
+        primary_count = int(
+            np.clip(
+                np.round(settings["count_factor"] * _count(target, 70)),
+                8,
+                84,
+            )
+        )
+        secondary_count = int(
+            np.round(settings["secondary_fraction"] * primary_count)
+        )
+        areas = footprint_area * settings["area_factor"] * rng.lognormal(
+            0.0, settings["size_sigma"], size=primary_count
+        )
+        if secondary_count:
+            secondary_areas = (
+                footprint_area
+                * settings["area_factor"]
+                * settings["secondary_scale"] ** 2
+                * rng.lognormal(0.0, 0.20, size=secondary_count)
+            )
+            areas = np.concatenate([areas, secondary_areas])
+        secondary_flags = np.arange(len(areas)) >= primary_count
+        # Place larger objects first.  This gives the primary islands a stable
+        # denuded zone rather than letting small objects crowd them out.
+        order = np.argsort(areas)[::-1]
+        areas = areas[order]
+        secondary_flags = secondary_flags[order]
+        radii = np.sqrt(areas / np.pi)
+
+        centers: list[tuple[float, float]] = []
+        placed_radii: list[float] = []
+        placed_secondary: list[bool] = []
+        for radius, is_secondary in zip(radii, secondary_flags):
+            best: tuple[float, float] | None = None
+            best_clearance = -np.inf
+            accepted = False
+            for _ in range(320):
+                cy, cx = rng.uniform(0.0, n, size=2)
+                if not centers:
+                    best = (cy, cx)
+                    accepted = True
+                    break
+                clearances = []
+                for (py, px), previous_radius, previous_secondary in zip(
+                    centers, placed_radii, placed_secondary
+                ):
+                    dy = min(abs(cy - py), n - abs(cy - py))
+                    dx = min(abs(cx - px), n - abs(cx - px))
+                    distance = float(np.hypot(dx, dy))
+                    separation = float(settings["separation"])
+                    if is_secondary or previous_secondary:
+                        separation *= 0.76
+                    clearances.append(
+                        distance - separation * (radius + previous_radius)
+                    )
+                minimum = float(np.min(clearances))
+                if minimum > best_clearance:
+                    best_clearance = minimum
+                    best = (cy, cx)
+                if minimum >= 0.0:
+                    accepted = True
+                    break
+            # At high learned coverages an exact Poisson packing may be
+            # impossible.  The max-clearance fallback adds the least-overlap
+            # candidate instead of abandoning an island or clustering it.
+            assert best is not None
+            centers.append(best)
+            placed_radii.append(float(radius))
+            placed_secondary.append(bool(is_secondary))
+            if not accepted:
+                continue
+
+        eccentricity = float(
+            np.clip(
+                target["median_eccentricity_q70"]
+                * settings["eccentricity_scale"],
+                0.30,
+                0.90,
+            )
+        )
+        aspect = float(
+            np.clip(1.0 / np.sqrt(1.0 - eccentricity**2), 1.05, 2.35)
+        )
+        solidity = float(
+            np.clip(target["median_solidity_q70"], 0.80, 0.97)
+        )
+        edge_ratio = float(
+            np.clip(target["boundary_gradient_ratio_q70"], 0.92, 1.65)
+        )
+
+        substrate_noise = ndimage.gaussian_filter(
+            rng.normal(size=(n, n)), sigma=1.10, mode="wrap"
+        )
+        substrate_noise -= float(np.mean(substrate_noise))
+        substrate_noise /= max(float(np.std(substrate_noise)), 1e-8)
+        field = -0.92 + 0.035 * substrate_noise
+        for (cy, cx), area, is_secondary in zip(
+            centers, areas, secondary_flags
+        ):
+            local_aspect = float(
+                np.clip(aspect * rng.lognormal(0.0, 0.12), 1.02, 2.55)
+            )
+            a = float(
+                np.clip(
+                    np.sqrt(area * local_aspect / np.pi), 2.4, n / 4.5
+                )
+            )
+            b = float(
+                np.clip(
+                    np.sqrt(area / (np.pi * local_aspect)), 2.1, n / 5.0
+                )
+            )
+            angle = float(rng.uniform(0.0, np.pi))
+            dx = _periodic_signed_delta(xx, cx, n)
+            dy = _periodic_signed_delta(yy, cy, n)
+            xr = np.cos(angle) * dx + np.sin(angle) * dy
+            yr = -np.sin(angle) * dx + np.cos(angle) * dy
+            theta = np.arctan2(yr / b, xr / a)
+            irregularity = min(0.11, 0.65 * (1.0 - solidity)) * (
+                np.cos(3.0 * theta + rng.uniform(0.0, 2.0 * np.pi))
+                + 0.42
+                * np.cos(5.0 * theta + rng.uniform(0.0, 2.0 * np.pi))
+            )
+            exponent = float(rng.uniform(1.85, 2.45))
+            distance = (
+                np.abs(xr / a) ** exponent
+                + np.abs(yr / b) ** exponent
+            ) ** (1.0 / exponent)
+            distance /= np.clip(1.0 + irregularity, 0.84, 1.16)
+            edge_width = float(np.clip(0.13 / edge_ratio, 0.065, 0.14))
+            edge = 1.0 / (
+                1.0
+                + np.exp(
+                    np.clip((distance - 1.0) / edge_width, -30.0, 30.0)
+                )
+            )
+            dome_power = float(rng.uniform(0.48, 0.76))
+            dome = np.clip(1.0 - distance**2, 0.0, 1.0) ** dome_power
+            height = float(rng.lognormal(0.48, 0.20))
+            if is_secondary:
+                height *= float(settings["secondary_height"])
+            # A small edge shoulder keeps AFM-tip-rounded islands finite while
+            # retaining a clear oval/elliptical dome rather than a mesa.
+            primitive = -0.92 + height * edge * (0.24 + 0.76 * dome)
+            field = np.maximum(field, primitive)
+        return ndimage.gaussian_filter(
+            field, sigma=float(settings["tip_sigma"]), mode="wrap"
+        )
 
     def _superellipse_field(
         self, target: dict[str, float], rng: np.random.Generator
@@ -491,6 +733,26 @@ class IslandPrimitiveGenerator:
             field = self._superellipse_field(target, rng)
         elif mode == "laguerre":
             field = self._laguerre_field(target, rng)
+        elif mode == "separated_ellipse":
+            field = self._separated_island_field(
+                target, rng, layout="balanced"
+            )
+        elif mode == "separated_ellipse_sparse":
+            field = self._separated_island_field(
+                target, rng, layout="sparse"
+            )
+        elif mode == "separated_ellipse_round":
+            field = self._separated_island_field(
+                target, rng, layout="round"
+            )
+        elif mode == "separated_ellipse_hierarchical":
+            field = self._separated_island_field(
+                target, rng, layout="hierarchical"
+            )
+        elif mode == "separated_ellipse_strict_sparse":
+            field = self._separated_island_field(
+                target, rng, layout="strict_sparse"
+            )
         elif mode == "hybrid":
             islands = self._superellipse_field(target, rng)
             terraces = self._laguerre_field(target, rng)

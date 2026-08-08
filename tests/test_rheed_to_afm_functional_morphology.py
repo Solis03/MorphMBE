@@ -141,3 +141,40 @@ def test_topology_sparse_regime_render_ensemble_preserves_roughness() -> None:
 
     assert len(rendered) == 2
     assert all(np.isclose(np.std(array), 1.0, atol=1e-5) for array in rendered)
+
+
+def test_separated_island_regime_keeps_m17_exact_below_rough_threshold() -> None:
+    rng = np.random.default_rng(53)
+    baseline = [rng.normal(size=(64, 64)) for _ in range(2)]
+    separated = [rng.normal(size=(64, 64)) for _ in range(2)]
+    prior = [rng.normal(size=(64, 64)) for _ in range(2)]
+    common = {
+        "conditioning_sq_nm": 1.2,
+        "island_target": {"log_component_count_q82": np.log1p(24.0)},
+        "boundary_width_px": 0.75,
+        "structure_weight": 0.50,
+        "plateau_weight": 0.14,
+        "relief_weight": 0.18,
+        "spectral_weight": 0.13,
+        "texture_weight": 0.05,
+    }
+    frozen_m17 = render_ensemble(
+        baseline,
+        prior,
+        mode="regime_adaptive_topology_sparse_terrace",
+        **common,
+    )
+    redesigned = render_ensemble(
+        separated,
+        prior,
+        baseline_structure=baseline,
+        mode="regime_adaptive_separated_islands",
+        rough_start_nm=2.2,
+        rough_full_nm=3.6,
+        **common,
+    )
+
+    assert all(
+        np.array_equal(expected, actual)
+        for expected, actual in zip(frozen_m17, redesigned)
+    )
