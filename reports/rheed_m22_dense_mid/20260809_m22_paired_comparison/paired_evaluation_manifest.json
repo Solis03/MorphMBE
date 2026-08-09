@@ -1,0 +1,23 @@
+{
+  "all_excluded_held_growth_overlap_flags_false": true,
+  "all_inclusive_held_growth_overlap_flags_false": true,
+  "all_inclusive_protected_arrays_equal_to_accepted_m20": true,
+  "all_outer_target_leakage_flags_false": true,
+  "dark_display_level": 0.18,
+  "display_quantiles": [
+    0.005,
+    0.995
+  ],
+  "excluded_morphology_fit_growth_count_range": [
+    24,
+    25
+  ],
+  "excluded_morphology_training_contains_neither_6022_nor_6101": true,
+  "growth_count": 27,
+  "inclusive_morphology_fit_growth_count_range": [
+    26
+  ],
+  "paired_sq_predictions_identical": true,
+  "query_measured_afm_used_at_inference": false,
+  "sq_predictions_use_6022_6101_when_allowed_by_outer_fold": true
+}

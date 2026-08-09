@@ -81,6 +81,9 @@ GROWTH_LAYER_GENERATOR_MODES = frozenset(
         "separated_ellipse_growth_layered_weak",
         "separated_ellipse_growth_layered",
         "separated_ellipse_growth_layered_strong",
+        "separated_ellipse_growth_layered_gapfill_weak",
+        "separated_ellipse_growth_layered_gapfill",
+        "separated_ellipse_growth_layered_gapfill_strong",
     }
 )
 # Preserve the historical M20 random streams when extra M21 candidates are
@@ -93,6 +96,9 @@ STABLE_GENERATOR_SEED_OFFSETS = {
     "separated_ellipse_growth_layered_weak": 400_000,
     "separated_ellipse_growth_layered": 500_000,
     "separated_ellipse_growth_layered_strong": 600_000,
+    "separated_ellipse_growth_layered_gapfill_weak": 700_000,
+    "separated_ellipse_growth_layered_gapfill": 800_000,
+    "separated_ellipse_growth_layered_gapfill_strong": 900_000,
 }
 
 
@@ -344,6 +350,17 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     tables = load_source_tables(config)
     descriptors, source_split = prepare_full_cohort(tables, config)
     groups_all = sorted(descriptors["growth_run_id"].astype(str).unique())
+    morphology_excluded_growths = set(
+        map(str, config.get("morphology_excluded_growths", []))
+    )
+    unknown_morphology_exclusions = sorted(
+        morphology_excluded_growths - set(groups_all)
+    )
+    if unknown_morphology_exclusions:
+        raise RuntimeError(
+            "morphology_excluded_growths contains unavailable growths: "
+            f"{unknown_morphology_exclusions}"
+        )
     extra_batch = set(map(str, config.get("extra_batch_growths", [])))
     if not extra_batch.issubset(set(groups_all)):
         raise RuntimeError(
@@ -463,8 +480,15 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     for evaluation_index, held in enumerate(groups):
         fold = groups_all.index(held)
         fold_started = time.time()
-        fit_groups = [group for group in groups_all if group != held]
+        outer_fit_groups = [group for group in groups_all if group != held]
+        fit_groups = [
+            group
+            for group in outer_fit_groups
+            if group not in morphology_excluded_growths
+        ]
         fit_group_set = set(fit_groups)
+        if not fit_groups:
+            raise RuntimeError("morphology training set is empty")
         fit_rows = descriptors.loc[
             descriptors["growth_run_id"].isin(fit_group_set)
         ].copy()
@@ -710,7 +734,11 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         record: dict[str, Any] = {
             "growth_run_id": held,
             "source_split": source_split[held],
-            "outer_fit_growth_count": len(fit_groups),
+            "outer_fit_growth_count": len(outer_fit_groups),
+            "morphology_fit_growth_count": len(fit_groups),
+            "morphology_excluded_growths": ";".join(
+                sorted(morphology_excluded_growths)
+            ),
             "true_rq_nm": float(np.exp(true_raw[0])),
             "amplitude_predicted_rq_nm": predicted_rq,
             "rheed_spot_isolation_score": predicted_isolation,
@@ -736,8 +764,15 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             "outer_fold": fold,
             "held_growth_run_id": held,
             "held_source_split": source_split[held],
+            "outer_fit_growth_count": len(outer_fit_groups),
+            "outer_fit_growth_run_ids": outer_fit_groups,
             "fit_growth_count": len(fit_groups),
             "fit_growth_run_ids": fit_groups,
+            "morphology_fit_growth_count": len(fit_groups),
+            "morphology_fit_growth_run_ids": fit_groups,
+            "morphology_excluded_growth_run_ids": sorted(
+                morphology_excluded_growths
+            ),
             "held_overlap_with_fit": bool(held in fit_group_set),
             "condition_inner_growth_count": int(
                 inner_conditions["growth_run_id"].nunique()
@@ -869,6 +904,12 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         "outer_growth_group_count": len(groups),
         "full_available_growth_group_count": len(groups_all),
         "outer_fit_growth_count": len(groups_all) - 1,
+        "morphology_excluded_growths": sorted(
+            morphology_excluded_growths
+        ),
+        "morphology_fit_growth_count_range": sorted(
+            {int(row["morphology_fit_growth_count"]) for row in fold_audits}
+        ),
         "growth_run_ids": groups,
         "source_split_provenance": source_split,
         "explicitly_excluded_growths": list(

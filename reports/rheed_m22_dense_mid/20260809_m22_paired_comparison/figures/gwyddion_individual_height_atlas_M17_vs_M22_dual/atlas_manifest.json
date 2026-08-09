@@ -1,0 +1,29 @@
+{
+  "atlas_page_count": 6,
+  "atlas_stems": [
+    "Atlas_01_of_06",
+    "Atlas_02_of_06",
+    "Atlas_03_of_06",
+    "Atlas_04_of_06",
+    "Atlas_05_of_06",
+    "Atlas_06_of_06"
+  ],
+  "excluded_method": "M22c_gap_completion_strong",
+  "focus_groups": [
+    "6080",
+    "6057",
+    "6094",
+    "6028",
+    "6063"
+  ],
+  "focus_stem": "Focus_true_Sq_3p5_to_6p0_M17_vs_M22_dual",
+  "growth_count": 27,
+  "inclusive_method": "M22c_gap_completion_strong",
+  "individual_height_bar_per_afm": true,
+  "m17_source_config": "/Users/ziyi/Desktop/MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804/configs/rheed_m17_end_to_end_generation_line3_full27_sparse_v1.json",
+  "m17_source_config_sha256": "9bd8580417f0e0cec4e235b59d74691ffa58eae079ffb4ec0c59efb9fc8b22f3",
+  "m19_displayed": false,
+  "paired_sq_predictions_identical": true,
+  "palette": "Gwyddion.net",
+  "sq_comparison_stem": "M22_Sq_measured_vs_predicted_ordered"
+}

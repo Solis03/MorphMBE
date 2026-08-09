@@ -378,18 +378,32 @@ class IslandPrimitiveGenerator:
             "growth_layered_weak": 0.55,
             "growth_layered": 0.85,
             "growth_layered_strong": 1.15,
+            "growth_layered_gapfill_weak": 1.15,
+            "growth_layered_gapfill": 1.15,
+            "growth_layered_gapfill_strong": 1.15,
         }.get(layout, 0.0)
         growth_layer_scale = {
             "growth_layered_weak": 0.74,
             "growth_layered": 0.85,
             "growth_layered_strong": 0.95,
+            "growth_layered_gapfill_weak": 0.95,
+            "growth_layered_gapfill": 0.95,
+            "growth_layered_gapfill_strong": 0.95,
         }.get(layout, float(presets["strict_sparse"]["secondary_scale"]))
+        gap_completion_strength = {
+            "growth_layered_gapfill_weak": 0.72,
+            "growth_layered_gapfill": 1.00,
+            "growth_layered_gapfill_strong": 1.28,
+        }.get(layout, 0.0)
         preset_layout = {
             "strict_sparse_weak": "strict_sparse",
             "strict_sparse_strong": "strict_sparse",
             "growth_layered_weak": "strict_sparse",
             "growth_layered": "strict_sparse",
             "growth_layered_strong": "strict_sparse",
+            "growth_layered_gapfill_weak": "strict_sparse",
+            "growth_layered_gapfill": "strict_sparse",
+            "growth_layered_gapfill_strong": "strict_sparse",
         }.get(layout, layout)
         if preset_layout not in presets:
             raise ValueError(f"Unknown separated-island layout: {layout}")
@@ -423,8 +437,14 @@ class IslandPrimitiveGenerator:
             np.clip((7.6 - conditioning_sq_nm) / (7.6 - 4.5), 0.0, 1.0)
         )
         growth_progress = growth_progress**2 * (3.0 - 2.0 * growth_progress)
+        gap_completion_progress = growth_progress * gap_completion_strength
         growth_progress *= growth_layer_strength
         count_factor *= 1.0 + 0.12 * growth_progress
+        # Intermediate islands have continued to grow laterally as well as
+        # nucleating.  Increasing footprint while retaining the dense count
+        # lets neighbouring ovals impinge into the large pebble-like domains
+        # seen in real Sq=4--6 nm AFM instead of yielding only fine grains.
+        area_factor *= 1.0 + 0.55 * gap_completion_progress
         separation_factor *= 1.0 - 0.28 * growth_progress
         n = self.resolution
         yy, xx = np.mgrid[:n, :n]
@@ -603,6 +623,108 @@ class IslandPrimitiveGenerator:
             else:
                 primitive = -0.92 + profile
                 field = np.maximum(field, primitive)
+
+        # Continued growth should not leave the broad, connected substrate
+        # lakes produced by random second-layer placement.  In intermediate
+        # AFM the remaining base is observed as narrow channels between a
+        # dense layer of islands.  For the gap-completion layouts, repeatedly
+        # locate the centre of the widest low-height region and nucleate a
+        # finite oval there.  This is a growth construction, not an image
+        # filter: every added feature retains a closed domed footprint and a
+        # randomly sampled orientation/height.  Periodic tiling makes the
+        # largest-gap search consistent with the generator boundaries.
+        if gap_completion_progress > 0.0:
+            maximum_gap_radius = float(
+                np.clip(
+                    5.35 - 1.75 * gap_completion_progress,
+                    2.65,
+                    5.10,
+                )
+            )
+            completion_budget = int(
+                np.clip(
+                    np.ceil(
+                        primary_count
+                        * (0.42 + 0.58 * gap_completion_progress)
+                    ),
+                    8,
+                    72,
+                )
+            )
+            for _ in range(completion_budget):
+                display_low, display_high = np.quantile(
+                    field, (0.005, 0.995)
+                )
+                low_mask = field < (
+                    display_low + 0.30 * (display_high - display_low)
+                )
+                tiled_distance = ndimage.distance_transform_edt(
+                    np.tile(low_mask, (3, 3))
+                )
+                gap_distance = tiled_distance[n : 2 * n, n : 2 * n]
+                flat_index = int(np.argmax(gap_distance))
+                gap_radius = float(gap_distance.flat[flat_index])
+                if gap_radius <= maximum_gap_radius:
+                    break
+                cy, cx = np.unravel_index(flat_index, gap_distance.shape)
+                cy = float(cy) + float(rng.uniform(-0.35, 0.35))
+                cx = float(cx) + float(rng.uniform(-0.35, 0.35))
+                local_aspect = float(rng.uniform(1.08, 1.48))
+                a = float(
+                    np.clip(
+                        1.32 * gap_radius * np.sqrt(local_aspect),
+                        3.0,
+                        10.5,
+                    )
+                )
+                b = float(
+                    np.clip(
+                        1.32 * gap_radius / np.sqrt(local_aspect),
+                        2.7,
+                        9.0,
+                    )
+                )
+                angle = float(rng.uniform(0.0, np.pi))
+                dx = _periodic_signed_delta(xx, cx, n)
+                dy = _periodic_signed_delta(yy, cy, n)
+                xr = np.cos(angle) * dx + np.sin(angle) * dy
+                yr = -np.sin(angle) * dx + np.cos(angle) * dy
+                distance = np.hypot(xr / a, yr / b)
+                edge = 1.0 / (
+                    1.0
+                    + np.exp(
+                        np.clip((distance - 1.0) / 0.10, -30.0, 30.0)
+                    )
+                )
+                dome = np.clip(1.0 - distance**2, 0.0, 1.0) ** float(
+                    rng.uniform(0.52, 0.72)
+                )
+                height = float(rng.lognormal(0.20, 0.15))
+                field += height * edge * (0.22 + 0.78 * dome)
+
+            # Once islands occupy most capture zones, incoming material raises
+            # low terraces faster than the already highest summits.  Apply a
+            # monotone coalescence response between robust height limits: it
+            # retains the rank ordering and the narrow deepest channels, but
+            # changes the intermediate distribution from isolated positive
+            # peaks to a predominantly high island layer with sparse valleys.
+            # This directly models the negative height skew observed in the
+            # measured Sq=4--6 nm maps.
+            response_low, response_high = np.quantile(
+                field, (0.005, 0.995)
+            )
+            response_span = max(float(response_high - response_low), 1e-8)
+            normalized = (field - response_low) / response_span
+            response_power = 1.0 + 0.80 * gap_completion_progress
+            within = np.clip(normalized, 0.0, 1.0)
+            coalesced = 1.0 - (1.0 - within) ** response_power
+            coalesced = np.where(normalized < 0.0, normalized, coalesced)
+            coalesced = np.where(
+                normalized > 1.0,
+                1.0 + (normalized - 1.0) / response_power,
+                coalesced,
+            )
+            field = response_low + response_span * coalesced
         return ndimage.gaussian_filter(
             field, sigma=float(settings["tip_sigma"]), mode="wrap"
         )
@@ -848,6 +970,18 @@ class IslandPrimitiveGenerator:
         elif mode == "separated_ellipse_growth_layered_strong":
             field = self._separated_island_field(
                 target, rng, layout="growth_layered_strong"
+            )
+        elif mode == "separated_ellipse_growth_layered_gapfill_weak":
+            field = self._separated_island_field(
+                target, rng, layout="growth_layered_gapfill_weak"
+            )
+        elif mode == "separated_ellipse_growth_layered_gapfill":
+            field = self._separated_island_field(
+                target, rng, layout="growth_layered_gapfill"
+            )
+        elif mode == "separated_ellipse_growth_layered_gapfill_strong":
+            field = self._separated_island_field(
+                target, rng, layout="growth_layered_gapfill_strong"
             )
         elif mode == "hybrid":
             islands = self._superellipse_field(target, rng)
