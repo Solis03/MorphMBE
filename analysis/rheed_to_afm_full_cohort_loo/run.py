@@ -76,6 +76,24 @@ from analysis.rheed_video_afm_story.common import (
 )
 
 FULL_SPLIT = "retrospective_full23_loo"
+GROWTH_LAYER_GENERATOR_MODES = frozenset(
+    {
+        "separated_ellipse_growth_layered_weak",
+        "separated_ellipse_growth_layered",
+        "separated_ellipse_growth_layered_strong",
+    }
+)
+# Preserve the historical M20 random streams when extra M21 candidates are
+# present.  The old implementation assigned these offsets from sorted order;
+# adding a new mode before them would otherwise change the comparison maps.
+STABLE_GENERATOR_SEED_OFFSETS = {
+    "separated_ellipse_strict_sparse": 100_000,
+    "separated_ellipse_strict_sparse_strong": 200_000,
+    "separated_ellipse_strict_sparse_weak": 300_000,
+    "separated_ellipse_growth_layered_weak": 400_000,
+    "separated_ellipse_growth_layered": 500_000,
+    "separated_ellipse_growth_layered_strong": 600_000,
+}
 
 
 def load_config(path: str | Path) -> dict[str, Any]:
@@ -533,6 +551,10 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         )
         island_target = dict(island_model.predict(condition_z))
         island_target["rheed_spot_isolation_score"] = predicted_isolation
+        # Morphology is conditioned only on the strict outer-LOO Sq estimate,
+        # never on the held growth's measured AFM.  Layered island generators
+        # use this as a target-blind growth-stage coordinate.
+        island_target["conditioning_sq_nm"] = predicted_rq
         baseline_structure = island_generator.generate_ensemble(
             island_target,
             draws=int(config["draws"]),
@@ -571,11 +593,41 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         for mode_index, generator_mode in enumerate(
             requested_modes, start=1
         ):
+            if generator_mode in structure_cache:
+                continue
+            if (
+                generator_mode in GROWTH_LAYER_GENERATOR_MODES
+                and predicted_rq >= 7.6
+                and "separated_ellipse_strict_sparse" in requested_modes
+            ):
+                canonical_mode = "separated_ellipse_strict_sparse"
+                if canonical_mode not in structure_cache:
+                    structure_cache[canonical_mode] = (
+                        island_generator.generate_ensemble(
+                            island_target,
+                            draws=int(config["draws"]),
+                            seed=(
+                                fold_seed
+                                + 300_000
+                                + STABLE_GENERATOR_SEED_OFFSETS[
+                                    canonical_mode
+                                ]
+                            ),
+                            mode=canonical_mode,
+                        )
+                    )
+                structure_cache[generator_mode] = structure_cache[
+                    canonical_mode
+                ]
+                continue
+            seed_offset = STABLE_GENERATOR_SEED_OFFSETS.get(
+                generator_mode, mode_index * 100_000
+            )
             structure_cache[generator_mode] = (
                 island_generator.generate_ensemble(
                     island_target,
                     draws=int(config["draws"]),
-                    seed=fold_seed + 300_000 + mode_index * 100_000,
+                    seed=fold_seed + 300_000 + seed_offset,
                     mode=generator_mode,
                 )
             )

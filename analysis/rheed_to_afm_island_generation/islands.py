@@ -374,9 +374,22 @@ class IslandPrimitiveGenerator:
             "strict_sparse_weak": 0.55,
             "strict_sparse_strong": 1.35,
         }.get(layout, 1.0)
+        growth_layer_strength = {
+            "growth_layered_weak": 0.55,
+            "growth_layered": 0.85,
+            "growth_layered_strong": 1.15,
+        }.get(layout, 0.0)
+        growth_layer_scale = {
+            "growth_layered_weak": 0.74,
+            "growth_layered": 0.85,
+            "growth_layered_strong": 0.95,
+        }.get(layout, float(presets["strict_sparse"]["secondary_scale"]))
         preset_layout = {
             "strict_sparse_weak": "strict_sparse",
             "strict_sparse_strong": "strict_sparse",
+            "growth_layered_weak": "strict_sparse",
+            "growth_layered": "strict_sparse",
+            "growth_layered_strong": "strict_sparse",
         }.get(layout, layout)
         if preset_layout not in presets:
             raise ValueError(f"Unknown separated-island layout: {layout}")
@@ -397,6 +410,22 @@ class IslandPrimitiveGenerator:
         separation_factor = float(settings["separation"]) * (
             1.0 + topology_strength * 0.35 * (isolation - 0.50)
         )
+        # A single repulsive island layer describes the early, high-Sq growth
+        # stage well, but it stays artificially sparse after more material has
+        # arrived.  The predicted Sq is target-blind in outer LOO and provides
+        # a physical growth-stage coordinate: as Sq falls from the rough tail,
+        # a second population nucleates across gaps and existing islands.  A
+        # smooth transition avoids a hard visual regime boundary.  Below the
+        # separate renderer's smooth threshold the legacy fine-grain branch is
+        # still used, so this term only affects the intermediate regime.
+        conditioning_sq_nm = float(target.get("conditioning_sq_nm", np.inf))
+        growth_progress = float(
+            np.clip((7.6 - conditioning_sq_nm) / (7.6 - 4.5), 0.0, 1.0)
+        )
+        growth_progress = growth_progress**2 * (3.0 - 2.0 * growth_progress)
+        growth_progress *= growth_layer_strength
+        count_factor *= 1.0 + 0.12 * growth_progress
+        separation_factor *= 1.0 - 0.28 * growth_progress
         n = self.resolution
         yy, xx = np.mgrid[:n, :n]
 
@@ -411,9 +440,10 @@ class IslandPrimitiveGenerator:
                 84,
             )
         )
-        secondary_count = int(
-            np.round(settings["secondary_fraction"] * primary_count)
-        )
+        secondary_fraction = float(settings["secondary_fraction"])
+        if growth_layer_strength > 0.0:
+            secondary_fraction += 1.55 * growth_progress
+        secondary_count = int(np.round(secondary_fraction * primary_count))
         areas = footprint_area * area_factor * rng.lognormal(
             0.0, settings["size_sigma"], size=primary_count
         )
@@ -421,7 +451,7 @@ class IslandPrimitiveGenerator:
             secondary_areas = (
                 footprint_area
                 * area_factor
-                * settings["secondary_scale"] ** 2
+                * growth_layer_scale**2
                 * rng.lognormal(0.0, 0.20, size=secondary_count)
             )
             areas = np.concatenate([areas, secondary_areas])
@@ -454,8 +484,19 @@ class IslandPrimitiveGenerator:
                     dx = min(abs(cx - px), n - abs(cx - px))
                     distance = float(np.hypot(dx, dy))
                     separation = separation_factor
-                    if is_secondary or previous_secondary:
-                        separation *= 0.76
+                    if is_secondary and previous_secondary:
+                        # Second-layer nuclei remain dispersed relative to one
+                        # another, but can overlap enough to form a dense coat.
+                        separation *= 0.58
+                    elif is_secondary or previous_secondary:
+                        # Prefer nucleation in first-layer gaps while retaining
+                        # enough footprint overlap for physical coalescence.
+                        # This turns broad uncovered regions into narrow cracks
+                        # instead of wasting most new nuclei on existing peaks.
+                        gap_preference = float(
+                            np.clip((0.65 - isolation) / 0.30, 0.0, 1.0)
+                        )
+                        separation *= 0.16 + 0.22 * gap_preference
                     clearances.append(
                         distance - separation * (radius + previous_radius)
                     )
@@ -553,8 +594,15 @@ class IslandPrimitiveGenerator:
                 height *= float(settings["secondary_height"])
             # A small edge shoulder keeps AFM-tip-rounded islands finite while
             # retaining a clear oval/elliptical dome rather than a mesa.
-            primitive = -0.92 + height * edge * (0.24 + 0.76 * dome)
-            field = np.maximum(field, primitive)
+            profile = height * edge * (0.24 + 0.76 * dome)
+            if is_secondary and growth_layer_strength > 0.0:
+                # Add rather than max-compose the overlayer.  A nucleus in a
+                # gap partially fills the substrate; one landing on an older
+                # island creates the stacked/coalesced relief seen at Sq~5 nm.
+                field += profile
+            else:
+                primitive = -0.92 + profile
+                field = np.maximum(field, primitive)
         return ndimage.gaussian_filter(
             field, sigma=float(settings["tip_sigma"]), mode="wrap"
         )
@@ -788,6 +836,18 @@ class IslandPrimitiveGenerator:
         elif mode == "separated_ellipse_strict_sparse_strong":
             field = self._separated_island_field(
                 target, rng, layout="strict_sparse_strong"
+            )
+        elif mode == "separated_ellipse_growth_layered_weak":
+            field = self._separated_island_field(
+                target, rng, layout="growth_layered_weak"
+            )
+        elif mode == "separated_ellipse_growth_layered":
+            field = self._separated_island_field(
+                target, rng, layout="growth_layered"
+            )
+        elif mode == "separated_ellipse_growth_layered_strong":
+            field = self._separated_island_field(
+                target, rng, layout="growth_layered_strong"
             )
         elif mode == "hybrid":
             islands = self._superellipse_field(target, rng)

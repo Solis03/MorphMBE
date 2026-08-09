@@ -1,4 +1,4 @@
-"""Presentation atlas with standalone M17, M20, and Gwyddion-style AFM maps."""
+"""Presentation atlas with standalone M17 and a current Gwyddion-style model."""
 
 from __future__ import annotations
 
@@ -162,10 +162,14 @@ def _load_generated_maps(
 def _sq_comparison_plot(
     predictions: pd.DataFrame,
     output_dir: Path,
+    *,
+    model_short_label: str,
+    model_panel_label: str,
 ) -> str:
     ordered = predictions.sort_values("true_target").reset_index(drop=True)
+    stem = f"{model_short_label}_Sq_measured_vs_predicted_ordered"
     ordered.to_csv(
-        output_dir / "M20_Sq_measured_vs_predicted_ordered.csv",
+        output_dir / f"{stem}.csv",
         index=False,
     )
     truth = ordered["true_target"].to_numpy(float)
@@ -192,7 +196,7 @@ def _sq_comparison_plot(
         upper,
         color="#f3c25d",
         alpha=0.22,
-        label="M20 prediction interval",
+        label=f"{model_short_label} prediction interval",
         zorder=0,
     )
     axes[0].vlines(
@@ -225,15 +229,16 @@ def _sq_comparison_plot(
         ms=4.7,
         markerfacecolor="white",
         markeredgewidth=1.2,
-        label="M20 predicted Sq",
+        label=f"{model_panel_label} predicted Sq",
         zorder=4,
     )
     axes[0].set_ylabel("Sq (nm)")
     axes[0].grid(axis="y", color="#d9d9d9", lw=0.7)
     axes[0].legend(loc="upper left", frameon=False, ncol=3)
     axes[0].set_title(
-        "M20 strict outer-LOO Sq: measured versus predicted\n"
-        f"27 growths | MAE {mae:.3f} nm | RMSE {rmse:.3f} nm | Pearson r {correlation:.3f}",
+        f"{model_short_label} strict outer-LOO Sq: measured versus predicted\n"
+        f"27 growths | MAE {mae:.3f} nm | RMSE {rmse:.3f} nm | "
+        f"Pearson r {correlation:.3f}",
         fontsize=12,
         fontweight="bold",
     )
@@ -291,16 +296,24 @@ def _sq_comparison_plot(
         ha="right",
         fontsize=7.8,
     )
-    stem = "M20_Sq_measured_vs_predicted_ordered"
     _save(figure, output_dir / stem)
     return stem
 
 
 def run(config: dict, *, standalone_root: Path) -> None:
     suffix = str(config["full_run_suffix"])
-    m20_output = repo_path(config["output_root"]) / suffix
+    current_output = repo_path(config["output_root"]) / suffix
     report = repo_path(config["report_root"]) / suffix
-    m20_method = str(config["selected_method"])
+    current_method = str(config["selected_method"])
+    model_short_label = str(
+        config.get("visualization_model_short_label", "M20")
+    )
+    model_panel_label = str(
+        config.get(
+            "visualization_model_panel_label",
+            "M20 connectivity-island",
+        )
+    )
     m17_output = standalone_root / M17_OUTPUT_RELATIVE
     m17_config = standalone_root / M17_CONFIG_RELATIVE
     if not m17_output.is_dir():
@@ -320,12 +333,19 @@ def run(config: dict, *, standalone_root: Path) -> None:
     groups = list(predictions["growth_run_id"].astype(str))
     measured = {group: _real_afm(phase1, group) for group in groups}
     m17 = _load_generated_maps(m17_output, method=M17_METHOD, groups=groups)
-    m20 = _load_generated_maps(m20_output, method=m20_method, groups=groups)
+    current = _load_generated_maps(
+        current_output,
+        method=current_method,
+        groups=groups,
+    )
 
     figure_dir = (
         report
         / "figures"
-        / "gwyddion_individual_height_atlas_M17_standalone_vs_M20"
+        / (
+            "gwyddion_individual_height_atlas_M17_standalone_vs_"
+            f"{model_short_label}"
+        )
     )
     figure_dir.mkdir(parents=True, exist_ok=True)
     range_rows: list[dict[str, float | str]] = []
@@ -343,7 +363,8 @@ def run(config: dict, *, standalone_root: Path) -> None:
             gridspec_kw={"width_ratios": [1.22, 1.0, 1.0, 1.0]},
         )
         figure.suptitle(
-            "Strict outer-LOO AFM atlas: standalone M17 vs M20 "
+            "Strict outer-LOO AFM atlas: standalone M17 vs "
+            f"{model_short_label} "
             f"({page}/{page_count})\n"
             "Gwyddion.net orange palette; every AFM has its own height bar",
             fontsize=11.2,
@@ -379,11 +400,11 @@ def run(config: dict, *, standalone_root: Path) -> None:
                     ),
                 ),
                 (
-                    "M20",
-                    m20[group][0],
+                    model_short_label,
+                    current[group][0],
                     (
-                        "M20 connectivity-island\n"
-                        f"predicted Sq {m20[group][1]:.2f} nm"
+                        f"{model_panel_label}\n"
+                        f"predicted Sq {current[group][1]:.2f} nm"
                     ),
                 ),
             )
@@ -402,21 +423,30 @@ def run(config: dict, *, standalone_root: Path) -> None:
                         "display_vmax_nm": high,
                     }
                 )
-        stem = f"Atlas{page}_Gwyddion_individual_height_M17_vs_M20"
+        stem = (
+            f"Atlas{page}_Gwyddion_individual_height_M17_vs_"
+            f"{model_short_label}"
+        )
         _save(figure, figure_dir / stem)
         stems.append(stem)
 
-    focus = ["6062", "6099"]
+    focus = list(
+        map(
+            str,
+            config.get("visualization_focus_groups", ["6062", "6099"]),
+        )
+    )
     figure, axes = plt.subplots(
-        2,
+        len(focus),
         4,
-        figsize=(16.3, 6.15),
+        figsize=(16.3, 3.05 * len(focus)),
         constrained_layout=True,
         squeeze=False,
         gridspec_kw={"width_ratios": [1.22, 1.0, 1.0, 1.0]},
     )
     figure.suptitle(
-        "6062 vs 6099: standalone M17 and M20 with individual AFM height bars\n"
+        f"Focused growths: standalone M17 and {model_short_label} "
+        "with individual AFM height bars\n"
         "Gwyddion.net orange palette",
         fontsize=11.4,
         fontweight="bold",
@@ -442,8 +472,8 @@ def run(config: dict, *, standalone_root: Path) -> None:
                 f"Standalone M17\nSq {m17[group][1]:.2f} nm",
             ),
             (
-                m20[group][0],
-                f"M20 connectivity-island\nSq {m20[group][1]:.2f} nm",
+                current[group][0],
+                f"{model_panel_label}\nSq {current[group][1]:.2f} nm",
             ),
         )
         for column, (array, title) in enumerate(panels, start=1):
@@ -453,13 +483,91 @@ def run(config: dict, *, standalone_root: Path) -> None:
                 array,
                 title=title,
             )
-    focus_stem = "Focus_6062_6099_Gwyddion_individual_height_M17_vs_M20"
+    focus_stem = (
+        f"Focus_{'_'.join(focus)}_Gwyddion_individual_height_M17_vs_"
+        f"{model_short_label}"
+    )
     _save(figure, figure_dir / focus_stem)
+    baseline_focus_stem: str | None = None
+    baseline_config_path = config.get("visualization_baseline_config")
+    if baseline_config_path is not None:
+        baseline_config = load_config(Path(str(baseline_config_path)))
+        baseline_output = (
+            repo_path(baseline_config["output_root"])
+            / str(baseline_config["full_run_suffix"])
+        )
+        baseline_method = str(baseline_config["selected_method"])
+        baseline_label = str(
+            config.get("visualization_baseline_label", baseline_method)
+        )
+        baseline_maps = _load_generated_maps(
+            baseline_output,
+            method=baseline_method,
+            groups=focus,
+        )
+        figure, axes = plt.subplots(
+            len(focus),
+            4,
+            figsize=(16.3, 3.05 * len(focus)),
+            constrained_layout=True,
+            squeeze=False,
+            gridspec_kw={"width_ratios": [1.22, 1.0, 1.0, 1.0]},
+        )
+        figure.suptitle(
+            f"Focused improvement: {baseline_label} vs {model_short_label}\n"
+            "Gwyddion.net orange palette; every AFM has its own height bar",
+            fontsize=11.4,
+            fontweight="bold",
+        )
+        for row_index, group in enumerate(focus):
+            row = prediction_lookup.loc[group]
+            label = _real_afm_label(phase1, group)
+            axes[row_index, 0].imshow(
+                _rheed_keyframe(phase1, group), cmap="gray"
+            )
+            axes[row_index, 0].set_title(
+                f"{group} RHEED\n"
+                f"spot isolation {float(row['rheed_spot_isolation_score']):.3f}",
+                fontsize=8.2,
+            )
+            axes[row_index, 0].set_xticks([])
+            axes[row_index, 0].set_yticks([])
+            panels = (
+                (
+                    measured[group],
+                    f"Measured AFM\nSq {label['displayed_scan_sq_nm']:.2f} nm",
+                ),
+                (
+                    baseline_maps[group][0],
+                    f"{baseline_label}\nSq {baseline_maps[group][1]:.2f} nm",
+                ),
+                (
+                    current[group][0],
+                    f"{model_panel_label}\nSq {current[group][1]:.2f} nm",
+                ),
+            )
+            for column, (array, title) in enumerate(panels, start=1):
+                _surface_with_height_bar(
+                    figure,
+                    axes[row_index, column],
+                    array,
+                    title=title,
+                )
+        baseline_focus_stem = (
+            f"Focus_{'_'.join(focus)}_{baseline_label.replace(' ', '_')}_vs_"
+            f"{model_short_label}"
+        )
+        _save(figure, figure_dir / baseline_focus_stem)
     pd.DataFrame(range_rows).to_csv(
         figure_dir / "individual_height_ranges.csv",
         index=False,
     )
-    sq_stem = _sq_comparison_plot(predictions, figure_dir)
+    sq_stem = _sq_comparison_plot(
+        predictions,
+        figure_dir,
+        model_short_label=model_short_label,
+        model_panel_label=model_panel_label,
+    )
 
     m17_files = {
         group: (
@@ -486,7 +594,12 @@ def run(config: dict, *, standalone_root: Path) -> None:
                     for group, path in m17_files.items()
                 },
             },
-            "m20_method": m20_method,
+            "current_method": current_method,
+            "current_model_short_label": model_short_label,
+            "current_model_panel_label": model_panel_label,
+            "m20_method": (
+                current_method if model_short_label == "M20" else None
+            ),
             "m19_displayed": False,
             "palette": {
                 "name": "Gwyddion.net",
@@ -500,6 +613,7 @@ def run(config: dict, *, standalone_root: Path) -> None:
             "display_height_quantiles": DISPLAY_QUANTILES,
             "atlas_stems": stems,
             "focus_stem": focus_stem,
+            "baseline_focus_stem": baseline_focus_stem,
             "sq_comparison_stem": sq_stem,
         },
         figure_dir / "atlas_manifest.json",

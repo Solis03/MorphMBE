@@ -51,6 +51,9 @@ class IslandGenerationTest(unittest.TestCase):
             "separated_ellipse_strict_sparse",
             "separated_ellipse_strict_sparse_weak",
             "separated_ellipse_strict_sparse_strong",
+            "separated_ellipse_growth_layered_weak",
+            "separated_ellipse_growth_layered",
+            "separated_ellipse_growth_layered_strong",
         ):
             first = generator.generate(target, seed=17, mode=mode)
             second = generator.generate(target, seed=18, mode=mode)
@@ -86,6 +89,74 @@ class IslandGenerationTest(unittest.TestCase):
         self.assertLess(float(np.quantile(generated, 0.25)), -0.80)
         self.assertGreater(float(np.quantile(generated, 0.90)), 1.15)
         self.assertGreater(float(np.mean(generated < -0.50)), 0.30)
+
+    def test_growth_layer_is_inactive_for_high_sq_rough_surface(self) -> None:
+        target = {
+            "log_component_count_q55": np.log1p(10),
+            "log_component_count_q70": np.log1p(18),
+            "log_component_count_q82": np.log1p(22),
+            "log_median_area_q55": np.log1p(90),
+            "log_median_area_q70": np.log1p(65),
+            "log_median_area_q82": np.log1p(40),
+            "median_solidity_q70": 0.88,
+            "median_eccentricity_q70": 0.80,
+            "boundary_gradient_ratio_q55": 1.35,
+            "boundary_gradient_ratio_q70": 1.30,
+            "boundary_gradient_ratio_q82": 1.20,
+            "log_valley_component_count_q18": np.log1p(20),
+            "log_valley_median_area_q18": np.log1p(35),
+            "gradient_p90": 0.4,
+            "laplacian_rms": 0.3,
+            "flat_fraction": 0.2,
+            "conditioning_sq_nm": 8.5,
+        }
+        generator = IslandPrimitiveGenerator(resolution=64)
+        legacy = generator.generate(
+            target, seed=31, mode="separated_ellipse_strict_sparse"
+        )
+        layered = generator.generate(
+            target, seed=31, mode="separated_ellipse_growth_layered"
+        )
+
+        np.testing.assert_array_equal(layered, legacy)
+
+    def test_growth_layer_fills_intermediate_sq_substrate(self) -> None:
+        target = {
+            "log_component_count_q55": np.log1p(10),
+            "log_component_count_q70": np.log1p(18),
+            "log_component_count_q82": np.log1p(22),
+            "log_median_area_q55": np.log1p(90),
+            "log_median_area_q70": np.log1p(65),
+            "log_median_area_q82": np.log1p(40),
+            "median_solidity_q70": 0.88,
+            "median_eccentricity_q70": 0.80,
+            "boundary_gradient_ratio_q55": 1.35,
+            "boundary_gradient_ratio_q70": 1.30,
+            "boundary_gradient_ratio_q82": 1.20,
+            "log_valley_component_count_q18": np.log1p(20),
+            "log_valley_median_area_q18": np.log1p(35),
+            "gradient_p90": 0.4,
+            "laplacian_rms": 0.3,
+            "flat_fraction": 0.2,
+            "conditioning_sq_nm": 5.0,
+        }
+        generator = IslandPrimitiveGenerator(resolution=64)
+        legacy = generator.generate(
+            target, seed=37, mode="separated_ellipse_strict_sparse"
+        )
+        layered = generator.generate(
+            target, seed=37, mode="separated_ellipse_growth_layered"
+        )
+
+        self.assertGreater(
+            float(np.quantile(layered, 0.10)),
+            float(np.quantile(legacy, 0.10)) + 0.10,
+        )
+        self.assertLess(
+            float(np.mean(layered < -1.0)),
+            float(np.mean(legacy < -1.0)),
+        )
+        self.assertGreater(float(np.mean(np.abs(layered - legacy))), 0.10)
 
     def test_dense_laguerre_configuration_remains_finite(self) -> None:
         target = {

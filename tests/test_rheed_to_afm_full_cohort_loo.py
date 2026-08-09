@@ -5,6 +5,8 @@ import pandas as pd
 
 from analysis.rheed_to_afm_full_cohort_loo.run import (
     FULL_SPLIT,
+    GROWTH_LAYER_GENERATOR_MODES,
+    STABLE_GENERATOR_SEED_OFFSETS,
     _condition_with_amplitude,
     _load_external_predictions,
     prepare_full_cohort,
@@ -95,6 +97,15 @@ def test_amplitude_override_changes_only_log_rq_condition() -> None:
 
     assert np.isclose(updated[0], np.log(2.0) / 0.5)
     assert np.array_equal(updated[1:], initial[1:])
+
+
+def test_m21_generator_streams_do_not_shift_m20_seed_offsets() -> None:
+    assert STABLE_GENERATOR_SEED_OFFSETS[
+        "separated_ellipse_strict_sparse"
+    ] == 100_000
+    assert GROWTH_LAYER_GENERATOR_MODES.issubset(
+        STABLE_GENERATOR_SEED_OFFSETS
+    )
 
 
 def test_external_predictions_require_exact_leakage_free_cohort(
