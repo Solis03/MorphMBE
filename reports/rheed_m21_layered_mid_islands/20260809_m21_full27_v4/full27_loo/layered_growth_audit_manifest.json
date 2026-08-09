@@ -1,0 +1,13 @@
+{
+  "all_outer_fold_leakage_checks_passed": true,
+  "all_protected_arrays_equal_to_m20": true,
+  "baseline_method": "M20b_connectivity_coupled_islands",
+  "growth_count": 27,
+  "maximum_protected_height_difference_nm": 0.0,
+  "measured_mid_growth_count": 5,
+  "measured_mid_relative_island_mae_improvement": 0.22281422475306234,
+  "protected_growth_count": 12,
+  "query_measured_afm_used_at_inference": false,
+  "selected_method": "M21c_strong_growth_layer",
+  "selection_scope": "retrospective method development; prospective confirmation is still required"
+}
