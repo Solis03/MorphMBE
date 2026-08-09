@@ -91,8 +91,28 @@ are 12.06 and 31.76 nm. All six pairwise direction checks in
   `outputs/rheed_m20_spot_connectivity/20260808_m20_full27_v2/full27_loo/`
 - Reports and audits:
   `reports/rheed_m20_spot_connectivity/20260808_m20_full27_v2/full27_loo/`
-- Six-page global physical atlas and 6062/6099 focus image:
-  `reports/rheed_m20_spot_connectivity/20260808_m20_full27_v2/full27_loo/figures/global_physical_atlas_M20b_connectivity_coupled_islands/`
+- Presentation atlas with measured AFM, original standalone M17, and M20:
+  `reports/rheed_m20_spot_connectivity/20260808_m20_full27_v2/full27_loo/figures/gwyddion_individual_height_atlas_M17_standalone_vs_M20/`
+
+## 2026-08-09 visualization revision
+
+The presentation atlas was revised without changing the M20 model or generated
+height fields:
+
+- every measured, standalone-M17, and M20 AFM panel now has its own physical
+  height bar and independently fitted 0.5–99.5% display range;
+- AFM maps use the exact `Gwyddion.net` black–rust-orange–gold–white system
+  gradient from Gwyddion's official source distribution;
+- M19 was removed from the presentation atlas;
+- the M17 column is read directly from
+  `MorphMBE_M17_N6342_SparsePeak_UI_Standalone_20260804`, with the standalone
+  config and all 27 generated-map hashes recorded in `atlas_manifest.json`;
+- the new ordered Sq figure shows measured and M20-predicted Sq, the prediction
+  interval, per-growth vertical discrepancy, and a separate signed-error panel.
+
+The earlier shared-physical-scale M19/M20 figures are retained only as an audit
+artifact. The new six-page Gwyddion presentation atlas is the user-facing
+comparison.
 
 ## Literature basis
 
@@ -108,7 +128,7 @@ are 12.06 and 31.76 nm. All six pairwise direction checks in
 ## Verification
 
 - Changed-file lint: passed.
-- M20/island/renderer/full-cohort targeted tests: 24 passed.
+- M20/island/renderer/full-cohort targeted tests: 26 passed.
 - Physical consistency audit: all six checks passed.
 - Full repository suite: 388 passed, 29 failed, 6 errors. The non-passing
   tests require pre-existing unavailable paper-freeze manifests, peak-saddle

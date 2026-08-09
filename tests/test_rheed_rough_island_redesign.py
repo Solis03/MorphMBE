@@ -10,6 +10,10 @@ from analysis.rheed_rough_island_redesign.connectivity import (
     CONNECTIVITY_FEATURES,
     crossfit_spot_connectivity_calibration,
 )
+from analysis.rheed_rough_island_redesign.gwyddion_atlas import (
+    gwyddion_net_colormap,
+    individual_height_limits,
+)
 from analysis.rheed_to_afm_full_cohort_loo.run import load_config
 
 
@@ -124,3 +128,24 @@ def test_connectivity_score_orders_bridged_before_isolated_spots() -> None:
     assert not result.loc[0, "isolated_spot_uplift_gate"]
     assert result.loc[5, "isolated_spot_uplift_gate"]
     assert result.loc[5, "predicted_target"] > predictions.loc[5, "predicted_target"]
+
+
+def test_gwyddion_net_gradient_matches_official_endpoints() -> None:
+    palette = gwyddion_net_colormap()
+
+    assert np.allclose(palette(0.0)[:3], [0.0, 0.0, 0.0])
+    assert np.allclose(palette(1.0)[:3], [1.0, 1.0, 1.0])
+    rust = palette(0.344671)[:3]
+    assert rust[0] > rust[1] > rust[2]
+
+
+def test_afm_display_height_limits_are_independent_per_map() -> None:
+    first = np.arange(100, dtype=float).reshape(10, 10)
+    second = 5.0 * first - 30.0
+
+    first_limits = individual_height_limits(first)
+    second_limits = individual_height_limits(second)
+
+    assert np.allclose(second_limits, 5.0 * np.asarray(first_limits) - 30.0)
+    assert individual_height_limits(np.ones((4, 4)))[0] < 1.0
+    assert individual_height_limits(np.ones((4, 4)))[1] > 1.0
