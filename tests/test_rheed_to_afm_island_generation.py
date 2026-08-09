@@ -49,6 +49,8 @@ class IslandGenerationTest(unittest.TestCase):
             "separated_ellipse_round",
             "separated_ellipse_hierarchical",
             "separated_ellipse_strict_sparse",
+            "separated_ellipse_strict_sparse_weak",
+            "separated_ellipse_strict_sparse_strong",
         ):
             first = generator.generate(target, seed=17, mode=mode)
             second = generator.generate(target, seed=18, mode=mode)

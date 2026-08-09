@@ -11,6 +11,7 @@ from analysis.rheed_to_afm_functional_morphology.metrics import (
 )
 from analysis.rheed_to_afm_functional_morphology.render import (
     edge_preserving_terrace_blend,
+    regime_adaptive_separated_island_blend,
     render_ensemble,
     topology_conditioned_sparse_microisland_blend,
 )
@@ -178,3 +179,35 @@ def test_separated_island_regime_keeps_m17_exact_below_rough_threshold() -> None
         np.array_equal(expected, actual)
         for expected, actual in zip(frozen_m17, redesigned)
     )
+
+
+def test_isolated_spots_deepen_rough_substrate_tail() -> None:
+    rng = np.random.default_rng(71)
+    structure = rng.normal(size=(64, 64))
+    prior = rng.normal(size=(64, 64))
+    baseline = rng.normal(size=(64, 64))
+
+    bridged = regime_adaptive_separated_island_blend(
+        structure,
+        prior,
+        baseline,
+        conditioning_sq_nm=6.0,
+        island_target=None,
+        rough_structure_weight=1.0,
+        rough_texture_weight=0.0,
+        rough_tip_sigma_px=0.0,
+        rough_isolation_score=0.2,
+    )
+    isolated = regime_adaptive_separated_island_blend(
+        structure,
+        prior,
+        baseline,
+        conditioning_sq_nm=6.0,
+        island_target=None,
+        rough_structure_weight=1.0,
+        rough_texture_weight=0.0,
+        rough_tip_sigma_px=0.0,
+        rough_isolation_score=0.9,
+    )
+
+    assert np.quantile(isolated, 0.05) < np.quantile(bridged, 0.05)

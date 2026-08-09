@@ -370,9 +370,33 @@ class IslandPrimitiveGenerator:
                 "tip_sigma": 0.72,
             },
         }
-        if layout not in presets:
+        topology_strength = {
+            "strict_sparse_weak": 0.55,
+            "strict_sparse_strong": 1.35,
+        }.get(layout, 1.0)
+        preset_layout = {
+            "strict_sparse_weak": "strict_sparse",
+            "strict_sparse_strong": "strict_sparse",
+        }.get(layout, layout)
+        if preset_layout not in presets:
             raise ValueError(f"Unknown separated-island layout: {layout}")
-        settings = presets[layout]
+        settings = presets[preset_layout]
+        isolation = float(
+            np.clip(target.get("rheed_spot_isolation_score", 0.50), 0.0, 1.0)
+        )
+        # RHEED spot topology controls the same physical degrees of freedom
+        # that define a rough AFM surface.  Isolated, round diffraction spots
+        # produce fewer, larger and more widely separated islands; bridged or
+        # streak-like spots retain denser islands and a shallower substrate.
+        count_factor = float(settings["count_factor"]) * (
+            1.0 + topology_strength * 0.24 * (0.50 - isolation)
+        )
+        area_factor = float(settings["area_factor"]) * (
+            1.0 + topology_strength * 0.25 * (isolation - 0.50)
+        )
+        separation_factor = float(settings["separation"]) * (
+            1.0 + topology_strength * 0.35 * (isolation - 0.50)
+        )
         n = self.resolution
         yy, xx = np.mgrid[:n, :n]
 
@@ -382,7 +406,7 @@ class IslandPrimitiveGenerator:
         footprint_area = max(_area(target, 55), 1.55 * _area(target, 70))
         primary_count = int(
             np.clip(
-                np.round(settings["count_factor"] * _count(target, 70)),
+                np.round(count_factor * _count(target, 70)),
                 8,
                 84,
             )
@@ -390,13 +414,13 @@ class IslandPrimitiveGenerator:
         secondary_count = int(
             np.round(settings["secondary_fraction"] * primary_count)
         )
-        areas = footprint_area * settings["area_factor"] * rng.lognormal(
+        areas = footprint_area * area_factor * rng.lognormal(
             0.0, settings["size_sigma"], size=primary_count
         )
         if secondary_count:
             secondary_areas = (
                 footprint_area
-                * settings["area_factor"]
+                * area_factor
                 * settings["secondary_scale"] ** 2
                 * rng.lognormal(0.0, 0.20, size=secondary_count)
             )
@@ -429,7 +453,7 @@ class IslandPrimitiveGenerator:
                     dy = min(abs(cy - py), n - abs(cy - py))
                     dx = min(abs(cx - px), n - abs(cx - px))
                     distance = float(np.hypot(dx, dy))
-                    separation = float(settings["separation"])
+                    separation = separation_factor
                     if is_secondary or previous_secondary:
                         separation *= 0.76
                     clearances.append(
@@ -518,7 +542,13 @@ class IslandPrimitiveGenerator:
             )
             dome_power = float(rng.uniform(0.48, 0.76))
             dome = np.clip(1.0 - distance**2, 0.0, 1.0) ** dome_power
-            height = float(rng.lognormal(0.48, 0.20))
+            height = float(
+                rng.lognormal(
+                    0.48
+                    + topology_strength * 0.28 * (isolation - 0.50),
+                    0.20,
+                )
+            )
             if is_secondary:
                 height *= float(settings["secondary_height"])
             # A small edge shoulder keeps AFM-tip-rounded islands finite while
@@ -750,6 +780,14 @@ class IslandPrimitiveGenerator:
         elif mode == "separated_ellipse_strict_sparse":
             field = self._separated_island_field(
                 target, rng, layout="strict_sparse"
+            )
+        elif mode == "separated_ellipse_strict_sparse_weak":
+            field = self._separated_island_field(
+                target, rng, layout="strict_sparse_weak"
+            )
+        elif mode == "separated_ellipse_strict_sparse_strong":
+            field = self._separated_island_field(
+                target, rng, layout="strict_sparse_strong"
             )
         elif mode == "hybrid":
             islands = self._superellipse_field(target, rng)

@@ -1,0 +1,11 @@
+{
+  "base_config": "configs/rheed_m20_spot_connectivity_islands_full27_v1.json",
+  "experiment_id": "20260808_m20_spot_connectivity_coupled_islands_full27_v2",
+  "claim_boundary": "Retrospective 27-growth method-development outer LOO from M19. Each Sq connectivity correction and morphology-statistic fit excludes the displayed growth. Highly isolated spot patterns can use 45% of the existing target-blind upper uncertainty headroom. Gate thresholds and topology-coupling strengths were developed retrospectively; prospective confirmation remains required.",
+  "external_target_predictions": {
+    "Rq_nm": "outputs/rheed_m20_spot_connectivity/20260808_m20_connectivity_full27_v2/m20_strict_loo_predictions.csv",
+    "FSMI_nm": "outputs/rheed_m19_separated_rough_islands/20260807_m19_source_predictions/m15b_strict_loo_predictions.csv"
+  },
+  "output_root": "outputs/rheed_m20_spot_connectivity/20260808_m20_full27_v2",
+  "report_root": "reports/rheed_m20_spot_connectivity/20260808_m20_full27_v2"
+}

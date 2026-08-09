@@ -479,6 +479,12 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         selected_z = variance_calibrator.transform_z(raw_z)[0]
         predicted_rq = float(rq_lookup.loc[held, "predicted_target"])
         predicted_fsmi = float(fsmi_lookup.loc[held, "predicted_target"])
+        isolation_value = rq_lookup.loc[held].get(
+            "rheed_spot_isolation_score", 0.50
+        )
+        predicted_isolation = (
+            0.50 if pd.isna(isolation_value) else float(isolation_value)
+        )
         condition_z = _condition_with_amplitude(
             selected_z, scaler, predicted_rq
         )
@@ -525,7 +531,8 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             resolution=int(config["resolution"]),
             alphas=config["island_ridge_alphas"],
         )
-        island_target = island_model.predict(condition_z)
+        island_target = dict(island_model.predict(condition_z))
+        island_target["rheed_spot_isolation_score"] = predicted_isolation
         baseline_structure = island_generator.generate_ensemble(
             island_target,
             draws=int(config["draws"]),
@@ -587,6 +594,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
                 baseline_structure=baseline_structure,
                 conditioning_sq_nm=predicted_rq,
                 island_target=island_target,
+                rough_isolation_score=predicted_isolation,
                 **parameters,
             )
         for method, arrays in methods.items():
@@ -653,6 +661,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             "outer_fit_growth_count": len(fit_groups),
             "true_rq_nm": float(np.exp(true_raw[0])),
             "amplitude_predicted_rq_nm": predicted_rq,
+            "rheed_spot_isolation_score": predicted_isolation,
             "amplitude_predicted_fsmi_nm": predicted_fsmi,
             "condition_descriptor_mae_z": float(
                 np.mean(np.abs(condition_z - true_z))

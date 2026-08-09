@@ -659,6 +659,8 @@ def regime_adaptive_separated_island_blend(
     rough_texture_weight: float = 0.10,
     rough_texture_sigma_px: float = 2.4,
     rough_tip_sigma_px: float = 0.35,
+    rough_isolation_score: float = 0.50,
+    rough_isolation_strength: float = 1.0,
     smooth_full_below_nm: float = 0.80,
     terrace_full_above_nm: float = 1.60,
     boundary_width_px: float = 0.75,
@@ -742,6 +744,19 @@ def regime_adaptive_separated_island_blend(
         sigma=max(float(rough_tip_sigma_px), 0.0),
         mode="wrap",
     )
+    isolation = float(np.clip(rough_isolation_score, 0.0, 1.0))
+    isolation_strength = max(float(rough_isolation_strength), 0.0)
+    median = float(np.median(rounded))
+    centered = rounded - median
+    # Preserve the requested ordering in the rendered morphology itself:
+    # isolated RHEED spots deepen the connected substrate, whereas bridged
+    # or streak-like spots compress the negative tail before Sq scaling.
+    valley_scale = 1.0 + isolation_strength * 0.60 * (isolation - 0.50)
+    rounded = median + np.where(
+        centered < 0.0,
+        valley_scale * centered,
+        (1.0 + isolation_strength * 0.08 * (isolation - 0.50)) * centered,
+    )
     rounded = project_unit_rq_np(rounded)
     highpass = np.asarray(prior, dtype=np.float64) - ndimage.gaussian_filter(
         np.asarray(prior, dtype=np.float64),
@@ -814,6 +829,8 @@ def render_ensemble(
     rough_texture_weight: float = 0.10,
     rough_texture_sigma_px: float = 2.4,
     rough_tip_sigma_px: float = 0.35,
+    rough_isolation_score: float = 0.50,
+    rough_isolation_strength: float = 1.0,
 ) -> list[np.ndarray]:
     result = []
     for index in range(max(len(structure), len(spectral))):
@@ -951,6 +968,8 @@ def render_ensemble(
                 rough_texture_weight=rough_texture_weight,
                 rough_texture_sigma_px=rough_texture_sigma_px,
                 rough_tip_sigma_px=rough_tip_sigma_px,
+                rough_isolation_score=rough_isolation_score,
+                rough_isolation_strength=rough_isolation_strength,
                 smooth_full_below_nm=smooth_full_below_nm,
                 terrace_full_above_nm=terrace_full_above_nm,
                 boundary_width_px=boundary_width_px,
