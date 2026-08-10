@@ -36,10 +36,9 @@ def _metric_record(
     frame: pd.DataFrame, *, label: str, mask: np.ndarray
 ) -> dict[str, float | int | str]:
     subset = frame.loc[mask]
-    residual = (
-        subset["predicted_target"].to_numpy(float)
-        - subset["true_target"].to_numpy(float)
-    )
+    residual = subset["predicted_target"].to_numpy(float) - subset[
+        "true_target"
+    ].to_numpy(float)
     return {
         "stratum": label,
         "count": len(subset),
@@ -107,18 +106,14 @@ def crossfit_spot_connectivity_calibration(
     log_residual = np.log1p(np.maximum(truth, 0.0)) - log_base
     merge_rate = frame[CONNECTIVITY_FEATURES[0]].to_numpy(float)
     round_fraction = frame[CONNECTIVITY_FEATURES[2]].to_numpy(float)
-    temporal_rougher = (
-        frame["base_endpoint_prediction_nm"].to_numpy(float)
-        > frame["streak_expert_nm"].to_numpy(float)
-    )
+    temporal_rougher = frame["base_endpoint_prediction_nm"].to_numpy(float) > frame[
+        "streak_expert_nm"
+    ].to_numpy(float)
     rough_support = frame["rough_tail_rescue_activated"].astype(bool).to_numpy()
     gate = (
         rough_support
         & (merge_rate <= float(bridge_merge_threshold))
-        & (
-            temporal_rougher
-            | (round_fraction < float(nonround_fraction_threshold))
-        )
+        & (temporal_rougher | (round_fraction < float(nonround_fraction_threshold)))
     )
 
     corrected = base.copy()
@@ -130,12 +125,8 @@ def crossfit_spot_connectivity_calibration(
         train = np.arange(len(frame)) != query
         imputer = SimpleImputer(strategy="median")
         scaler = RobustScaler()
-        train_values = scaler.fit_transform(
-            imputer.fit_transform(features[train])
-        )
-        query_values = scaler.transform(
-            imputer.transform(features[query : query + 1])
-        )
+        train_values = scaler.fit_transform(imputer.fit_transform(features[train]))
+        query_values = scaler.transform(imputer.transform(features[query : query + 1]))
         count = min(int(neighbors), int(np.sum(train)))
         model = KNeighborsRegressor(
             n_neighbors=count,
@@ -147,7 +138,9 @@ def crossfit_spot_connectivity_calibration(
         # persistent isolated spots; large low-threshold components reverse it.
         topology_z = query_values[0]
         isolation_scores[query] = float(
-            expit(np.mean([topology_z[0], topology_z[1], topology_z[2], -topology_z[3]]))
+            expit(
+                np.mean([topology_z[0], topology_z[1], topology_z[2], -topology_z[3]])
+            )
         )
         distances = np.sqrt(np.sum(np.square(train_values - query_values), axis=1))
         order = np.argsort(distances)[:count]
@@ -158,10 +151,7 @@ def crossfit_spot_connectivity_calibration(
         )
         if gate[query]:
             corrected[query] = float(
-                np.expm1(
-                    log_base[query]
-                    + float(correction_strength) * correction
-                )
+                np.expm1(log_base[query] + float(correction_strength) * correction)
             )
 
     isolated_spot_gate = rough_support & (

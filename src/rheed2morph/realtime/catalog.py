@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
+import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-import re
-from typing import Iterable
 
 from rheed2morph.rheed.automatic_roi_keyframe import (
     SUPPORTED_VIDEO_SUFFIXES,
 )
-
 
 SAMPLE_PATTERN = re.compile(r"(?<!\d)(\d{4})(?!\d)")
 

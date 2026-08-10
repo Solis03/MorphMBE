@@ -6,10 +6,10 @@ import hashlib
 import json
 import math
 import re
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Sequence
-
+from typing import Any
 
 LEADING_SAMPLE_RE = re.compile(r"^\s*(\d{4,})\b\s*(?:[-:;,]?\s*(.*))?$")
 
@@ -45,21 +45,33 @@ def discover_removelist(repo_root: Path, configured_path: str | Path | None) -> 
     if configured_path:
         path = resolve_path(repo_root, configured_path).resolve()
         if not path.is_file():
-            raise FileNotFoundError(f"Configured removelist_path does not exist: {path}")
+            raise FileNotFoundError(
+                f"Configured removelist_path does not exist: {path}"
+            )
         return path
 
     candidates = sorted(
         path.resolve()
         for path in repo_root.rglob("*")
-        if path.is_file() and re.search(r"remove_?list|removelist", path.name, re.IGNORECASE)
+        if path.is_file()
+        and re.search(r"remove_?list|removelist", path.name, re.IGNORECASE)
     )
-    active = [path for path in candidates if "reports" not in path.relative_to(repo_root).parts and "outputs" not in path.relative_to(repo_root).parts]
+    active = [
+        path
+        for path in candidates
+        if "reports" not in path.relative_to(repo_root).parts
+        and "outputs" not in path.relative_to(repo_root).parts
+    ]
     if len(active) == 1:
         return active[0]
     if not active:
-        raise FileNotFoundError("No canonical removelist could be found; refusing to process samples.")
+        raise FileNotFoundError(
+            "No canonical removelist could be found; refusing to process samples."
+        )
     formatted = "\n".join(f"- {path}" for path in active)
-    raise RuntimeError(f"Multiple active removelists found; set removelist_path explicitly:\n{formatted}")
+    raise RuntimeError(
+        f"Multiple active removelists found; set removelist_path explicitly:\n{formatted}"
+    )
 
 
 def parse_removelist(path: Path) -> tuple[set[str], list[RemovelistRecord]]:
@@ -78,9 +90,15 @@ def parse_removelist(path: Path) -> tuple[set[str], list[RemovelistRecord]]:
         sample_id = match.group(1)
         note = (match.group(2) or "").strip()
         ids.add(sample_id)
-        records.append(RemovelistRecord(sample_id=sample_id, raw_line=raw_line, note=note, source_path=path))
+        records.append(
+            RemovelistRecord(
+                sample_id=sample_id, raw_line=raw_line, note=note, source_path=path
+            )
+        )
     if not ids:
-        raise ValueError(f"Removelist is empty after parsing; refusing to process samples: {path}")
+        raise ValueError(
+            f"Removelist is empty after parsing; refusing to process samples: {path}"
+        )
     return ids, records
 
 
@@ -92,7 +110,9 @@ def file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def load_removelist_audit(repo_root: Path, configured_path: str | Path | None) -> RemovelistAudit:
+def load_removelist_audit(
+    repo_root: Path, configured_path: str | Path | None
+) -> RemovelistAudit:
     path = discover_removelist(repo_root, configured_path)
     sample_ids, records = parse_removelist(path)
     stat = path.stat()
@@ -127,7 +147,9 @@ def audit_to_json(audit: RemovelistAudit) -> dict[str, Any]:
 
 def write_json(path: Path, payload: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(_json_ready(payload), indent=2, sort_keys=True), encoding="utf-8")
+    path.write_text(
+        json.dumps(_json_ready(payload), indent=2, sort_keys=True), encoding="utf-8"
+    )
 
 
 def _json_ready(value: Any) -> Any:
@@ -152,10 +174,14 @@ def _json_ready(value: Any) -> Any:
     return value
 
 
-def assert_no_removed_samples(sample_ids: Iterable[str], removelist_ids: Iterable[str], *, context: str) -> None:
+def assert_no_removed_samples(
+    sample_ids: Iterable[str], removelist_ids: Iterable[str], *, context: str
+) -> None:
     overlap = sorted(set(map(str, sample_ids)) & set(map(str, removelist_ids)))
     if overlap:
-        raise AssertionError(f"Removelist samples entered {context}: {', '.join(overlap)}")
+        raise AssertionError(
+            f"Removelist samples entered {context}: {', '.join(overlap)}"
+        )
 
 
 def excluded_rows_for_present_samples(

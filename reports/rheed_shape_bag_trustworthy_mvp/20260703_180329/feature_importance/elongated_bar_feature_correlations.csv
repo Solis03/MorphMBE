@@ -1,5 +1,0 @@
-feature,descriptor,pearson,spearman,count
-std_bar_like_score,island_mean_area_px,0.15911261789960832,0.11416436087737167,36
-std_bar_like_score,island_count,-0.053554855128964664,0.0808340848503473,36
-weighted_median_mean_aspect_ratio,island_mean_area_px,-0.1983961179737202,0.08662076084607795,36
-std_mean_aspect_ratio,island_mean_area_px,0.04834337595329523,0.07143316830545803,36

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 
 from .rq_disentanglement import project_unit_rq_torch
 
@@ -27,7 +27,9 @@ class ResidualBlock(nn.Module):
 class SmallResidualAFMAutoencoder(nn.Module):
     has_unet_skip_connections = False
 
-    def __init__(self, latent_dim: int, resolution: int = 128, base_channels: int = 12) -> None:
+    def __init__(
+        self, latent_dim: int, resolution: int = 128, base_channels: int = 12
+    ) -> None:
         super().__init__()
         if latent_dim not in (16, 32, 64):
             raise ValueError("latent_dim must be one of 16, 32, 64")
@@ -74,11 +76,16 @@ class SmallResidualAFMAutoencoder(nn.Module):
         c = self.base_channels
         h = self.from_latent(z).view(z.shape[0], c * 4, 4, 4)
         h = self.decoder_blocks[0](h)
-        for block, conv in zip(self.decoder_blocks[1:], self.up_convs):
+        for block, conv in zip(self.decoder_blocks[1:], self.up_convs, strict=False):
             h = F.interpolate(h, scale_factor=2, mode="nearest")
             h = conv(h)
             h = block(h)
-        h = F.interpolate(h, size=(self.resolution, self.resolution), mode="bilinear", align_corners=False)
+        h = F.interpolate(
+            h,
+            size=(self.resolution, self.resolution),
+            mode="bilinear",
+            align_corners=False,
+        )
         return self.final(h)
 
     def decode(self, z: torch.Tensor) -> torch.Tensor:
@@ -95,9 +102,13 @@ def architecture_summary(model: nn.Module) -> dict[str, object]:
         "latent_dim": getattr(model, "latent_dim", None),
         "resolution": getattr(model, "resolution", None),
         "parameter_count": int(sum(p.numel() for p in model.parameters())),
-        "trainable_parameter_count": int(sum(p.numel() for p in model.parameters() if p.requires_grad)),
+        "trainable_parameter_count": int(
+            sum(p.numel() for p in model.parameters() if p.requires_grad)
+        ),
         "normalization": "GroupNorm",
         "decoder_upsampling": "resize_convolution",
-        "has_unet_skip_connections": bool(getattr(model, "has_unet_skip_connections", False)),
+        "has_unet_skip_connections": bool(
+            getattr(model, "has_unet_skip_connections", False)
+        ),
         "final_activation": "linear_then_unit_rq_projection",
     }

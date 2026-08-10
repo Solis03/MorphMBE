@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from PySide6.QtWidgets import QApplication
 
@@ -14,7 +14,7 @@ def _arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--config",
-        default="configs/rheed_realtime_ui.json",
+        default="configs/morphmbe_m22_realtime.json",
     )
     return parser.parse_args()
 
@@ -30,10 +30,9 @@ def repository_root_from_config(
     if configured.is_absolute():
         return configured.resolve()
     for candidate in path.parents:
-        if (
-            (candidate / "src" / "rheed2morph").is_dir()
-            and (candidate / "configs").is_dir()
-        ):
+        if (candidate / "src" / "rheed2morph").is_dir() and (
+            candidate / "configs"
+        ).is_dir():
             return candidate
     return (path.parent / configured).resolve()
 

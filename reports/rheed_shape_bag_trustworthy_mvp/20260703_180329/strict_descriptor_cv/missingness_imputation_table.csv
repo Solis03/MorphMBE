@@ -1,3 +1,0 @@
-feature_set,note
-stable36,"Feature medians, means, and standard deviations are fitted inside each train fold only."
-brightness_only_diagnostic,"Feature medians, means, and standard deviations are fitted inside each train fold only."

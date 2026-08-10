@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 import numpy as np
 import pandas as pd
@@ -9,7 +9,6 @@ from sklearn.impute import SimpleImputer
 from sklearn.linear_model import HuberRegressor, Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import RobustScaler, StandardScaler
-
 
 # These are fixed, interpretable RHEED morphology/temporal features.  They
 # describe spot roundness/area/count, streak connectivity, skeleton structure,
@@ -33,9 +32,7 @@ CURATED_RHEED_FEATURES = [
     "temporal_brightness_drift",
 ]
 
-DYNAMIC_NUCLEATION_FEATURES = [
-    "causal_8__component_area_median_p97_first_last_diff"
-]
+DYNAMIC_NUCLEATION_FEATURES = ["causal_8__component_area_median_p97_first_last_diff"]
 
 
 def _ridge(alpha: float) -> Pipeline:
@@ -61,19 +58,12 @@ class AmplitudeHead:
         self, physics: pd.DataFrame
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         morphology = np.ravel(
-            self.morphology_model.predict(
-                physics[CURATED_RHEED_FEATURES]
-            )
+            self.morphology_model.predict(physics[CURATED_RHEED_FEATURES])
         )
         dynamics = np.ravel(
-            self.dynamics_model.predict(
-                physics[DYNAMIC_NUCLEATION_FEATURES]
-            )
+            self.dynamics_model.predict(physics[DYNAMIC_NUCLEATION_FEATURES])
         )
-        combined = (
-            self.morphology_weight * morphology
-            + self.dynamics_weight * dynamics
-        )
+        combined = self.morphology_weight * morphology + self.dynamics_weight * dynamics
         return morphology, dynamics, combined
 
 
@@ -88,12 +78,8 @@ def fit_amplitude_head(
     train_groups = list(map(str, groups))
     frame = physics.loc[train_groups]
     target = log_target.loc[train_groups].to_numpy(float)
-    morphology = _ridge(alpha).fit(
-        frame[CURATED_RHEED_FEATURES], target
-    )
-    dynamics = _ridge(alpha).fit(
-        frame[DYNAMIC_NUCLEATION_FEATURES], target
-    )
+    morphology = _ridge(alpha).fit(frame[CURATED_RHEED_FEATURES], target)
+    dynamics = _ridge(alpha).fit(frame[DYNAMIC_NUCLEATION_FEATURES], target)
     return AmplitudeHead(
         morphology_model=morphology,
         dynamics_model=dynamics,
@@ -113,38 +99,23 @@ def _query_diagnostics(
     morphology, dynamics, combined = model.predict_parts(query_physics)
     imputer = model.morphology_model["imputer"]
     scaler = model.morphology_model["scaler"]
-    train_x = scaler.transform(
-        imputer.transform(train_physics[CURATED_RHEED_FEATURES])
-    )
-    query_x = scaler.transform(
-        imputer.transform(query_physics[CURATED_RHEED_FEATURES])
-    )
-    nearest = float(
-        np.min(
-            np.sqrt(
-                np.mean(np.square(train_x - query_x[0]), axis=1)
-            )
-        )
-    )
+    train_x = scaler.transform(imputer.transform(train_physics[CURATED_RHEED_FEATURES]))
+    query_x = scaler.transform(imputer.transform(query_physics[CURATED_RHEED_FEATURES]))
+    nearest = float(np.min(np.sqrt(np.mean(np.square(train_x - query_x[0]), axis=1))))
     train_m, train_d, train_combined = model.predict_parts(train_physics)
     in_sample_residual = float(
         np.median(
             np.abs(
-                train_combined
-                - train_target.loc[model.train_groups].to_numpy(float)
+                train_combined - train_target.loc[model.train_groups].to_numpy(float)
             )
         )
     )
     prediction = float(combined[0])
     return prediction, {
         "predicted_log_target": prediction,
-        "head_disagreement_log": float(
-            abs(morphology[0] - dynamics[0])
-        ),
+        "head_disagreement_log": float(abs(morphology[0] - dynamics[0])),
         "nearest_training_rheed_distance": nearest,
-        "maximum_absolute_robust_z": float(
-            np.max(np.abs(query_x[0]))
-        ),
+        "maximum_absolute_robust_z": float(np.max(np.abs(query_x[0]))),
         "training_fit_median_log_residual": in_sample_residual,
     }
 
@@ -161,9 +132,7 @@ def _fit_expected_error(
             ("scaler", StandardScaler()),
             (
                 "huber",
-                HuberRegressor(
-                    alpha=0.1, epsilon=1.35, max_iter=2000
-                ),
+                HuberRegressor(alpha=0.1, epsilon=1.35, max_iter=2000),
             ),
         ]
     )
@@ -196,9 +165,7 @@ def _range_calibrate(
     predicted_log = np.log(
         np.clip(np.asarray(reference_predictions, dtype=float), 1e-8, None)
     )
-    true_log = np.log(
-        np.clip(np.asarray(reference_truth, dtype=float), 1e-8, None)
-    )
+    true_log = np.log(np.clip(np.asarray(reference_truth, dtype=float), 1e-8, None))
     query_log = float(np.log(max(float(query_prediction), 1e-8)))
     scale = float(
         np.clip(
@@ -207,13 +174,10 @@ def _range_calibrate(
             float(scale_cap),
         )
     )
-    matched = (
-        (query_log - float(np.mean(predicted_log))) * scale
-        + float(np.mean(true_log))
+    matched = (query_log - float(np.mean(predicted_log))) * scale + float(
+        np.mean(true_log)
     )
-    calibrated_log = (
-        (1.0 - float(blend)) * query_log + float(blend) * matched
-    )
+    calibrated_log = (1.0 - float(blend)) * query_log + float(blend) * matched
     return float(np.exp(calibrated_log)), scale
 
 
@@ -251,9 +215,7 @@ def crossfit_target(
         inner_raw_predictions: list[float] = []
         fold_inner_records: list[dict[str, float | str]] = []
         for inner_held in fit_groups:
-            inner_fit = [
-                group for group in fit_groups if group != inner_held
-            ]
+            inner_fit = [group for group in fit_groups if group != inner_held]
             inner_model = fit_amplitude_head(
                 physics,
                 log_target,
@@ -291,11 +253,9 @@ def crossfit_target(
                 inner_true_array[keep],
                 inner_raw_array[index],
             )
-        inner_error_array = np.abs(
-            inner_calibrated - inner_true_array
-        )
+        inner_error_array = np.abs(inner_calibrated - inner_true_array)
         for record, calibrated, error in zip(
-            fold_inner_records, inner_calibrated, inner_error_array
+            fold_inner_records, inner_calibrated, inner_error_array, strict=False
         ):
             record["predicted_target"] = float(calibrated)
             record["absolute_error"] = float(error)
@@ -306,9 +266,7 @@ def crossfit_target(
             np.asarray(list(diagnostics.values()), dtype=float),
             floor=error_floor,
         )
-        radius = _higher_quantile(
-            inner_error_array, 1.0 - confidence_alpha
-        )
+        radius = _higher_quantile(inner_error_array, 1.0 - confidence_alpha)
         true_value = float(np.exp(log_target.loc[held]))
         raw_predicted_value = float(np.exp(prediction))
         predicted_value, calibration_scale = _range_calibrate(
@@ -364,9 +322,7 @@ def predict_external_groups(
     )
     inner_errors = crossfit_predictions["absolute_error"].to_numpy(float)
     crossfit_truth = crossfit_predictions["true_target"].to_numpy(float)
-    crossfit_prediction = crossfit_predictions[
-        "predicted_target"
-    ].to_numpy(float)
+    crossfit_prediction = crossfit_predictions["predicted_target"].to_numpy(float)
     inner_diag = crossfit_predictions[
         [
             "predicted_log_target",

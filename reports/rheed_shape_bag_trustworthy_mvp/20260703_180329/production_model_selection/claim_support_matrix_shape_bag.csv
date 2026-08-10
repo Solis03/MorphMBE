@@ -1,6 +1,0 @@
-claim,support,evidence
-RHEED shape-bag features beat mean baseline,NOT_SUPPORTED,reports/rheed_shape_bag_trustworthy_mvp/20260703_180329/strict_descriptor_cv/descriptor_predictability_table.csv
-RHEED shape-bag beats brightness/exposure diagnostics,UNRELIABLE,reports/rheed_shape_bag_trustworthy_mvp/20260703_180329/negative_controls/negative_control_summary.json
-negative controls pass,UNRELIABLE,reports/rheed_shape_bag_trustworthy_mvp/20260703_180329/negative_controls/negative_control_report.md
-raw 240 features are production default,NOT_SUPPORTED,Raw features remain diagnostic only.
-exact pixel-level AFM reconstruction is possible,NOT_SUPPORTED,MVP-10 predicts descriptors for representative generation only.

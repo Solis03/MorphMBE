@@ -1,5 +1,0 @@
-flowchart LR
-  A[224x224 raw-luminance keyframe] --> B[1536-D DINO embedding]
-  B --> C[Training-fold StandardScaler]
-  C --> D[Ridge member predictions]
-  D --> E[Median ensemble q50]

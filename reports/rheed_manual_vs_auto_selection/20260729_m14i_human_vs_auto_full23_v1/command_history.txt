@@ -1,9 +1,0 @@
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_manual_vs_auto_selection.dataset --config configs/rheed_manual_vs_auto_selection.json --device mps
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_manual_vs_auto_selection.comparison --config configs/rheed_manual_vs_auto_selection.json
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_manual_vs_auto_selection.statistics --config configs/rheed_manual_vs_auto_selection.json
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_to_afm_full_cohort_loo.run --config configs/rheed_manual_vs_auto_generation.json --smoke --device mps
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_to_afm_full_cohort_loo.run --config configs/rheed_manual_vs_auto_generation.json --device mps
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_to_afm_full_cohort_loo.visualization --config configs/rheed_manual_vs_auto_generation.json
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_manual_vs_auto_selection.deployment_pair --config configs/rheed_manual_vs_auto_selection.json --device cpu
-PYTHONPATH=. .venv/bin/python -m pytest -q tests/test_rheed_manual_vs_auto_selection.py tests/test_rheed_realtime_ui.py tests/test_automatic_rheed_roi_keyframe.py tests/test_rheed_to_afm_ood_robust.py tests/test_rheed_to_afm_full_cohort_loo.py
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_manual_vs_auto_selection.manifest --config configs/rheed_manual_vs_auto_selection.json

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -10,7 +9,6 @@ import pandas as pd
 import torch
 
 from .common import display_path, repo_path, sha256_object
-
 
 IMAGENET_MEAN = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1)
 IMAGENET_STD = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1)
@@ -33,7 +31,9 @@ def frozen_parameters(model: torch.nn.Module) -> bool:
     return all(not param.requires_grad for param in model.parameters())
 
 
-def preprocess_frames(frames_uint8: np.ndarray, preprocessing: str, video: bool = False) -> torch.Tensor:
+def preprocess_frames(
+    frames_uint8: np.ndarray, preprocessing: str, video: bool = False
+) -> torch.Tensor:
     arr = frames_uint8.astype(np.float32)
     if preprocessing == "raw_luminance":
         arr = arr / 255.0
@@ -79,7 +79,9 @@ def load_resnet18() -> tuple[torch.nn.Module | None, EncoderStatus]:
         ok = frozen_parameters(model)
         return model, EncoderStatus("resnet18", ok, str(weights))
     except Exception as exc:  # noqa: BLE001
-        return None, EncoderStatus("resnet18", False, "torchvision.models.ResNet18_Weights.DEFAULT", repr(exc))
+        return None, EncoderStatus(
+            "resnet18", False, "torchvision.models.ResNet18_Weights.DEFAULT", repr(exc)
+        )
 
 
 def load_r3d18() -> tuple[torch.nn.Module | None, EncoderStatus]:
@@ -92,19 +94,32 @@ def load_r3d18() -> tuple[torch.nn.Module | None, EncoderStatus]:
         ok = frozen_parameters(model)
         return model, EncoderStatus("r3d_18", ok, str(weights))
     except Exception as exc:  # noqa: BLE001
-        return None, EncoderStatus("r3d_18", False, "torchvision.models.video.R3D_18_Weights.DEFAULT", repr(exc))
+        return None, EncoderStatus(
+            "r3d_18",
+            False,
+            "torchvision.models.video.R3D_18_Weights.DEFAULT",
+            repr(exc),
+        )
 
 
 def load_dino() -> tuple[torch.nn.Module | None, EncoderStatus]:
     try:
-        model = torch.hub.load("facebookresearch/dinov2", "dinov2_vits14", pretrained=True)
+        model = torch.hub.load(
+            "facebookresearch/dinov2", "dinov2_vits14", pretrained=True
+        )
         ok = frozen_parameters(model)
-        return model, EncoderStatus("dino_vits14", ok, "facebookresearch/dinov2:dinov2_vits14")
+        return model, EncoderStatus(
+            "dino_vits14", ok, "facebookresearch/dinov2:dinov2_vits14"
+        )
     except Exception as exc:  # noqa: BLE001
-        return None, EncoderStatus("dino_vits14", False, "facebookresearch/dinov2:dinov2_vits14", repr(exc))
+        return None, EncoderStatus(
+            "dino_vits14", False, "facebookresearch/dinov2:dinov2_vits14", repr(exc)
+        )
 
 
-def _load_variant_rows(variant_manifest: pd.DataFrame, variant: str, sample_ids: list[str]) -> pd.DataFrame:
+def _load_variant_rows(
+    variant_manifest: pd.DataFrame, variant: str, sample_ids: list[str]
+) -> pd.DataFrame:
     rows = variant_manifest[
         (variant_manifest["clip_variant"] == variant)
         & (variant_manifest["available"])
@@ -130,18 +145,29 @@ def extract_embeddings(
     needed = {
         job["encoder"]
         for job in config["embedding_jobs"]
-        if not (embed_root / f"{job['encoder']}__{job['variant']}__{job['preprocessing']}.npz").exists()
+        if not (
+            embed_root
+            / f"{job['encoder']}__{job['variant']}__{job['preprocessing']}.npz"
+        ).exists()
     }
     models: dict[str, torch.nn.Module | None] = {}
     statuses: dict[str, EncoderStatus] = {}
-    loaders = {"resnet18": load_resnet18, "r3d_18": load_r3d18, "dino_vits14": load_dino}
+    loaders = {
+        "resnet18": load_resnet18,
+        "r3d_18": load_r3d18,
+        "dino_vits14": load_dino,
+    }
     for encoder, loader in loaders.items():
         if encoder in needed:
             model, status = loader()
             statuses[status.encoder] = status
-            models[status.encoder] = model.to(device) if model is not None and status.loaded else None
+            models[status.encoder] = (
+                model.to(device) if model is not None and status.loaded else None
+            )
         else:
-            statuses[encoder] = EncoderStatus(encoder, True, "cache_hit_existing_embedding")
+            statuses[encoder] = EncoderStatus(
+                encoder, True, "cache_hit_existing_embedding"
+            )
             models[encoder] = None
     registry_rows = [
         {
@@ -173,11 +199,34 @@ def extract_embeddings(
                     "weight_identifier": str(data["weight_identifier"]),
                 }
             )
-            registry_rows.append({"encoder": encoder, "status": "embedding_cache_hit", "weight_identifier": str(data["weight_identifier"]), "skip_reason": "", "frozen_requires_grad_false": True, "clip_variant": variant, "preprocessing": preprocessing, "embedding_path": display_path(out_path)})
+            registry_rows.append(
+                {
+                    "encoder": encoder,
+                    "status": "embedding_cache_hit",
+                    "weight_identifier": str(data["weight_identifier"]),
+                    "skip_reason": "",
+                    "frozen_requires_grad_false": True,
+                    "clip_variant": variant,
+                    "preprocessing": preprocessing,
+                    "embedding_path": display_path(out_path),
+                }
+            )
             continue
         model = models.get(encoder)
         if model is None:
-            registry_rows.append({"encoder": encoder, "status": "job_skipped", "weight_identifier": statuses.get(encoder, EncoderStatus(encoder, False, "")).weight_identifier, "skip_reason": "encoder_not_loaded", "frozen_requires_grad_false": False, "clip_variant": variant, "preprocessing": preprocessing})
+            registry_rows.append(
+                {
+                    "encoder": encoder,
+                    "status": "job_skipped",
+                    "weight_identifier": statuses.get(
+                        encoder, EncoderStatus(encoder, False, "")
+                    ).weight_identifier,
+                    "skip_reason": "encoder_not_loaded",
+                    "frozen_requires_grad_false": False,
+                    "clip_variant": variant,
+                    "preprocessing": preprocessing,
+                }
+            )
             continue
         rows = _load_variant_rows(variant_manifest, variant, sample_ids)
         embeddings: list[np.ndarray] = []
@@ -189,7 +238,9 @@ def extract_embeddings(
                 tensor = preprocess_frames(frames, preprocessing, video=True).to(device)
                 emb = model(tensor).detach().cpu().numpy()[0].astype(np.float32)
             else:
-                tensor = preprocess_frames(frames, preprocessing, video=False).to(device)
+                tensor = preprocess_frames(frames, preprocessing, video=False).to(
+                    device
+                )
                 if encoder == "dino_vits14":
                     frame_emb = model(tensor).detach().cpu().numpy().astype(np.float32)
                 else:
@@ -223,5 +274,16 @@ def extract_embeddings(
                 "weight_identifier": statuses[encoder].weight_identifier,
             }
         )
-        registry_rows.append({"encoder": encoder, "status": "embedding_written", "weight_identifier": statuses[encoder].weight_identifier, "skip_reason": "", "frozen_requires_grad_false": True, "clip_variant": variant, "preprocessing": preprocessing, "embedding_path": display_path(out_path)})
+        registry_rows.append(
+            {
+                "encoder": encoder,
+                "status": "embedding_written",
+                "weight_identifier": statuses[encoder].weight_identifier,
+                "skip_reason": "",
+                "frozen_requires_grad_false": True,
+                "clip_variant": variant,
+                "preprocessing": preprocessing,
+                "embedding_path": display_path(out_path),
+            }
+        )
     return pd.DataFrame(embedding_rows), pd.DataFrame(registry_rows)

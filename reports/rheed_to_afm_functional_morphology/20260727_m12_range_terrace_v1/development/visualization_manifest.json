@@ -1,9 +1,0 @@
-{
-  "afm_scan_size_nm": 1000.0,
-  "figure_directory": "/Users/ziyi/Desktop/LAB/code/reports/rheed_to_afm_functional_morphology/20260727_m12_range_terrace_v1/development/figures",
-  "fixed_order_policy": "Held-one atlas is ordered by measured Rq and the same order is used within each comparison page.",
-  "height_units": "nm",
-  "pdf_count": 10,
-  "png_count": 10,
-  "selected_method": "M12a_edge_preserving_terrace"
-}

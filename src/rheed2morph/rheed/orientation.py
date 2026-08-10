@@ -7,7 +7,6 @@ from typing import Any
 
 import numpy as np
 
-
 VALID_CLOCKWISE_ROTATIONS = (0, 90, 180, 270)
 
 

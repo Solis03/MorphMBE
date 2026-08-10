@@ -24,12 +24,8 @@ def jackknife_plus_interval(
     residual = np.abs(truth - predicted)
     lower_candidates = query - residual
     upper_candidates = query + residual
-    lower = np.quantile(
-        lower_candidates, alpha / 2.0, axis=0, method="lower"
-    )
-    upper = np.quantile(
-        upper_candidates, 1.0 - alpha / 2.0, axis=0, method="higher"
-    )
+    lower = np.quantile(lower_candidates, alpha / 2.0, axis=0, method="lower")
+    upper = np.quantile(upper_candidates, 1.0 - alpha / 2.0, axis=0, method="higher")
     return lower.astype(np.float32), upper.astype(np.float32)
 
 

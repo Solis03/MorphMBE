@@ -1,4 +1,0 @@
-event_frame,event_time_seconds,estimated_period_frames,predicted_Sq_nm,predicted_FSMI_nm,model_confidence,combined_confidence,generated_AFM_saved
-129,12.9,19.0,1.030533,0.924516,0.066776,0.144454,true
-221,22.1,18.5,0.774947,0.699867,0.066776,0.144742,true
-312,31.2,18.0,0.558265,0.497569,0.017241,0.059381,true

@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import time
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy import ndimage
 import torch
+from scipy import ndimage
 
 from analysis.rheed_to_afm_distinct_confidence.run import _load_tables
 from analysis.rheed_to_afm_sharp_generation.spectral import load_unit_map
@@ -35,9 +35,7 @@ def _device(name: str) -> torch.device:
 
 def _load_config(path: str | Path) -> dict:
     config = json.loads(repo_path(path).read_text(encoding="utf-8"))
-    parent = json.loads(
-        repo_path(config["parent_config"]).read_text(encoding="utf-8")
-    )
+    parent = json.loads(repo_path(config["parent_config"]).read_text(encoding="utf-8"))
     return {**parent, **config}
 
 
@@ -92,9 +90,7 @@ def _batch(
         targets.append(np.ascontiguousarray((target - guide) / residual_scale))
         conditions.append(np.ascontiguousarray(guide))
     residual = torch.from_numpy(np.stack(targets)[:, None].astype(np.float32))
-    guide_tensor = torch.from_numpy(
-        np.stack(conditions)[:, None].astype(np.float32)
-    )
+    guide_tensor = torch.from_numpy(np.stack(conditions)[:, None].astype(np.float32))
     return residual, guide_tensor
 
 
@@ -121,9 +117,7 @@ def _validation_loss(
         rng=rng,
     )
     return float(
-        diffusion.training_loss(
-            model, residual.to(device), guide.to(device)
-        )
+        diffusion.training_loss(model, residual.to(device), guide.to(device))
         .detach()
         .cpu()
     )
@@ -144,9 +138,7 @@ def train(args: argparse.Namespace) -> None:
     refiner_validation_rows = train_rows.loc[
         train_rows["growth_run_id"].astype(str).isin(validation_groups)
     ]
-    fit_arrays, fit_array_groups = _maps(
-        fit_rows, int(config["resolution"])
-    )
+    fit_arrays, fit_array_groups = _maps(fit_rows, int(config["resolution"]))
     validation_arrays = None
     validation_array_groups: list[str] = []
     if not args.fit_all:
@@ -159,9 +151,7 @@ def train(args: argparse.Namespace) -> None:
         if validation_arrays is None
         else _guides(validation_arrays, float(args.guide_sigma))
     )
-    residual_scale = float(
-        np.std(fit_arrays - fit_guides)
-    )
+    residual_scale = float(np.std(fit_arrays - fit_guides))
     residual_scale = max(residual_scale, 1e-3)
     device = _device(args.device)
     torch.manual_seed(int(args.seed))
@@ -171,9 +161,7 @@ def train(args: argparse.Namespace) -> None:
         base_channels=int(args.base_channels),
         embedding_dim=int(args.embedding_dim),
     ).to(device)
-    diffusion = StructureGuidedDiffusion(
-        timesteps=int(args.timesteps), device=device
-    )
+    diffusion = StructureGuidedDiffusion(timesteps=int(args.timesteps), device=device)
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=float(args.learning_rate),
@@ -237,9 +225,7 @@ def train(args: argparse.Namespace) -> None:
                             "residual_scale": residual_scale,
                             "resolution": int(config["resolution"]),
                         },
-                        "fit_growth_groups": sorted(
-                            set(fit_array_groups)
-                        ),
+                        "fit_growth_groups": sorted(set(fit_array_groups)),
                         "refiner_validation_growth_groups": validation_groups,
                         "step": step,
                         "best_validation_loss": best,
@@ -277,9 +263,7 @@ def train(args: argparse.Namespace) -> None:
             "best_validation_loss": best,
             "fit_growth_groups": sorted(set(fit_array_groups)),
             "refiner_validation_growth_groups": validation_groups,
-            "refiner_validation_scan_groups": sorted(
-                set(validation_array_groups)
-            ),
+            "refiner_validation_scan_groups": sorted(set(validation_array_groups)),
             "fit_all_training_growth_groups": bool(args.fit_all),
             "historical_test_used": False,
             "residual_scale": residual_scale,

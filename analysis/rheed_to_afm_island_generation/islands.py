@@ -65,27 +65,20 @@ def _component_summary(
     suffix = f"q{int(quantile * 100):02d}"
     prefix = "" if high else "valley_"
     result = {
-        f"log_{prefix}component_count_{suffix}": float(
-            np.log1p(len(regions))
-        ),
+        f"log_{prefix}component_count_{suffix}": float(np.log1p(len(regions))),
         f"log_{prefix}median_area_{suffix}": float(
             np.log1p(np.median(areas) if len(areas) else 0.0)
         ),
     }
     if high:
         result[f"boundary_gradient_ratio_{suffix}"] = float(
-            np.mean(gradient[boundary])
-            / max(float(np.mean(gradient)), 1e-8)
+            np.mean(gradient[boundary]) / max(float(np.mean(gradient)), 1e-8)
         )
         result[f"median_solidity_{suffix}"] = float(
-            np.median([region.solidity for region in regions])
-            if regions
-            else 0.0
+            np.median([region.solidity for region in regions]) if regions else 0.0
         )
         result[f"median_eccentricity_{suffix}"] = float(
-            np.median([region.eccentricity for region in regions])
-            if regions
-            else 0.0
+            np.median([region.eccentricity for region in regions]) if regions else 0.0
         )
     return result
 
@@ -105,47 +98,29 @@ def extract_island_features(array: np.ndarray) -> dict[str, float]:
     laplacian = ndimage.laplace(smooth, mode="reflect")
     features: dict[str, float] = {}
     for level in LEVELS:
-        features.update(
-            _component_summary(
-                smooth, gradient, quantile=level, high=True
-            )
-        )
-    features.update(
-        _component_summary(
-            smooth, gradient, quantile=0.18, high=False
-        )
-    )
+        features.update(_component_summary(smooth, gradient, quantile=level, high=True))
+    features.update(_component_summary(smooth, gradient, quantile=0.18, high=False))
     features["gradient_p90"] = float(np.quantile(gradient, 0.90))
-    features["laplacian_rms"] = float(
-        np.sqrt(np.mean(np.square(laplacian)))
-    )
+    features["laplacian_rms"] = float(np.sqrt(np.mean(np.square(laplacian))))
     # An absolute unit-Rq threshold retains information; a gradient quantile
     # would make this feature constant by construction.
     features["flat_fraction"] = float(np.mean(gradient < 0.075))
-    return {
-        column: float(features[column]) for column in ISLAND_FEATURE_COLUMNS
-    }
+    return {column: float(features[column]) for column in ISLAND_FEATURE_COLUMNS}
 
 
-def scan_island_feature_table(
-    rows: pd.DataFrame, *, resolution: int
-) -> pd.DataFrame:
+def scan_island_feature_table(rows: pd.DataFrame, *, resolution: int) -> pd.DataFrame:
     records: list[dict[str, float | str]] = []
     for _, row in rows.iterrows():
         record: dict[str, float | str] = {
             "sample_id": str(row["sample_id"]),
             "growth_run_id": str(row["growth_run_id"]),
         }
-        record.update(
-            extract_island_features(load_unit_map(row, resolution))
-        )
+        record.update(extract_island_features(load_unit_map(row, resolution)))
         records.append(record)
     return pd.DataFrame(records)
 
 
-def group_island_feature_table(
-    rows: pd.DataFrame, *, resolution: int
-) -> pd.DataFrame:
+def group_island_feature_table(rows: pd.DataFrame, *, resolution: int) -> pd.DataFrame:
     scans = scan_island_feature_table(rows, resolution=resolution)
     table = scans.groupby("growth_run_id")[ISLAND_FEATURE_COLUMNS].median()
     table.index = table.index.astype(str)
@@ -171,7 +146,7 @@ class IslandConditionModel:
         raw = np.clip(raw, self.lower_bounds, self.upper_bounds)
         return {
             column: float(value)
-            for column, value in zip(self.feature_columns, raw)
+            for column, value in zip(self.feature_columns, raw, strict=False)
         }
 
 
@@ -182,9 +157,7 @@ def fit_island_condition_model(
     resolution: int,
     alphas: Iterable[float] = (0.3, 1.0, 3.0, 10.0, 30.0),
 ) -> tuple[IslandConditionModel, pd.DataFrame, pd.DataFrame]:
-    targets = group_island_feature_table(
-        train_rows, resolution=resolution
-    )
+    targets = group_island_feature_table(train_rows, resolution=resolution)
     groups = list(targets.index.astype(str))
     raw_conditions = (
         aggregate_group_conditions(
@@ -198,20 +171,14 @@ def fit_island_condition_model(
     output_scaler = StandardScaler().fit(
         targets[ISLAND_FEATURE_COLUMNS].to_numpy(float)
     )
-    target_z = output_scaler.transform(
-        targets[ISLAND_FEATURE_COLUMNS].to_numpy(float)
-    )
+    target_z = output_scaler.transform(targets[ISLAND_FEATURE_COLUMNS].to_numpy(float))
     records: list[dict[str, float]] = []
     for alpha in alphas:
         predictions = np.zeros_like(target_z)
         for held in range(len(groups)):
             keep = np.arange(len(groups)) != held
-            model = Ridge(alpha=float(alpha)).fit(
-                conditions[keep], target_z[keep]
-            )
-            predictions[held] = model.predict(
-                conditions[held : held + 1]
-            )[0]
+            model = Ridge(alpha=float(alpha)).fit(conditions[keep], target_z[keep])
+            predictions[held] = model.predict(conditions[held : held + 1])[0]
         records.append(
             {
                 "alpha": float(alpha),
@@ -221,14 +188,10 @@ def fit_island_condition_model(
                 "loo_island_feature_rmse_z": float(
                     np.sqrt(np.mean(np.square(predictions - target_z)))
                 ),
-                "loo_prediction_variance": float(
-                    np.mean(np.var(predictions, axis=0))
-                ),
+                "loo_prediction_variance": float(np.mean(np.var(predictions, axis=0))),
             }
         )
-    cv = pd.DataFrame(records).sort_values(
-        ["loo_island_feature_mae_z", "alpha"]
-    )
+    cv = pd.DataFrame(records).sort_values(["loo_island_feature_mae_z", "alpha"])
     alpha = float(cv.iloc[0]["alpha"])
     ridge = Ridge(alpha=alpha).fit(conditions, target_z)
     values = targets[ISLAND_FEATURE_COLUMNS].to_numpy(float)
@@ -273,9 +236,7 @@ def _periodic_delta(axis: np.ndarray, center: float, size: int) -> np.ndarray:
     return np.minimum(delta, size - delta)
 
 
-def _periodic_signed_delta(
-    axis: np.ndarray, center: float, size: int
-) -> np.ndarray:
+def _periodic_signed_delta(axis: np.ndarray, center: float, size: int) -> np.ndarray:
     """Shortest signed displacement on a periodic image domain."""
 
     return (axis - center + size / 2.0) % size - size / 2.0
@@ -464,8 +425,10 @@ class IslandPrimitiveGenerator:
         if growth_layer_strength > 0.0:
             secondary_fraction += 1.55 * growth_progress
         secondary_count = int(np.round(secondary_fraction * primary_count))
-        areas = footprint_area * area_factor * rng.lognormal(
-            0.0, settings["size_sigma"], size=primary_count
+        areas = (
+            footprint_area
+            * area_factor
+            * rng.lognormal(0.0, settings["size_sigma"], size=primary_count)
         )
         if secondary_count:
             secondary_areas = (
@@ -486,7 +449,7 @@ class IslandPrimitiveGenerator:
         centers: list[tuple[float, float]] = []
         placed_radii: list[float] = []
         placed_secondary: list[bool] = []
-        for radius, is_secondary in zip(radii, secondary_flags):
+        for radius, is_secondary in zip(radii, secondary_flags, strict=False):
             best: tuple[float, float] | None = None
             best_clearance = -np.inf
             accepted = False
@@ -498,7 +461,7 @@ class IslandPrimitiveGenerator:
                     break
                 clearances = []
                 for (py, px), previous_radius, previous_secondary in zip(
-                    centers, placed_radii, placed_secondary
+                    centers, placed_radii, placed_secondary, strict=False
                 ):
                     dy = min(abs(cy - py), n - abs(cy - py))
                     dx = min(abs(cx - px), n - abs(cx - px))
@@ -539,21 +502,14 @@ class IslandPrimitiveGenerator:
 
         eccentricity = float(
             np.clip(
-                target["median_eccentricity_q70"]
-                * settings["eccentricity_scale"],
+                target["median_eccentricity_q70"] * settings["eccentricity_scale"],
                 0.30,
                 0.90,
             )
         )
-        aspect = float(
-            np.clip(1.0 / np.sqrt(1.0 - eccentricity**2), 1.05, 2.35)
-        )
-        solidity = float(
-            np.clip(target["median_solidity_q70"], 0.80, 0.97)
-        )
-        edge_ratio = float(
-            np.clip(target["boundary_gradient_ratio_q70"], 0.92, 1.65)
-        )
+        aspect = float(np.clip(1.0 / np.sqrt(1.0 - eccentricity**2), 1.05, 2.35))
+        solidity = float(np.clip(target["median_solidity_q70"], 0.80, 0.97))
+        edge_ratio = float(np.clip(target["boundary_gradient_ratio_q70"], 0.92, 1.65))
 
         substrate_noise = ndimage.gaussian_filter(
             rng.normal(size=(n, n)), sigma=1.10, mode="wrap"
@@ -562,21 +518,11 @@ class IslandPrimitiveGenerator:
         substrate_noise /= max(float(np.std(substrate_noise)), 1e-8)
         field = -0.92 + 0.035 * substrate_noise
         for (cy, cx), area, is_secondary in zip(
-            centers, areas, secondary_flags
+            centers, areas, secondary_flags, strict=False
         ):
-            local_aspect = float(
-                np.clip(aspect * rng.lognormal(0.0, 0.12), 1.02, 2.55)
-            )
-            a = float(
-                np.clip(
-                    np.sqrt(area * local_aspect / np.pi), 2.4, n / 4.5
-                )
-            )
-            b = float(
-                np.clip(
-                    np.sqrt(area / (np.pi * local_aspect)), 2.1, n / 5.0
-                )
-            )
+            local_aspect = float(np.clip(aspect * rng.lognormal(0.0, 0.12), 1.02, 2.55))
+            a = float(np.clip(np.sqrt(area * local_aspect / np.pi), 2.4, n / 4.5))
+            b = float(np.clip(np.sqrt(area / (np.pi * local_aspect)), 2.1, n / 5.0))
             angle = float(rng.uniform(0.0, np.pi))
             dx = _periodic_signed_delta(xx, cx, n)
             dy = _periodic_signed_delta(yy, cy, n)
@@ -585,28 +531,22 @@ class IslandPrimitiveGenerator:
             theta = np.arctan2(yr / b, xr / a)
             irregularity = min(0.11, 0.65 * (1.0 - solidity)) * (
                 np.cos(3.0 * theta + rng.uniform(0.0, 2.0 * np.pi))
-                + 0.42
-                * np.cos(5.0 * theta + rng.uniform(0.0, 2.0 * np.pi))
+                + 0.42 * np.cos(5.0 * theta + rng.uniform(0.0, 2.0 * np.pi))
             )
             exponent = float(rng.uniform(1.85, 2.45))
-            distance = (
-                np.abs(xr / a) ** exponent
-                + np.abs(yr / b) ** exponent
-            ) ** (1.0 / exponent)
+            distance = (np.abs(xr / a) ** exponent + np.abs(yr / b) ** exponent) ** (
+                1.0 / exponent
+            )
             distance /= np.clip(1.0 + irregularity, 0.84, 1.16)
             edge_width = float(np.clip(0.13 / edge_ratio, 0.065, 0.14))
             edge = 1.0 / (
-                1.0
-                + np.exp(
-                    np.clip((distance - 1.0) / edge_width, -30.0, 30.0)
-                )
+                1.0 + np.exp(np.clip((distance - 1.0) / edge_width, -30.0, 30.0))
             )
             dome_power = float(rng.uniform(0.48, 0.76))
             dome = np.clip(1.0 - distance**2, 0.0, 1.0) ** dome_power
             height = float(
                 rng.lognormal(
-                    0.48
-                    + topology_strength * 0.28 * (isolation - 0.50),
+                    0.48 + topology_strength * 0.28 * (isolation - 0.50),
                     0.20,
                 )
             )
@@ -643,21 +583,14 @@ class IslandPrimitiveGenerator:
             )
             completion_budget = int(
                 np.clip(
-                    np.ceil(
-                        primary_count
-                        * (0.42 + 0.58 * gap_completion_progress)
-                    ),
+                    np.ceil(primary_count * (0.42 + 0.58 * gap_completion_progress)),
                     8,
                     72,
                 )
             )
             for _ in range(completion_budget):
-                display_low, display_high = np.quantile(
-                    field, (0.005, 0.995)
-                )
-                low_mask = field < (
-                    display_low + 0.30 * (display_high - display_low)
-                )
+                display_low, display_high = np.quantile(field, (0.005, 0.995))
+                low_mask = field < (display_low + 0.30 * (display_high - display_low))
                 tiled_distance = ndimage.distance_transform_edt(
                     np.tile(low_mask, (3, 3))
                 )
@@ -691,10 +624,7 @@ class IslandPrimitiveGenerator:
                 yr = -np.sin(angle) * dx + np.cos(angle) * dy
                 distance = np.hypot(xr / a, yr / b)
                 edge = 1.0 / (
-                    1.0
-                    + np.exp(
-                        np.clip((distance - 1.0) / 0.10, -30.0, 30.0)
-                    )
+                    1.0 + np.exp(np.clip((distance - 1.0) / 0.10, -30.0, 30.0))
                 )
                 dome = np.clip(1.0 - distance**2, 0.0, 1.0) ** float(
                     rng.uniform(0.52, 0.72)
@@ -710,9 +640,7 @@ class IslandPrimitiveGenerator:
             # peaks to a predominantly high island layer with sparse valleys.
             # This directly models the negative height skew observed in the
             # measured Sq=4--6 nm maps.
-            response_low, response_high = np.quantile(
-                field, (0.005, 0.995)
-            )
+            response_low, response_high = np.quantile(field, (0.005, 0.995))
             response_span = max(float(response_high - response_low), 1e-8)
             normalized = (field - response_low) / response_span
             response_power = 1.0 + 0.80 * gap_completion_progress
@@ -736,26 +664,16 @@ class IslandPrimitiveGenerator:
         yy, xx = np.mgrid[:n, :n]
         count = int(np.clip(np.round(1.35 * _count(target, 70)), 7, 70))
         median_area = _area(target, 70)
-        eccentricity = float(
-            np.clip(target["median_eccentricity_q70"], 0.15, 0.94)
-        )
-        aspect = float(
-            np.clip(1.0 / np.sqrt(1.0 - eccentricity**2), 1.0, 3.0)
-        )
-        solidity = float(
-            np.clip(target["median_solidity_q70"], 0.72, 0.98)
-        )
-        edge_ratio = float(
-            np.clip(target["boundary_gradient_ratio_q70"], 0.9, 1.8)
-        )
+        eccentricity = float(np.clip(target["median_eccentricity_q70"], 0.15, 0.94))
+        aspect = float(np.clip(1.0 / np.sqrt(1.0 - eccentricity**2), 1.0, 3.0))
+        solidity = float(np.clip(target["median_solidity_q70"], 0.72, 0.98))
+        edge_ratio = float(np.clip(target["boundary_gradient_ratio_q70"], 0.9, 1.8))
         radius = np.sqrt(median_area / np.pi)
         field = np.full((n, n), -0.35, dtype=np.float64)
         for _ in range(count):
             cx, cy = rng.uniform(0, n, size=2)
             area_scale = float(rng.lognormal(0.0, 0.30))
-            local_aspect = float(
-                np.clip(aspect * rng.lognormal(0.0, 0.16), 1.0, 3.5)
-            )
+            local_aspect = float(np.clip(aspect * rng.lognormal(0.0, 0.16), 1.0, 3.5))
             a = np.clip(radius * np.sqrt(local_aspect) * area_scale, 2.0, n / 5)
             b = np.clip(radius / np.sqrt(local_aspect) * area_scale, 1.7, n / 5)
             angle = rng.uniform(0.0, np.pi)
@@ -772,43 +690,31 @@ class IslandPrimitiveGenerator:
                 + 0.45 * np.cos(5 * theta + rng.uniform(0, 2 * np.pi))
             )
             exponent = float(rng.uniform(2.5, 5.0))
-            distance = (
-                np.abs(xr / a) ** exponent
-                + np.abs(yr / b) ** exponent
-            ) ** (1.0 / exponent)
+            distance = (np.abs(xr / a) ** exponent + np.abs(yr / b) ** exponent) ** (
+                1.0 / exponent
+            )
             distance /= np.clip(1.0 + irregularity, 0.65, 1.35)
             edge_width = np.clip(0.24 / edge_ratio, 0.10, 0.28)
-            mask = 1.0 / (
-                1.0 + np.exp(np.clip((distance - 1.0) / edge_width, -30, 30))
-            )
+            mask = 1.0 / (1.0 + np.exp(np.clip((distance - 1.0) / edge_width, -30, 30)))
             dome = np.clip(1.0 - distance**2, 0.0, 1.0)
             height = float(rng.lognormal(0.0, 0.28))
             primitive = -0.35 + height * mask * (0.68 + 0.32 * dome)
             field = np.maximum(field, primitive)
         valley_count = int(
             np.clip(
-                np.round(
-                    1.25
-                    * np.expm1(
-                        target["log_valley_component_count_q18"]
-                    )
-                ),
+                np.round(1.25 * np.expm1(target["log_valley_component_count_q18"])),
                 3,
                 70,
             )
         )
         valley_area = max(
-            float(
-                np.expm1(target["log_valley_median_area_q18"])
-            ),
+            float(np.expm1(target["log_valley_median_area_q18"])),
             5.0,
         )
         valley_radius = np.sqrt(valley_area / np.pi)
         for _ in range(valley_count):
             cx, cy = rng.uniform(0, n, size=2)
-            sigma = np.clip(
-                valley_radius * rng.lognormal(0.0, 0.3), 1.2, n / 8
-            )
+            sigma = np.clip(valley_radius * rng.lognormal(0.0, 0.3), 1.2, n / 8)
             dx = _periodic_delta(xx, cx, n)
             dy = _periodic_delta(yy, cy, n)
             valley = -float(rng.uniform(0.35, 0.9)) * np.exp(
@@ -845,7 +751,7 @@ class IslandPrimitiveGenerator:
             size=count,
         )
         distances = []
-        for (cy, cx), weight in zip(centers, weights):
+        for (cy, cx), weight in zip(centers, weights, strict=False):
             dx = _periodic_delta(xx, cx, n)
             dy = _periodic_delta(yy, cy, n)
             distances.append(np.hypot(dx, dy) / max(weight, 1e-3))
@@ -859,9 +765,7 @@ class IslandPrimitiveGenerator:
         # Each capture zone becomes a gently crowned terrace; the gap between
         # first and second weighted distances identifies coalescence valleys.
         field += 0.30 * np.clip(1.0 - nearest, 0.0, 1.0)
-        edge_ratio = float(
-            np.clip(target["boundary_gradient_ratio_q55"], 0.9, 1.8)
-        )
+        edge_ratio = float(np.clip(target["boundary_gradient_ratio_q55"], 0.9, 1.8))
         groove_width = 0.11 / edge_ratio
         boundary_gap = np.maximum(second - nearest, 0.0)
         field -= 0.65 * np.exp(-boundary_gap / groove_width)
@@ -887,24 +791,15 @@ class IslandPrimitiveGenerator:
             fine_distances.append(np.hypot(dx, dy))
         fine_stack = np.stack(fine_distances)
         fine_order = np.argsort(fine_stack, axis=0)
-        fine_nearest = np.take_along_axis(
-            fine_stack, fine_order[:1], axis=0
-        )[0]
-        fine_second = np.take_along_axis(
-            fine_stack, fine_order[1:2], axis=0
-        )[0]
+        fine_nearest = np.take_along_axis(fine_stack, fine_order[:1], axis=0)[0]
+        fine_second = np.take_along_axis(fine_stack, fine_order[1:2], axis=0)[0]
         fine_labels = fine_order[0]
         fine_heights = rng.normal(0.0, 1.0, size=fine_count)
         fine = fine_heights[fine_labels]
-        fine_scale = max(
-            np.sqrt(_area(target, 82) / np.pi), 1.0
-        )
-        fine += 0.20 * np.clip(
-            1.0 - fine_nearest / fine_scale, 0.0, 1.0
-        )
+        fine_scale = max(np.sqrt(_area(target, 82) / np.pi), 1.0)
+        fine += 0.20 * np.clip(1.0 - fine_nearest / fine_scale, 0.0, 1.0)
         fine -= 0.30 * np.exp(
-            -np.maximum(fine_second - fine_nearest, 0.0)
-            / max(0.20 * fine_scale, 0.4)
+            -np.maximum(fine_second - fine_nearest, 0.0) / max(0.20 * fine_scale, 0.4)
         )
         fine = ndimage.gaussian_filter(fine, sigma=0.65, mode="wrap")
         fine -= float(np.mean(fine))
@@ -932,25 +827,15 @@ class IslandPrimitiveGenerator:
         elif mode == "laguerre":
             field = self._laguerre_field(target, rng)
         elif mode == "separated_ellipse":
-            field = self._separated_island_field(
-                target, rng, layout="balanced"
-            )
+            field = self._separated_island_field(target, rng, layout="balanced")
         elif mode == "separated_ellipse_sparse":
-            field = self._separated_island_field(
-                target, rng, layout="sparse"
-            )
+            field = self._separated_island_field(target, rng, layout="sparse")
         elif mode == "separated_ellipse_round":
-            field = self._separated_island_field(
-                target, rng, layout="round"
-            )
+            field = self._separated_island_field(target, rng, layout="round")
         elif mode == "separated_ellipse_hierarchical":
-            field = self._separated_island_field(
-                target, rng, layout="hierarchical"
-            )
+            field = self._separated_island_field(target, rng, layout="hierarchical")
         elif mode == "separated_ellipse_strict_sparse":
-            field = self._separated_island_field(
-                target, rng, layout="strict_sparse"
-            )
+            field = self._separated_island_field(target, rng, layout="strict_sparse")
         elif mode == "separated_ellipse_strict_sparse_weak":
             field = self._separated_island_field(
                 target, rng, layout="strict_sparse_weak"
@@ -964,9 +849,7 @@ class IslandPrimitiveGenerator:
                 target, rng, layout="growth_layered_weak"
             )
         elif mode == "separated_ellipse_growth_layered":
-            field = self._separated_island_field(
-                target, rng, layout="growth_layered"
-            )
+            field = self._separated_island_field(target, rng, layout="growth_layered")
         elif mode == "separated_ellipse_growth_layered_strong":
             field = self._separated_island_field(
                 target, rng, layout="growth_layered_strong"
@@ -988,9 +871,7 @@ class IslandPrimitiveGenerator:
             terraces = self._laguerre_field(target, rng)
             # Large median level-set areas indicate stronger coalescence and
             # therefore favor terrace/capture-zone morphology.
-            coalescence = float(
-                np.clip((_area(target, 55) - 45.0) / 115.0, 0.20, 0.68)
-            )
+            coalescence = float(np.clip((_area(target, 55) - 45.0) / 115.0, 0.20, 0.68))
             field = (1.0 - coalescence) * islands + coalescence * terraces
         else:
             raise ValueError(f"Unknown island generator mode: {mode}")

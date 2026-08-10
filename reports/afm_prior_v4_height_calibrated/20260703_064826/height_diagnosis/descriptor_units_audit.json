@@ -1,7 +1,0 @@
-{
-  "absolute_roughness_requires_external_scale": true,
-  "condition_table_v2_v3_units": "raw descriptor columns are physical descriptors; cond_* columns are standardized train-set descriptors",
-  "decoder_output_units": "normalized network-input height map",
-  "network_input_units": "per-image normalized network space",
-  "physical_descriptor_units": "nm-like physical height units from descriptor_height_path"
-}

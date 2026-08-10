@@ -16,7 +16,6 @@ import numpy as np
 from scipy import ndimage
 from skimage.feature import peak_local_max
 
-
 FEATURE_NAMES = (
     "local_peak_count",
     "local_peak_aspect",
@@ -66,12 +65,10 @@ def _peak_shape_features(frame: np.ndarray) -> np.ndarray:
             [
                 [
                     np.sum(weight * np.square(xx - center_x)) / total,
-                    np.sum(weight * (xx - center_x) * (yy - center_y))
-                    / total,
+                    np.sum(weight * (xx - center_x) * (yy - center_y)) / total,
                 ],
                 [
-                    np.sum(weight * (xx - center_x) * (yy - center_y))
-                    / total,
+                    np.sum(weight * (xx - center_x) * (yy - center_y)) / total,
                     np.sum(weight * np.square(yy - center_y)) / total,
                 ],
             ]
@@ -79,8 +76,7 @@ def _peak_shape_features(frame: np.ndarray) -> np.ndarray:
         eigenvalues, eigenvectors = np.linalg.eigh(covariance)
         aspect = float(
             np.sqrt(
-                (max(eigenvalues[1], 0.0) + 1e-4)
-                / (max(eigenvalues[0], 0.0) + 1e-4)
+                (max(eigenvalues[1], 0.0) + 1e-4) / (max(eigenvalues[0], 0.0) + 1e-4)
             )
         )
         horizontal_alignment = float(abs(eigenvectors[0, 1]))
@@ -121,15 +117,14 @@ def extract_streak_features(
     if clip.ndim != 3:
         raise ValueError(f"RHEED clip must be [T,H,W], got {clip.shape}")
     if len(clip) < causal_frame_count:
-        raise ValueError(
-            f"need at least {causal_frame_count} frames, got {len(clip)}"
-        )
+        raise ValueError(f"need at least {causal_frame_count} frames, got {len(clip)}")
     per_frame = np.stack(
         [_peak_shape_features(frame) for frame in clip[:causal_frame_count]]
     )
     aggregate = np.median(per_frame, axis=0)
     return {
-        name: float(value) for name, value in zip(FEATURE_NAMES, aggregate)
+        name: float(value)
+        for name, value in zip(FEATURE_NAMES, aggregate, strict=False)
     }
 
 

@@ -1,38 +1,37 @@
 [project]
-name = "rheed2morph"
-version = "0.1.0"
-description = "Research pipeline for RHEED-to-AFM morphology prediction."
-requires-python = ">=3.12"
+name = "morphmbe"
+version = "1.0.0"
+description = "RHEED-to-AFM surface morphology prediction with MorphMBE M22."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
 dependencies = [
-    "gwyfile>=0.2.0",
     "imageio>=2.37.0",
     "imageio-ffmpeg>=0.6.0",
     "joblib>=1.5.0",
     "matplotlib>=3.10.0",
     "numpy>=2.2.0",
+    "pandas>=2.2.0",
+    "pillow>=11.0.0",
     "PySide6>=6.7.0",
-    "pyspm>=0.6.0",
-    "tifffile>=2025.5.10",
+    "scikit-image>=0.25.0",
+    "scikit-learn>=1.6.0",
+    "scipy>=1.15.0",
     "torch",
     "torchvision==0.27.0",
     "transformers>=4.50,<5",
 ]
 
 [project.scripts]
-rheed2morph-inspect-afm = "rheed2morph.afm.inspect:main"
-rheed2morph-extract-afm = "rheed2morph.afm.batch_extract:main"
-rheed2morph-make-pairs = "rheed2morph.pairing.make_pairs:main"
-rheed2morph-build-one-to-one-manifests = "rheed2morph.manifests.one_to_one:main"
-rheed2morph-rheed-descriptor-mvp = "rheed2morph.rheed.mvp:main"
-rheed2morph-run-pipeline = "rheed2morph.pipeline.run:main"
-rheed2morph-realtime-ui = "rheed2morph.realtime.cli:main"
+morphmbe-predict = "rheed2morph.realtime.predict:main"
+morphmbe-ui = "rheed2morph.realtime.cli:main"
 
 [build-system]
 requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "."]
+include = ["analysis*", "rheed2morph*"]
 
 [tool.uv]
 package = true
@@ -40,4 +39,18 @@ package = true
 [dependency-groups]
 dev = [
     "pytest>=9.0",
+    "ruff>=0.12.0",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--strict-config --strict-markers"
+pythonpath = [".", "src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "SIM", "UP"]
+ignore = ["E501"]

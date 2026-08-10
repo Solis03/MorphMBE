@@ -248,9 +248,7 @@ def crossfit_r3d_stability_confidence(
         fit = [group for group in groups if group != held]
         inner_raw = np.empty((len(fit), len(view_names)), dtype=float)
         for inner_position, inner_held in enumerate(fit):
-            inner_fit = [
-                group for group in fit if group != inner_held
-            ]
+            inner_fit = [group for group in fit if group != inner_held]
             query_views = tensor[groups.index(inner_held)]
             inner_raw[inner_position] = _raw_r3d_views(
                 base_embeddings=base_embeddings,
@@ -278,9 +276,7 @@ def crossfit_r3d_stability_confidence(
                 view_names,
             )
             inner_summaries.append(summary)
-            inner_fit = [
-                group for group in fit if group != inner_held
-            ]
+            inner_fit = [group for group in fit if group != inner_held]
             _, diagnostics = predict_candidates(
                 physics=physics_frame,
                 embeddings=base_embeddings,
@@ -350,8 +346,7 @@ def crossfit_r3d_stability_confidence(
             dtype=float,
         )
         inner_range_aware_risk = (
-            0.75 * inner_amplitude_risk
-            + 0.25 * inner_angular_tta_risk
+            0.75 * inner_amplitude_risk + 0.25 * inner_angular_tta_risk
         )
         inner_confidence, inner_veto = combine_tta_and_head_confidence(
             1.0 - inner_range_aware_risk,
@@ -383,12 +378,8 @@ def crossfit_r3d_stability_confidence(
             float(periods.loc[held]),
             fit_periods,
         )
-        angular_tta_risk = float(
-            angular_coverage_risk(risk, period_risk).item()
-        )
-        tta_confidence = float(
-            np.clip(1.0 - angular_tta_risk, 0.0, 1.0)
-        )
+        angular_tta_risk = float(angular_coverage_risk(risk, period_risk).item())
+        tta_confidence = float(np.clip(1.0 - angular_tta_risk, 0.0, 1.0))
         _, outer_diagnostics = predict_candidates(
             physics=physics_frame,
             embeddings=base_embeddings,
@@ -409,9 +400,7 @@ def crossfit_r3d_stability_confidence(
             summary.base_prediction,
             inner_base,
         )
-        range_aware_risk = float(
-            0.75 * amplitude_risk + 0.25 * angular_tta_risk
-        )
+        range_aware_risk = float(0.75 * amplitude_risk + 0.25 * angular_tta_risk)
         combined, veto = combine_tta_and_head_confidence(
             1.0 - range_aware_risk,
             head_confidence,
@@ -451,25 +440,15 @@ def crossfit_r3d_stability_confidence(
                 "range_aware_risk_score": range_aware_risk,
                 "estimated_period_frames": float(periods.loc[held]),
                 "head_disagreement_risk_score": head_risk,
-                "tta_centrality_confidence": float(
-                    np.clip(1.0 - risk, 0.0, 1.0)
-                ),
+                "tta_centrality_confidence": float(np.clip(1.0 - risk, 0.0, 1.0)),
                 "angular_coverage_tta_confidence": tta_confidence,
                 "legacy_angular_tta_confidence": tta_confidence,
                 "head_agreement_confidence": head_confidence,
                 "extreme_head_disagreement_veto": extreme_head_veto,
-                "core_head_disagreement_log_std": (
-                    outer_head_disagreement
-                ),
-                "core_head_log_range": float(
-                    outer_diagnostics["core_head_log_range"]
-                ),
-                "r3d_density_ood_z": float(
-                    outer_diagnostics["r3d_density_ood_z"]
-                ),
-                "density_ood_z": float(
-                    outer_diagnostics["density_ood_z"]
-                ),
+                "core_head_disagreement_log_std": (outer_head_disagreement),
+                "core_head_log_range": float(outer_diagnostics["core_head_log_range"]),
+                "r3d_density_ood_z": float(outer_diagnostics["r3d_density_ood_z"]),
+                "density_ood_z": float(outer_diagnostics["density_ood_z"]),
                 "r3d_support_confidence": float(
                     outer_diagnostics["r3d_support_confidence"]
                 ),
@@ -480,9 +459,7 @@ def crossfit_r3d_stability_confidence(
                 "interval_upper": predicted + radius,
                 "interval_radius": radius,
                 "interval_covered": bool(
-                    max(predicted - radius, 0.0)
-                    <= true_value
-                    <= predicted + radius
+                    max(predicted - radius, 0.0) <= true_value <= predicted + radius
                 ),
                 "base_to_tta_median_nm": summary.base_to_median_nm,
                 "tta_frame_std_nm": summary.frame_std_nm,
@@ -504,23 +481,15 @@ def crossfit_r3d_stability_confidence(
                     "predicted_target": inner_base[position],
                     "absolute_error": inner_errors[position],
                     "base_to_tta_median_nm": inner_centrality[position],
-                    "tta_frame_std_nm": inner_summaries[
-                        position
-                    ].frame_std_nm,
+                    "tta_frame_std_nm": inner_summaries[position].frame_std_nm,
                     "tta_roi_std_nm": inner_summaries[position].roi_std_nm,
                     "tta_all_std_nm": inner_summaries[position].all_std_nm,
                     "tta_all_range_nm": inner_summaries[position].all_range_nm,
                     "tta_uncertainty_risk_score": inner_risk[position],
                     "rotation_period_risk_score": inner_period_risk[position],
-                    "angular_tta_risk_score": inner_angular_tta_risk[
-                        position
-                    ],
-                    "predicted_amplitude_risk_score": (
-                        inner_amplitude_risk[position]
-                    ),
-                    "range_aware_risk_score": (
-                        inner_range_aware_risk[position]
-                    ),
+                    "angular_tta_risk_score": inner_angular_tta_risk[position],
+                    "predicted_amplitude_risk_score": (inner_amplitude_risk[position]),
+                    "range_aware_risk_score": (inner_range_aware_risk[position]),
                     "estimated_period_frames": fit_periods[position],
                     "core_head_disagreement_log_std": (
                         inner_head_disagreement_array[position]
@@ -535,17 +504,13 @@ def crossfit_r3d_stability_confidence(
                         inner_diagnostics[position]["density_ood_z"]
                     ),
                     "r3d_support_confidence": float(
-                        inner_diagnostics[position][
-                            "r3d_support_confidence"
-                        ]
+                        inner_diagnostics[position]["r3d_support_confidence"]
                     ),
                     "physics_support_confidence": float(
                         inner_diagnostics[position]["support_confidence"]
                     ),
                     "head_disagreement_risk_score": inner_head_risk[position],
-                    "extreme_head_disagreement_veto": bool(
-                        inner_veto[position]
-                    ),
+                    "extreme_head_disagreement_veto": bool(inner_veto[position]),
                     "uncertainty_risk_score": inner_composite_risk[position],
                     "confidence": inner_confidence[position],
                     "outer_target_used_for_calibration": False,

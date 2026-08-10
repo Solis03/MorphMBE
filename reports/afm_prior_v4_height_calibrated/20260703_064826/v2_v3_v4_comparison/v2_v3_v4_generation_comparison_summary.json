@@ -1,8 +1,0 @@
-{
-  "comparison_rows": 12,
-  "evaluation_v4": "reports/afm_prior_v4_height_calibrated/20260703_064826/evaluation_v4",
-  "nonconstant_rate": 1.0,
-  "recommended_primary_prior": "calibrated_v2",
-  "report": "reports/afm_prior_v4_height_calibrated/20260703_064826/v2_v3_v4_comparison/v2_v3_v4_generation_comparison_report.md",
-  "roughness_improved": true
-}

@@ -46,12 +46,7 @@ def _height_distribution(
     )
 
     def residual(parameters: np.ndarray) -> np.ndarray:
-        values = (
-            normal
-            + parameters[0] * h2
-            + parameters[1] * h3
-            + parameters[2] * h4
-        )
+        values = normal + parameters[0] * h2 + parameters[1] * h3 + parameters[2] * h4
         measured = np.asarray(_standardized_moments(values))
         return np.asarray(
             [
@@ -67,12 +62,7 @@ def _height_distribution(
         bounds=([-0.55, -0.25, -0.08], [0.55, 0.25, 0.08]),
         max_nfev=80,
     )
-    values = (
-        normal
-        + result.x[0] * h2
-        + result.x[1] * h3
-        + result.x[2] * h4
-    )
+    values = normal + result.x[0] * h2 + result.x[1] * h3 + result.x[2] * h4
     values -= float(np.mean(values))
     values /= max(float(np.sqrt(np.mean(values**2))), 1e-8)
     return np.sort(values.astype(np.float32))
@@ -107,7 +97,7 @@ class DescriptorMaternGenerator:
         )[0]
         return {
             column: float(value)
-            for column, value in zip(self.condition_scaler.columns, raw)
+            for column, value in zip(self.condition_scaler.columns, raw, strict=False)
         }
 
     def generate(
@@ -120,18 +110,12 @@ class DescriptorMaternGenerator:
         rng = np.random.default_rng(int(seed))
         n = int(self.resolution)
         pixel_nm = self.scan_size_nm / max(n - 1, 1)
-        corr_nm = float(
-            np.exp(raw["log_unit_autocorr_length_nm"])
-        )
+        corr_nm = float(np.exp(raw["log_unit_autocorr_length_nm"]))
         correlation_px = np.clip(
             self.correlation_scale * corr_nm / pixel_nm, 0.8, n / 3
         )
-        beta = np.clip(
-            -raw["unit_psd_slope"] * self.slope_scale, 1.4, 5.5
-        )
-        anisotropy = np.clip(
-            np.exp(raw["log_unit_anisotropy_ratio"]), 1.0, 4.0
-        )
+        beta = np.clip(-raw["unit_psd_slope"] * self.slope_scale, 1.4, 5.5)
+        anisotropy = np.clip(np.exp(raw["log_unit_anisotropy_ratio"]), 1.0, 4.0)
         axis_scale = np.sqrt(anisotropy)
         angle = rng.uniform(0.0, np.pi)
         fy = np.fft.fftfreq(n)
@@ -139,16 +123,12 @@ class DescriptorMaternGenerator:
         yy, xx = np.meshgrid(fy, fx, indexing="ij")
         rotated_x = np.cos(angle) * xx + np.sin(angle) * yy
         rotated_y = -np.sin(angle) * xx + np.cos(angle) * yy
-        q2 = (rotated_x * axis_scale) ** 2 + (
-            rotated_y / axis_scale
-        ) ** 2
-        coarse_power = (
-            1.0 + (2.0 * np.pi * correlation_px) ** 2 * q2
-        ) ** (-beta / 2.0)
+        q2 = (rotated_x * axis_scale) ** 2 + (rotated_y / axis_scale) ** 2
+        coarse_power = (1.0 + (2.0 * np.pi * correlation_px) ** 2 * q2) ** (-beta / 2.0)
         fine_scale = max(correlation_px / 3.5, 0.55)
-        fine_power = (
-            1.0 + (2.0 * np.pi * fine_scale) ** 2 * q2
-        ) ** (-max(beta - 0.45, 1.2) / 2.0)
+        fine_power = (1.0 + (2.0 * np.pi * fine_scale) ** 2 * q2) ** (
+            -max(beta - 0.45, 1.2) / 2.0
+        )
         columns = self.condition_scaler.columns
         mid_z = float(condition_z[columns.index("unit_psd_mid_fraction")])
         high_z = float(condition_z[columns.index("unit_psd_high_fraction")])
@@ -156,9 +136,7 @@ class DescriptorMaternGenerator:
         # power in the highest third. A visually tempting 5--30% fine-scale
         # mixture therefore creates nonphysical salt-and-pepper sharpness.
         # Keep a small, condition-responsive component instead.
-        fine_weight = 0.0002 + 0.0028 * _sigmoid(
-            0.7 * high_z + 0.3 * mid_z
-        )
+        fine_weight = 0.0002 + 0.0028 * _sigmoid(0.7 * high_z + 0.3 * mid_z)
         power = (1.0 - fine_weight) * coarse_power + fine_weight * fine_power
         power[0, 0] = 0.0
         white = rng.normal(size=(n, n))

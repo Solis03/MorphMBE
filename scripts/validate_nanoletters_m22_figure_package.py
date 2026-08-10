@@ -9,13 +9,11 @@ import json
 import shutil
 import subprocess
 import xml.etree.ElementTree as ET
-import zipfile
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from PIL import Image
-
 
 FIGURES = {
     "Figure_1_AutoRHEED_M22_overview": (4200, 2670),
@@ -55,31 +53,6 @@ def _pdf_pages(path: Path) -> int:
     raise RuntimeError(f"could not read page count from {path}")
 
 
-def _validate_pptx(path: Path) -> None:
-    with zipfile.ZipFile(path) as archive:
-        names = set(archive.namelist())
-        slides = sorted(
-            name
-            for name in names
-            if name.startswith("ppt/slides/slide") and name.endswith(".xml")
-        )
-        notes = sorted(
-            name
-            for name in names
-            if name.startswith("ppt/notesSlides/notesSlide")
-            and name.endswith(".xml")
-        )
-        if slides != ["ppt/slides/slide1.xml"]:
-            raise RuntimeError(f"{path.name} is not a one-page board")
-        if notes != ["ppt/notesSlides/notesSlide1.xml"]:
-            raise RuntimeError(f"{path.name} is missing source notes")
-        if "ppt/media/image.svg" not in names:
-            raise RuntimeError(f"{path.name} does not retain the vector SVG")
-        note_text = archive.read(notes[0]).decode("utf-8")
-        if "[Sources]" not in note_text or "[/Sources]" not in note_text:
-            raise RuntimeError(f"{path.name} has malformed source notes")
-
-
 def validate(package_root: Path) -> dict[str, object]:
     package_root = package_root.resolve()
     figure_root = package_root / "figures"
@@ -117,11 +90,6 @@ def validate(package_root: Path) -> dict[str, object]:
             raise RuntimeError(f"{svg.name}: editable text was not retained")
         svg_text.extend(text_nodes)
 
-        pptx = editable_root / f"{stem}_editable.pptx"
-        if not pptx.is_file():
-            raise RuntimeError(f"missing editable board: {pptx}")
-        _validate_pptx(pptx)
-
     public_text = "\n".join(svg_text)
     mapping = pd.read_csv(
         package_root / "private/sample_id_mapping_internal.csv",
@@ -130,9 +98,7 @@ def validate(package_root: Path) -> dict[str, object]:
     if len(mapping) != 27 or mapping["public_sample_id"].nunique() != 27:
         raise RuntimeError("private public-ID mapping is incomplete")
     leaked = [
-        growth
-        for growth in mapping["internal_growth_run_id"]
-        if growth in public_text
+        growth for growth in mapping["internal_growth_run_id"] if growth in public_text
     ]
     if leaked:
         raise RuntimeError(f"internal growth IDs leaked into SVG text: {leaked}")
@@ -182,8 +148,7 @@ def validate(package_root: Path) -> dict[str, object]:
         and not any(part.endswith("_editable") for part in path.parts)
     )
     checksum_lines = [
-        f"{_sha256(path)}  {path.relative_to(package_root)}"
-        for path in manifest_files
+        f"{_sha256(path)}  {path.relative_to(package_root)}" for path in manifest_files
     ]
     checksum_path = package_root / "provenance/file_manifest.sha256"
     checksum_path.write_text("\n".join(checksum_lines) + "\n", encoding="utf-8")
@@ -192,7 +157,7 @@ def validate(package_root: Path) -> dict[str, object]:
         "package": str(package_root),
         "figures": len(FIGURES),
         "publication_assets": len(FIGURES) * len(FORMATS),
-        "editable_pptx_boards": len(FIGURES),
+        "editable_svg_figures": len(FIGURES),
         "growths": len(predictions),
         "metrics": metrics,
         "checksum_files": len(manifest_files),

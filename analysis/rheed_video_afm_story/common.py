@@ -9,7 +9,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -43,7 +42,9 @@ def sha256_file(path: str | Path) -> str:
 
 
 def sha256_object(value: Any) -> str:
-    encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), default=str).encode("utf-8")
+    encoded = json.dumps(
+        value, sort_keys=True, separators=(",", ":"), default=str
+    ).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
 
@@ -63,7 +64,9 @@ def read_id_list(path: str | Path) -> set[str]:
     if not file_path.exists():
         return set()
     ids: set[str] = set()
-    for raw_line in file_path.read_text(encoding="utf-8", errors="replace").splitlines():
+    for raw_line in file_path.read_text(
+        encoding="utf-8", errors="replace"
+    ).splitlines():
         line = raw_line.strip()
         if not line:
             continue
@@ -148,5 +151,7 @@ def save_parquet(df: pd.DataFrame, path: str | Path) -> str:
     try:
         df.to_parquet(file_path, index=False)
     except ImportError:
-        df.to_csv(file_path.with_suffix(file_path.suffix + ".csv_fallback"), index=False)
+        df.to_csv(
+            file_path.with_suffix(file_path.suffix + ".csv_fallback"), index=False
+        )
     return display_path(file_path)

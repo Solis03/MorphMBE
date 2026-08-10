@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 from sklearn.cross_decomposition import PLSRegression
@@ -9,7 +9,6 @@ from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import HuberRegressor, LogisticRegression, Ridge
 from sklearn.preprocessing import RobustScaler, StandardScaler
-
 
 PHYSICS_ENDPOINT_FEATURES = [
     # Key-frame spot/streak geometry.
@@ -66,7 +65,7 @@ class _R3DRidge:
         r3d: np.ndarray,
         physics: np.ndarray,
         log_target: np.ndarray,
-    ) -> "_R3DRidge":
+    ) -> _R3DRidge:
         scaled = self.scaler.fit_transform(r3d)
         count = min(self.components, len(r3d) - 2, r3d.shape[1])
         self.pca = PCA(n_components=count, svd_solver="full").fit(scaled)
@@ -75,9 +74,7 @@ class _R3DRidge:
 
     def predict(self, r3d: np.ndarray, physics: np.ndarray) -> np.ndarray:
         assert self.pca is not None
-        return self.model.predict(
-            self.pca.transform(self.scaler.transform(r3d))
-        )
+        return self.model.predict(self.pca.transform(self.scaler.transform(r3d)))
 
 
 class _R3DPLS:
@@ -92,7 +89,7 @@ class _R3DPLS:
         r3d: np.ndarray,
         physics: np.ndarray,
         log_target: np.ndarray,
-    ) -> "_R3DPLS":
+    ) -> _R3DPLS:
         values = self.scaler.fit_transform(self.imputer.fit_transform(r3d))
         count = min(self.components, len(r3d) - 2, values.shape[1])
         self.model = PLSRegression(
@@ -119,10 +116,8 @@ class _PhysicsRidge:
         r3d: np.ndarray,
         physics: np.ndarray,
         log_target: np.ndarray,
-    ) -> "_PhysicsRidge":
-        values = self.scaler.fit_transform(
-            self.imputer.fit_transform(physics)
-        )
+    ) -> _PhysicsRidge:
+        values = self.scaler.fit_transform(self.imputer.fit_transform(physics))
         self.model.fit(values, log_target)
         return self
 
@@ -167,9 +162,7 @@ class _FusedRidge:
                 n_components=count,
                 svd_solver="full",
             ).fit(r3d_scaled)
-            latent = self.pca_scaler.fit_transform(
-                self.pca.transform(r3d_scaled)
-            )
+            latent = self.pca_scaler.fit_transform(self.pca.transform(r3d_scaled))
             physical = self.physics_scaler.fit_transform(
                 self.physics_imputer.fit_transform(physics)
             )
@@ -191,7 +184,7 @@ class _FusedRidge:
         r3d: np.ndarray,
         physics: np.ndarray,
         log_target: np.ndarray,
-    ) -> "_FusedRidge":
+    ) -> _FusedRidge:
         self.model.fit(
             self._transform(r3d, physics, fit=True),
             log_target,
@@ -247,9 +240,7 @@ class _TailMixture:
                 n_components=count,
                 svd_solver="full",
             ).fit(scaled)
-            latent = self.pca_scaler.fit_transform(
-                self.pca.transform(scaled)
-            )
+            latent = self.pca_scaler.fit_transform(self.pca.transform(scaled))
             physical = self.physics_scaler.fit_transform(
                 self.physics_imputer.fit_transform(physics)
             )
@@ -268,7 +259,7 @@ class _TailMixture:
         r3d: np.ndarray,
         physics: np.ndarray,
         log_target: np.ndarray,
-    ) -> "_TailMixture":
+    ) -> _TailMixture:
         values = self._transform(r3d, physics, fit=True)
         self.regressor.fit(values[:, : self.components], log_target)
         low_cut = float(np.quantile(log_target, self.tail_fraction))
@@ -412,9 +403,7 @@ def calibrate_positive(
             max_iter=2000,
         ).fit(raw_log[:, None], true_log)
         slope = float(np.clip(model.coef_[0], 0.50, 2.50))
-        intercept = float(
-            np.median(true_log - slope * raw_log)
-        )
+        intercept = float(np.median(true_log - slope * raw_log))
         prediction = intercept + slope * query_log
     else:
         raise ValueError(f"unknown calibration method: {method}")
@@ -453,8 +442,6 @@ def endpoint_objective(truth: np.ndarray, prediction: np.ndarray) -> float:
     error = np.abs(np.asarray(prediction) - np.asarray(truth))
     low = truth <= np.quantile(truth, 0.20)
     high = truth >= np.quantile(truth, 0.80)
-    tail = 0.5 * float(np.mean(error[low])) + 0.5 * float(
-        np.mean(error[high])
-    )
+    tail = 0.5 * float(np.mean(error[low])) + 0.5 * float(np.mean(error[high]))
     bias = abs(float(np.mean(prediction - truth)))
     return float(np.mean(error) + 0.35 * tail + 0.15 * bias)

@@ -7,12 +7,11 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.colors import TwoSlopeNorm
 import numpy as np
 import pandas as pd
+from matplotlib.colors import TwoSlopeNorm
 
 from analysis.rheed_video_afm_story.common import repo_path
-
 
 METHOD_LABELS = {
     "unconditional_train_mean": "Unconditional\ntrain mean",
@@ -114,9 +113,9 @@ def plot_temporal_ablation(ablation: pd.DataFrame, figure_dir: str | Path) -> No
     ordered = ablation.sort_values("val_selection_score")
     figure, axes = plt.subplots(1, 2, figsize=(9.0, 3.5))
     labels = [
-        value.replace("dino_vits14__", "DINOv2: ").replace(
-            "r3d_18__", "R3D-18: "
-        ).replace("__raw_luminance", "")
+        value.replace("dino_vits14__", "DINOv2: ")
+        .replace("r3d_18__", "R3D-18: ")
+        .replace("__raw_luminance", "")
         for value in ordered["embedding_id"]
     ]
     axes[0].barh(labels, ordered["val_condition_mae_z"], color="#4F46E5")
@@ -138,9 +137,7 @@ def plot_temporal_ablation(ablation: pd.DataFrame, figure_dir: str | Path) -> No
     _save(figure, repo_path(figure_dir) / "Fig8_temporal_window_ablation")
 
 
-def plot_metric_comparison(
-    metrics: pd.DataFrame, figure_dir: str | Path
-) -> None:
+def plot_metric_comparison(metrics: pd.DataFrame, figure_dir: str | Path) -> None:
     _style()
     requested = [
         ("rq_absolute_error_nm", "Rq MAE (nm)", False),
@@ -154,7 +151,7 @@ def plot_metric_comparison(
         "rheed_conditional_cvae",
     ]
     figure, axes = plt.subplots(1, 4, figsize=(12.0, 3.25))
-    for axis, (column, label, higher) in zip(axes, requested):
+    for axis, (column, label, higher) in zip(axes, requested, strict=False):
         values = [
             float(metrics.loc[metrics["method"] == method, column].median())
             for method in methods
@@ -174,9 +171,7 @@ def plot_metric_comparison(
     _save(figure, repo_path(figure_dir) / "Fig2_baseline_vs_final_metrics")
 
 
-def render_metric_table(
-    metric_summary: pd.DataFrame, figure_dir: str | Path
-) -> None:
+def render_metric_table(metric_summary: pd.DataFrame, figure_dir: str | Path) -> None:
     _style()
     metrics = [
         ("rq_absolute_error_nm", "Rq error (nm) ↓"),
@@ -245,10 +240,10 @@ def plot_descriptor_correlations(
         ("log_unit_autocorr_length_nm", "Correlation length (nm)", True),
         ("unit_skewness", "Height skewness", False),
     ]
-    figure, axes = plt.subplots(
-        2, 2, figsize=(9.2, 7.4), layout="constrained"
-    )
-    for axis, (descriptor, label, exponentiate) in zip(axes.ravel(), selected):
+    figure, axes = plt.subplots(2, 2, figsize=(9.2, 7.4), layout="constrained")
+    for axis, (descriptor, label, exponentiate) in zip(
+        axes.ravel(), selected, strict=False
+    ):
         rows = predictions.loc[predictions["descriptor"] == descriptor]
         true = rows["true"].to_numpy(float)
         predicted = rows["predicted"].to_numpy(float)
@@ -263,16 +258,16 @@ def plot_descriptor_correlations(
         hi = float(max(true.max(), predicted.max()))
         axis.scatter(true, predicted, color="#2563EB", edgecolor="white", s=45)
         for x, y, sample_id in zip(
-            true, predicted, rows["growth_run_id"].astype(str)
+            true, predicted, rows["growth_run_id"].astype(str), strict=False
         ):
-            axis.annotate(sample_id, (x, y), xytext=(3, 3), textcoords="offset points", fontsize=6)
+            axis.annotate(
+                sample_id, (x, y), xytext=(3, 3), textcoords="offset points", fontsize=6
+            )
         axis.plot([lo, hi], [lo, hi], "--", color="#6B7280", linewidth=1)
         axis.set_xlabel(f"Measured {label}", fontsize=8)
         axis.set_ylabel(f"RHEED-predicted {label}", fontsize=8)
         axis.grid(alpha=0.2)
-    figure.suptitle(
-        "Held-out morphology-descriptor prediction", fontweight="bold"
-    )
+    figure.suptitle("Held-out morphology-descriptor prediction", fontweight="bold")
     _save(figure, repo_path(figure_dir) / "Fig7_descriptor_correlations")
 
 
@@ -314,7 +309,9 @@ def plot_rheed_generated_ground_truth(
     manifest["sample_id"] = manifest["sample_id"].astype(str)
     for row_index, group in enumerate(groups):
         payload = representatives[group]
-        preview = repo_path(f"reports/rheed_video_afm_story/phase1/clip_previews/{group}.png")
+        preview = repo_path(
+            f"reports/rheed_video_afm_story/phase1/clip_previews/{group}.png"
+        )
         if preview.exists():
             axes[row_index, 0].imshow(plt.imread(preview))
         axes[row_index, 0].set_title(f"RHEED window\nsample {group}", fontsize=8)
@@ -406,7 +403,9 @@ def plot_failure_cases(
         .head(count)
     )
     representatives = evaluation["representatives"]
-    figure, axes = plt.subplots(len(failures), 3, figsize=(8.2, 2.5 * len(failures)), squeeze=False)
+    figure, axes = plt.subplots(
+        len(failures), 3, figsize=(8.2, 2.5 * len(failures)), squeeze=False
+    )
     for row_index, row in enumerate(failures.itertuples(index=False)):
         group = str(row.growth_run_id)
         payload = representatives[group]

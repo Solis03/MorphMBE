@@ -24,9 +24,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     session = Path(args.session).resolve()
-    metadata = json.loads(
-        (session / "session.json").read_text(encoding="utf-8")
-    )
+    metadata = json.loads((session / "session.json").read_text(encoding="utf-8"))
     timeline = pd.read_csv(session / "prediction_timeline.csv")
     if args.expected_count is not None and len(timeline) != args.expected_count:
         raise RuntimeError(
@@ -67,8 +65,7 @@ def main() -> None:
     ):
         axes[index, 0].imshow(crop)
         axes[index, 0].set_title(
-            f"RHEED clear moment #{index + 1}\n"
-            f"frame {int(row.event_frame)}",
+            f"RHEED clear moment #{index + 1}\nframe {int(row.event_frame)}",
             fontsize=11,
         )
         axes[index, 0].set_axis_off()

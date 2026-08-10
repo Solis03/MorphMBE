@@ -1,9 +1,0 @@
-{
-  "confidence_vs_condition_error_pvalue": 0.1865543741541635,
-  "confidence_vs_condition_error_spearman": -0.3607142857142856,
-  "figure_count_pdf": 10,
-  "figure_count_png": 10,
-  "historical_test_used": false,
-  "morphology_confidence_vs_island_error_pvalue": 0.02079435848316165,
-  "morphology_confidence_vs_island_error_spearman": -0.5892857142857142
-}

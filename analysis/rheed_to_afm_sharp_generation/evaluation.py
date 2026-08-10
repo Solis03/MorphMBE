@@ -6,11 +6,6 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from analysis.rheed_video_afm_story.afm_descriptors import describe_map
-from analysis.rheed_video_afm_story.afm_evaluation import reconstruction_metrics
-from analysis.rheed_video_afm_story.common import write_csv, write_json
-from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_np
-
 from analysis.rheed_to_afm_generation.data import ConditionScaler
 from analysis.rheed_to_afm_generation.evaluation import (
     _condition_from_map,
@@ -18,6 +13,10 @@ from analysis.rheed_to_afm_generation.evaluation import (
     _nearest_training_audit,
     _pairwise_l1,
 )
+from analysis.rheed_video_afm_story.afm_descriptors import describe_map
+from analysis.rheed_video_afm_story.afm_evaluation import reconstruction_metrics
+from analysis.rheed_video_afm_story.common import write_csv, write_json
+from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_np
 
 from .spectral import load_unit_map
 
@@ -54,8 +53,7 @@ def texture_features(array: np.ndarray, border: int = 8) -> dict[str, float]:
         "rms_gradient": float(np.sqrt(np.mean(gradient**2))),
         "laplacian_rms": float(np.sqrt(np.mean(laplacian**2))),
         "edge_energy_ratio": float(
-            np.mean(gradient[edge_mask])
-            / max(float(np.mean(gradient[interior])), 1e-8)
+            np.mean(gradient[edge_mask]) / max(float(np.mean(gradient[interior])), 1e-8)
         ),
         "wrap_discontinuity_ratio": float(
             np.mean(wrap) / max(float(np.mean(adjacent)), 1e-8)
@@ -92,16 +90,12 @@ def evaluate_method_sets(
 ) -> dict[str, Any]:
     output = Path(output_dir)
     output.mkdir(parents=True, exist_ok=True)
-    training_maps = [
-        load_unit_map(row, resolution) for _, row in train_rows.iterrows()
-    ]
+    training_maps = [load_unit_map(row, resolution) for _, row in train_rows.iterrows()]
     per_group: list[dict[str, Any]] = []
     panels: dict[str, dict[str, Any]] = {}
     for group_id, group_rows in split_rows.groupby("growth_run_id"):
         group = str(group_id)
-        real_maps = [
-            load_unit_map(row, resolution) for _, row in group_rows.iterrows()
-        ]
+        real_maps = [load_unit_map(row, resolution) for _, row in group_rows.iterrows()]
         real_rqs = [float(value) for value in group_rows["rq_nm"]]
         real_index = _map_medoid(real_maps, real_rqs, condition_scaler)
         real_medoid = real_maps[real_index]
@@ -115,9 +109,7 @@ def evaluate_method_sets(
             "methods": {},
         }
         for method, method_groups in generated.items():
-            samples = [
-                project_unit_rq_np(array) for array in method_groups[group]
-            ]
+            samples = [project_unit_rq_np(array) for array in method_groups[group]]
             rq = float(generated_rq[method][group])
             sample_conditions = np.stack(
                 [
@@ -139,9 +131,7 @@ def evaluate_method_sets(
                 "true_rq_nm": true_rq,
                 "generated_rq_nm": rq,
                 "rq_absolute_error_nm": abs(rq - true_rq),
-                "condition_descriptor_mae_z": float(
-                    np.mean(np.abs(sample_z - true_z))
-                ),
+                "condition_descriptor_mae_z": float(np.mean(np.abs(sample_z - true_z))),
                 "generated_pairwise_l1": _pairwise_l1(samples),
                 "real_pairwise_l1": _pairwise_l1(real_maps),
                 "diversity_ratio": _pairwise_l1(samples)
@@ -223,27 +213,31 @@ def condition_permutation_control(
     records: list[dict[str, Any]] = []
     for position, group in enumerate(groups):
         wrong_group = groups[(position + 1) % len(groups)]
-        truth = split_rows.loc[
-            split_rows["growth_run_id"].astype(str) == group,
-            condition_scaler.columns,
-        ].median().to_numpy(float)
+        truth = (
+            split_rows.loc[
+                split_rows["growth_run_id"].astype(str) == group,
+                condition_scaler.columns,
+            ]
+            .median()
+            .to_numpy(float)
+        )
         truth_z = condition_scaler.transform(truth[None], clip=False)[0]
 
-        def error(maps: list[np.ndarray], rq: float) -> float:
+        def error(
+            maps: list[np.ndarray], rq: float, truth_reference: np.ndarray
+        ) -> float:
             values = np.stack(
                 [
-                    _condition_from_map(
-                        array, rq, condition_scaler.columns
-                    )
+                    _condition_from_map(array, rq, condition_scaler.columns)
                     for array in maps
                 ]
             )
             median = np.median(values, axis=0)
             z = condition_scaler.transform(median[None], clip=False)[0]
-            return float(np.mean(np.abs(z - truth_z)))
+            return float(np.mean(np.abs(z - truth_reference)))
 
-        correct_error = error(correct_maps[group], generated_rq[group])
-        wrong_error = error(wrong_maps[group], generated_rq[group])
+        correct_error = error(correct_maps[group], generated_rq[group], truth_z)
+        wrong_error = error(wrong_maps[group], generated_rq[group], truth_z)
         records.append(
             {
                 "growth_run_id": group,

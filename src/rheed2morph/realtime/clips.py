@@ -52,10 +52,7 @@ def build_model_clip(
     if len(frames) != 16:
         raise ValueError(f"selected_16 requires exactly 16 frames, got {len(frames)}")
     return np.stack(
-        [
-            crop_model_frame(frame, roi, output_size=output_size)
-            for frame in frames
-        ],
+        [crop_model_frame(frame, roi, output_size=output_size) for frame in frames],
         axis=0,
     ).astype(np.uint8)
 
@@ -80,9 +77,7 @@ def build_causal_perturbation_clips(
 
     source = list(frames)
     if len(source) != 18:
-        raise ValueError(
-            f"causal perturbations require 18 frames, got {len(source)}"
-        )
+        raise ValueError(f"causal perturbations require 18 frames, got {len(source)}")
     clips = []
     names = []
     # Ring index 2 is k-7, the first frame of the base causal-8 view.
@@ -90,9 +85,7 @@ def build_causal_perturbation_clips(
         start = 2 + int(view.frame_offset)
         selected = source[start : start + 8]
         if len(selected) != 8:
-            raise IndexError(
-                f"causal view {view.name} is incomplete at start {start}"
-            )
+            raise IndexError(f"causal view {view.name} is incomplete at start {start}")
         view_roi = perturb_rect(roi, view)
         clips.append(
             np.stack(
@@ -132,15 +125,13 @@ def live_physics_row(
         "video_stage": "live_stream",
     }
     for variant, variant_frames in variants.items():
-        extracted = [
-            frame_physics_features(frame) for frame in variant_frames
-        ]
+        extracted = [frame_physics_features(frame) for frame in variant_frames]
         for key, value in aggregate_temporal(extracted).items():
             row[f"{variant}__{key}"] = float(value)
         if variant == "selected_16":
-            row["temporal_brightness_drift"] = float(
-                variant_frames[-1].mean() - variant_frames[0].mean()
-            ) / 255.0
+            row["temporal_brightness_drift"] = (
+                float(variant_frames[-1].mean() - variant_frames[0].mean()) / 255.0
+            )
     row.update(summarize_categories(pd.Series(row)))
     frame = pd.DataFrame([row]).set_index("sample_id", drop=False)
     missing = [column for column in PHYSICS_COLUMNS if column not in frame]

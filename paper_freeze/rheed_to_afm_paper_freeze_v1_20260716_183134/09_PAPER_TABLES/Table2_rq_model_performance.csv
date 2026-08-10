@@ -1,2 +1,0 @@
-Kendall,MAE,N,R2,RMSE,Spearman,high_rq_sensitivity,high_rq_specificity,high_tail_MAE,low_high_balanced_accuracy,low_tail_MAE,median_AE,model_name,pairwise_concordance,target_variant
-0.28063241106719367,1.2600983407909774,23,0.2939669042578328,1.8393101333714263,0.42885375494071143,0.625,0.7333333333333333,2.166008324204992,0.625,1.0627871981474697,1.1205674310532974,top5_median_cross_fitted_ensemble,0.6403162055335968,T4_second_order_trimmed_mean

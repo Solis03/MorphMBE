@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
+from collections.abc import Iterable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 import joblib
 import numpy as np
@@ -11,15 +11,13 @@ import pandas as pd
 from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 
-from analysis.rheed_video_afm_story.afm_descriptors import radial_psd
-from analysis.rheed_video_afm_story.common import repo_path
-from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_np
-
 from analysis.rheed_to_afm_generation.data import (
     ConditionScaler,
     aggregate_group_conditions,
 )
-
+from analysis.rheed_video_afm_story.afm_descriptors import radial_psd
+from analysis.rheed_video_afm_story.common import repo_path
+from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_np
 
 QUANTILE_LEVELS = np.linspace(0.01, 0.99, 33, dtype=np.float64)
 PSD_BINS = 24
@@ -137,9 +135,7 @@ def fit_conditional_spectral_model(
     resolution: int,
     removelist_sample_ids: Iterable[str],
 ) -> tuple[ConditionalSpectralModel, pd.DataFrame, pd.DataFrame]:
-    group_parameters = group_shape_parameter_table(
-        train_rows, resolution=resolution
-    )
+    group_parameters = group_shape_parameter_table(train_rows, resolution=resolution)
     groups = list(group_parameters.index.astype(str))
     group_conditions = (
         aggregate_group_conditions(

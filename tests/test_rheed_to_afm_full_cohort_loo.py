@@ -11,10 +11,10 @@ from analysis.rheed_to_afm_full_cohort_loo.run import (
     _load_external_predictions,
     prepare_full_cohort,
 )
-from analysis.rheed_to_afm_generation.data import ConditionScaler
 from analysis.rheed_to_afm_full_cohort_loo.visualization import (
     _external_target_confidence,
 )
+from analysis.rheed_to_afm_generation.data import ConditionScaler
 
 
 class _RemovalAudit:
@@ -66,9 +66,7 @@ def test_prepare_expanded_cohort_accepts_configured_split_label() -> None:
                 "split": ["train", "test", "val"],
             }
         ),
-        "physics": pd.DataFrame(
-            {"sample_id": groups, "growth_run_id": groups}
-        ),
+        "physics": pd.DataFrame({"sample_id": groups, "growth_run_id": groups}),
         "removelist": _RemovalAudit(),
     }
     config = {
@@ -100,21 +98,15 @@ def test_amplitude_override_changes_only_log_rq_condition() -> None:
 
 
 def test_m21_generator_streams_do_not_shift_m20_seed_offsets() -> None:
-    assert STABLE_GENERATOR_SEED_OFFSETS[
-        "separated_ellipse_strict_sparse"
-    ] == 100_000
-    assert GROWTH_LAYER_GENERATOR_MODES.issubset(
-        STABLE_GENERATOR_SEED_OFFSETS
-    )
+    assert STABLE_GENERATOR_SEED_OFFSETS["separated_ellipse_strict_sparse"] == 100_000
+    assert GROWTH_LAYER_GENERATOR_MODES.issubset(STABLE_GENERATOR_SEED_OFFSETS)
 
 
 def test_external_predictions_require_exact_leakage_free_cohort(
     tmp_path,
 ) -> None:
     groups = ["6022", "6028", "6033"]
-    target = pd.Series(
-        np.log([1.0, 2.0, 3.0]), index=groups, name="log_rq_nm"
-    )
+    target = pd.Series(np.log([1.0, 2.0, 3.0]), index=groups, name="log_rq_nm")
     path = tmp_path / "predictions.csv"
     pd.DataFrame(
         {
@@ -130,9 +122,7 @@ def test_external_predictions_require_exact_leakage_free_cohort(
         }
     ).to_csv(path, index=False)
 
-    loaded = _load_external_predictions(
-        path=path, groups=groups, log_target=target
-    )
+    loaded = _load_external_predictions(path=path, groups=groups, log_target=target)
 
     assert loaded["growth_run_id"].tolist() == groups
     assert not loaded["outer_target_used_for_training"].any()
@@ -147,7 +137,7 @@ def test_external_combined_predictions_filter_requested_target(
         ("Rq_nm", [1.0, 2.0]),
         ("FSMI_nm", [3.0, 4.0]),
     ):
-        for group, value in zip(groups, truth):
+        for group, value in zip(groups, truth, strict=False):
             rows.append(
                 {
                     "target": target,
@@ -209,9 +199,7 @@ def test_external_target_confidence_uses_both_target_heads(
         }
     )
 
-    result = _external_target_confidence(
-        path=path, fallback=fallback
-    )
+    result = _external_target_confidence(path=path, fallback=fallback)
 
     assert np.allclose(result["joint_confidence_index"], 50.0)
     assert result["rq_interval_covered"].all()

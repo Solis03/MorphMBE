@@ -12,9 +12,9 @@ extractor; fitted ranking heads remain video-group cross-validated.
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, Sequence
 
 import numpy as np
 from PIL import Image, ImageOps
@@ -23,7 +23,6 @@ from skimage.feature import peak_local_max
 from skimage.measure import label, regionprops
 
 from rheed2morph.rheed.automatic_roi_keyframe import Rect
-
 
 SPOT_VISIBILITY_FEATURES = (
     "raw_mean",
@@ -117,16 +116,14 @@ def analyze_spot_visibility(
     fine = ndimage.gaussian_filter(normalized, 0.7) - ndimage.gaussian_filter(
         normalized, 2.0
     )
-    medium = ndimage.gaussian_filter(
-        normalized, 1.1
-    ) - ndimage.gaussian_filter(normalized, 4.2)
+    medium = ndimage.gaussian_filter(normalized, 1.1) - ndimage.gaussian_filter(
+        normalized, 4.2
+    )
     low_frequency = ndimage.gaussian_filter(normalized, 12.0)
-    high_frequency = normalized - low_frequency
+    normalized - low_frequency
 
     medium_center = float(np.median(medium))
-    medium_noise = float(
-        1.4826 * np.median(np.abs(medium - medium_center)) + 1e-6
-    )
+    medium_noise = float(1.4826 * np.median(np.abs(medium - medium_center)) + 1e-6)
     threshold = max(
         3.0 * medium_noise,
         float(np.quantile(medium, 0.985)),
@@ -181,12 +178,8 @@ def analyze_spot_visibility(
         major = eigenvectors[:, int(np.argmax(eigenvalues))]
         verticality = float(abs(major[1]))
         vertical_span = float(np.ptp(y_values) / max(normalized.shape[0], 1))
-        horizontal_spread = float(
-            np.std(x_values) / max(normalized.shape[1], 1)
-        )
-        column_alignment = float(
-            vertical_span / max(horizontal_spread, 1e-3)
-        )
+        horizontal_spread = float(np.std(x_values) / max(normalized.shape[1], 1))
+        column_alignment = float(vertical_span / max(horizontal_spread, 1e-3))
     else:
         verticality = 0.0
         vertical_span = 0.0
@@ -211,9 +204,7 @@ def analyze_spot_visibility(
         "fine_dog_std": float(np.std(fine)),
         "medium_dog_std": medium_std,
         "medium_dog_noise": medium_noise,
-        "medium_dog_snr": float(
-            np.mean(top4) / medium_noise if len(top4) else 0.0
-        ),
+        "medium_dog_snr": float(np.mean(top4) / medium_noise if len(top4) else 0.0),
         "low_frequency_std": low_std,
         "high_to_low_frequency_ratio": float(high_low_ratio),
         "haze_dominance": float(haze_dominance),
@@ -221,17 +212,13 @@ def analyze_spot_visibility(
         "spot_peak_top1": top1,
         "spot_peak_top4_mean": float(np.mean(top4)) if len(top4) else 0.0,
         "spot_peak_top8_mass": float(np.sum(top8)),
-        "spot_peak_snr_top4": float(
-            np.mean(top4) / medium_noise if len(top4) else 0.0
-        ),
+        "spot_peak_snr_top4": float(np.mean(top4) / medium_noise if len(top4) else 0.0),
         "spot_component_count": float(len(components)),
         "spot_component_area_median": (
             float(np.median(component_areas)) if len(component_areas) else 0.0
         ),
         "spot_component_compactness": (
-            float(np.median(component_compactness))
-            if component_compactness
-            else 0.0
+            float(np.median(component_compactness)) if component_compactness else 0.0
         ),
         "spot_energy_concentration": float(
             np.clip(peak_energy / positive_total, 0.0, 1.0)
@@ -288,7 +275,7 @@ class DinoV2Embedder:
                 "DINOv2 extraction requires torch and transformers"
             ) from exc
 
-        if device is None:
+        if device in (None, "auto"):
             device = (
                 "mps"
                 if torch.backends.mps.is_available()
@@ -332,9 +319,7 @@ class DinoV2Embedder:
                 hidden = self.model(pixel_values=pixel_values).last_hidden_state
             cls = hidden[:, 0]
             patches = hidden[:, 1:]
-            vector = torch.cat(
-                (cls, patches.mean(dim=1), patches.std(dim=1)), dim=1
-            )
+            vector = torch.cat((cls, patches.mean(dim=1), patches.std(dim=1)), dim=1)
             encoded.append(vector.float().cpu().numpy())
         if not encoded:
             width = int(self.model.config.hidden_size) * 3
@@ -351,13 +336,9 @@ def visibility_proxy(features: dict[str, float]) -> float:
 
     peak_mass = np.log1p(max(features["spot_peak_top8_mass"], 0.0) * 8.0)
     peak_snr = np.log1p(max(features["spot_peak_snr_top4"], 0.0))
-    frequency = np.log1p(
-        max(features["high_to_low_frequency_ratio"], 0.0) * 10.0
-    )
+    frequency = np.log1p(max(features["high_to_low_frequency_ratio"], 0.0) * 10.0)
     lattice = min(max(features["spot_vertical_span"], 0.0), 1.0)
-    concentration = min(
-        max(features["spot_energy_concentration"], 0.0), 1.0
-    )
+    concentration = min(max(features["spot_energy_concentration"], 0.0), 1.0)
     diffuse_penalty = np.log1p(max(features["haze_dominance"], 0.0))
     return float(
         0.30 * peak_mass
@@ -424,19 +405,17 @@ def score_deep_visibility_candidates(
         raise KeyError(f"Missing {len(missing)} candidate frames")
 
     analyses = [
-        analyze_spot_visibility(frames[index], rect)
-        for index in unique_indices
+        analyze_spot_visibility(frames[index], rect) for index in unique_indices
     ]
     descriptor_lookup = {
         index: {
             **analysis.features,
             "visibility_proxy": visibility_proxy(analysis.features),
         }
-        for index, analysis in zip(unique_indices, analyses)
+        for index, analysis in zip(unique_indices, analyses, strict=False)
     }
     dino_images = [
-        prepare_dinov2_image(frames[index], rect)
-        for index in unique_indices
+        prepare_dinov2_image(frames[index], rect) for index in unique_indices
     ]
     embedder = DinoV2Embedder(
         str(bundle["foundation_model_id"]),
@@ -447,7 +426,7 @@ def score_deep_visibility_candidates(
     embeddings = embedder.encode(dino_images)
     embedding_lookup = {
         index: embedding
-        for index, embedding in zip(unique_indices, embeddings)
+        for index, embedding in zip(unique_indices, embeddings, strict=False)
     }
 
     rows = []
@@ -462,6 +441,7 @@ def score_deep_visibility_candidates(
                     for name, value in zip(
                         bundle["dino_feature_names"],
                         embedding_lookup[index],
+                        strict=False,
                     )
                 },
             }
@@ -478,9 +458,7 @@ def score_deep_visibility_candidates(
         "visibility_proxy",
     )
     for name in rank_sources:
-        table[f"qv_{name}"] = table[name].rank(
-            pct=True, method="average"
-        )
+        table[f"qv_{name}"] = table[name].rank(pct=True, method="average")
     table["qv_haze_rejection"] = 1.0 - table["haze_dominance"].rank(
         pct=True, method="average"
     )
@@ -524,24 +502,16 @@ def score_deep_visibility_candidates(
     position = int(np.argmax(effective))
     ordered = np.sort(effective[np.isfinite(effective)])[::-1]
     selection_margin = (
-        float(ordered[0] - ordered[1])
-        if len(ordered) > 1
-        else float(ordered[0])
+        float(ordered[0] - ordered[1]) if len(ordered) > 1 else float(ordered[0])
     )
-    confidence = float(
-        bundle["confidence_calibrator"].predict(
-            [-selection_margin]
-        )[0]
-    )
+    confidence = float(bundle["confidence_calibrator"].predict([-selection_margin])[0])
     selected = dict(candidates[position])
     return {
         "selected_candidate": selected,
         "score": float(final_scores[position]),
         "confidence": float(np.clip(confidence, 0.0, 1.0)),
         "visibility_gate": gate,
-        "visibility_rank": float(
-            table.iloc[position]["spot_visibility_rank"]
-        ),
+        "visibility_rank": float(table.iloc[position]["spot_visibility_rank"]),
         "selection_margin": selection_margin,
         "candidate_count": int(len(table)),
         "eligible_candidate_count": int(eligible.sum()),
@@ -560,7 +530,7 @@ def score_deep_visibility_candidates(
                 "eligible": bool(is_eligible),
             }
             for row, score, is_eligible in zip(
-                table.itertuples(index=False), final_scores, eligible
+                table.itertuples(index=False), final_scores, eligible, strict=False
             )
         ],
     }

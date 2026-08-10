@@ -1,14 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 import numpy as np
 import pandas as pd
 from scipy.stats import spearmanr
 
 from analysis.rheed_to_afm_generation.data import ConditionScaler, predict_groups
-
 
 FitPredictor = Callable[[list[str], ConditionScaler], object]
 
@@ -40,7 +39,7 @@ class VarianceCalibrator:
             "columns": list(self.columns),
             "factors": {
                 column: float(value)
-                for column, value in zip(self.columns, self.factors)
+                for column, value in zip(self.columns, self.factors, strict=False)
             },
             "fit_policy": (
                 "truth SD / inner-LOO prediction SD in the enclosing training "
@@ -76,9 +75,7 @@ def fit_variance_calibrator(
         predictor = fit_predictor(fit_groups, inner_scaler)
         raw, _, _ = predict_groups(predictor, [held], registry, physics)
         predicted_z = enclosing_scaler.transform(raw, clip=False)[0]
-        true_raw = group_targets.loc[held, enclosing_scaler.columns].to_numpy(
-            float
-        )
+        true_raw = group_targets.loc[held, enclosing_scaler.columns].to_numpy(float)
         true_z = enclosing_scaler.transform(true_raw[None], clip=False)[0]
         predictions.append(predicted_z)
         truths.append(true_z)
@@ -120,9 +117,7 @@ def condition_prediction_metrics(
     rq_index = columns.index("log_rq_nm")
     correlations = []
     for position in range(len(columns)):
-        value = spearmanr(
-            truth_z[:, position], predicted_z[:, position]
-        ).statistic
+        value = spearmanr(truth_z[:, position], predicted_z[:, position]).statistic
         correlations.append(float(value) if np.isfinite(value) else 0.0)
     pairwise = [
         float(np.mean(np.abs(predicted_z[first] - predicted_z[second])))
@@ -133,18 +128,14 @@ def condition_prediction_metrics(
         np.exp(truth_raw[:, rq_index]) - np.exp(predicted_raw[:, rq_index])
     )
     return {
-        "mean_descriptor_mae_z": float(
-            np.mean(np.abs(predicted_z - truth_z))
-        ),
+        "mean_descriptor_mae_z": float(np.mean(np.abs(predicted_z - truth_z))),
         "median_descriptor_mae_z": float(
             np.median(np.mean(np.abs(predicted_z - truth_z), axis=1))
         ),
         "mean_rq_mae_nm": float(np.mean(rq_error)),
         "median_rq_mae_nm": float(np.median(rq_error)),
         "raw_rq_spearman": float(
-            spearmanr(
-                truth_raw[:, rq_index], predicted_raw[:, rq_index]
-            ).statistic
+            spearmanr(truth_raw[:, rq_index], predicted_raw[:, rq_index]).statistic
         ),
         "median_shape_spearman": float(
             np.median(

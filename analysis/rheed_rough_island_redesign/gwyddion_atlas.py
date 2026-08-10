@@ -243,11 +243,7 @@ def _sq_comparison_plot(
         fontweight="bold",
     )
     for group in ["6062", "6099"]:
-        index = int(
-            ordered.index[
-                ordered["growth_run_id"].astype(str) == group
-            ][0]
-        )
+        index = int(ordered.index[ordered["growth_run_id"].astype(str) == group][0])
         axes[0].annotate(
             f"{group}\n{truth[index]:.2f} → {predicted[index]:.2f} nm",
             xy=(index, predicted[index]),
@@ -305,9 +301,7 @@ def run(config: dict, *, standalone_root: Path) -> None:
     current_output = repo_path(config["output_root"]) / suffix
     report = repo_path(config["report_root"]) / suffix
     current_method = str(config["selected_method"])
-    model_short_label = str(
-        config.get("visualization_model_short_label", "M20")
-    )
+    model_short_label = str(config.get("visualization_model_short_label", "M20"))
     model_panel_label = str(
         config.get(
             "visualization_model_panel_label",
@@ -342,10 +336,7 @@ def run(config: dict, *, standalone_root: Path) -> None:
     figure_dir = (
         report
         / "figures"
-        / (
-            "gwyddion_individual_height_atlas_M17_standalone_vs_"
-            f"{model_short_label}"
-        )
+        / (f"gwyddion_individual_height_atlas_M17_standalone_vs_{model_short_label}")
     )
     figure_dir.mkdir(parents=True, exist_ok=True)
     range_rows: list[dict[str, float | str]] = []
@@ -394,18 +385,12 @@ def run(config: dict, *, standalone_root: Path) -> None:
                 (
                     "M17_standalone",
                     m17[group][0],
-                    (
-                        "Standalone M17\n"
-                        f"predicted Sq {m17[group][1]:.2f} nm"
-                    ),
+                    (f"Standalone M17\npredicted Sq {m17[group][1]:.2f} nm"),
                 ),
                 (
                     model_short_label,
                     current[group][0],
-                    (
-                        f"{model_panel_label}\n"
-                        f"predicted Sq {current[group][1]:.2f} nm"
-                    ),
+                    (f"{model_panel_label}\npredicted Sq {current[group][1]:.2f} nm"),
                 ),
             )
             for column, (source, array, title) in enumerate(panels, start=1):
@@ -423,10 +408,7 @@ def run(config: dict, *, standalone_root: Path) -> None:
                         "display_vmax_nm": high,
                     }
                 )
-        stem = (
-            f"Atlas{page}_Gwyddion_individual_height_M17_vs_"
-            f"{model_short_label}"
-        )
+        stem = f"Atlas{page}_Gwyddion_individual_height_M17_vs_{model_short_label}"
         _save(figure, figure_dir / stem)
         stems.append(stem)
 
@@ -484,17 +466,15 @@ def run(config: dict, *, standalone_root: Path) -> None:
                 title=title,
             )
     focus_stem = (
-        f"Focus_{'_'.join(focus)}_Gwyddion_individual_height_M17_vs_"
-        f"{model_short_label}"
+        f"Focus_{'_'.join(focus)}_Gwyddion_individual_height_M17_vs_{model_short_label}"
     )
     _save(figure, figure_dir / focus_stem)
     baseline_focus_stem: str | None = None
     baseline_config_path = config.get("visualization_baseline_config")
     if baseline_config_path is not None:
         baseline_config = load_config(Path(str(baseline_config_path)))
-        baseline_output = (
-            repo_path(baseline_config["output_root"])
-            / str(baseline_config["full_run_suffix"])
+        baseline_output = repo_path(baseline_config["output_root"]) / str(
+            baseline_config["full_run_suffix"]
         )
         baseline_method = str(baseline_config["selected_method"])
         baseline_label = str(
@@ -522,9 +502,7 @@ def run(config: dict, *, standalone_root: Path) -> None:
         for row_index, group in enumerate(focus):
             row = prediction_lookup.loc[group]
             label = _real_afm_label(phase1, group)
-            axes[row_index, 0].imshow(
-                _rheed_keyframe(phase1, group), cmap="gray"
-            )
+            axes[row_index, 0].imshow(_rheed_keyframe(phase1, group), cmap="gray")
             axes[row_index, 0].set_title(
                 f"{group} RHEED\n"
                 f"spot isolation {float(row['rheed_spot_isolation_score']):.3f}",
@@ -571,11 +549,7 @@ def run(config: dict, *, standalone_root: Path) -> None:
 
     m17_files = {
         group: (
-            m17_output
-            / "crossfit"
-            / "generated_maps"
-            / M17_METHOD
-            / f"{group}.npz"
+            m17_output / "crossfit" / "generated_maps" / M17_METHOD / f"{group}.npz"
         )
         for group in groups
     }
@@ -590,16 +564,13 @@ def run(config: dict, *, standalone_root: Path) -> None:
                 "output": str(m17_output),
                 "method": M17_METHOD,
                 "generated_map_sha256": {
-                    group: sha256_file(path)
-                    for group, path in m17_files.items()
+                    group: sha256_file(path) for group, path in m17_files.items()
                 },
             },
             "current_method": current_method,
             "current_model_short_label": model_short_label,
             "current_model_panel_label": model_panel_label,
-            "m20_method": (
-                current_method if model_short_label == "M20" else None
-            ),
+            "m20_method": (current_method if model_short_label == "M20" else None),
             "m19_displayed": False,
             "palette": {
                 "name": "Gwyddion.net",

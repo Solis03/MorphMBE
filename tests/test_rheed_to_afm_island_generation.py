@@ -86,9 +86,7 @@ class IslandGenerationTest(unittest.TestCase):
             "flat_fraction": 0.2,
         }
         generator = IslandPrimitiveGenerator(resolution=64)
-        generated = generator.generate(
-            target, seed=23, mode="separated_ellipse"
-        )
+        generated = generator.generate(target, seed=23, mode="separated_ellipse")
 
         self.assertLess(float(np.quantile(generated, 0.25)), -0.80)
         self.assertGreater(float(np.quantile(generated, 0.90)), 1.15)
@@ -195,9 +193,7 @@ class IslandGenerationTest(unittest.TestCase):
         def largest_display_dark_component(array: np.ndarray) -> float:
             low, high = np.quantile(array, (0.005, 0.995))
             display = np.clip((array - low) / (high - low), 0.0, 1.0)
-            labels, _ = ndimage.label(
-                display <= 0.18, structure=np.ones((3, 3))
-            )
+            labels, _ = ndimage.label(display <= 0.18, structure=np.ones((3, 3)))
             areas = np.bincount(labels.ravel())[1:]
             return float(areas.max() / array.size) if areas.size else 0.0
 
@@ -264,9 +260,7 @@ class IslandGenerationTest(unittest.TestCase):
         )
         generated = generator.generate(target, seed=19, mode="laguerre")
         self.assertTrue(np.isfinite(generated).all())
-        self.assertAlmostEqual(
-            float(np.sqrt(np.mean(generated**2))), 1.0, places=5
-        )
+        self.assertAlmostEqual(float(np.sqrt(np.mean(generated**2))), 1.0, places=5)
 
 
 if __name__ == "__main__":

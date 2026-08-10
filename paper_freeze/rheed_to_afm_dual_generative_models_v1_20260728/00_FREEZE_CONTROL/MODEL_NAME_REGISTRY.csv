@@ -1,3 +1,0 @@
-paper_model_id,canonical_name,short_name,primary_protocol,outer_fit_count,primary_growth_count,source_commit,status
-MODEL_A,MorphMBE-M12a-Strict15-RangeTerrace-v1,M12a-Strict15,strict LOO over 15 development growths,14,15,dafc94c177becc0015c03f29025e7fa065f0171e,frozen development model
-MODEL_B,MorphMBE-M14i-Full23-OODAware-v1,M14i-Full23,retrospective LOO over all 23 growths,22,23,e8ca3012a770bf9e06269670086db349c3da844a,frozen retrospective robustness model

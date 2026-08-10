@@ -1,6 +1,0 @@
-variant,split,row_count,descriptor_mse,descriptor_mae,descriptor_r2,descriptor_spearman,prototype_accuracy,prototype_macro_f1,beats_mean_condition_mse,notes
-mean_condition_baseline,val,5,1.2270687818527222,0.772202730178833,-0.2654942887096383,nan,,,,
-quick_visual_handcrafted,val,2,0.7541342973709106,0.6446213722229004,-0.6112769954115411,0.7499999999999999,0.5,0.1111111111111111,true,16-pair one-epoch smoke
-handcrafted_only_10epoch_last,val,5,1.3889275789260864,0.8290764689445496,-0.4324217740643559,-0.050142135623730946,0.0,0.0,false,36-pair final epoch metrics
-visual_handcrafted_10epoch_last,val,5,1.502853512763977,0.8790055513381958,-0.5499152583181397,-0.052284271247461905,0.2,0.08333333333333333,false,36-pair final epoch metrics
-visual_handcrafted_10epoch_best,val,5,1.1900131702423096,0.7751145362854004,-0.2272783552591615,-0.03171572875253809,0.4,0.1111111111111111,true,36-pair best checkpoint used for prediction and sampling

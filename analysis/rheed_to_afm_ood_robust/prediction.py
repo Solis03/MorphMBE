@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -18,7 +19,6 @@ from analysis.rheed_to_afm_functional_morphology.amplitude import (
 )
 
 from .support import density_weights, query_support
-
 
 BASELINE = "M12a_frozen_alpha1"
 REGULARIZED = "M14a_regularized_alpha10"
@@ -70,18 +70,10 @@ def _preprocess(
     query_groups: list[str],
     columns: list[str],
 ) -> tuple[np.ndarray, np.ndarray]:
-    imputer = SimpleImputer(strategy="median").fit(
-        frame.loc[fit_groups, columns]
-    )
-    scaler = RobustScaler().fit(
-        imputer.transform(frame.loc[fit_groups, columns])
-    )
-    fit_x = scaler.transform(
-        imputer.transform(frame.loc[fit_groups, columns])
-    )
-    query_x = scaler.transform(
-        imputer.transform(frame.loc[query_groups, columns])
-    )
+    imputer = SimpleImputer(strategy="median").fit(frame.loc[fit_groups, columns])
+    scaler = RobustScaler().fit(imputer.transform(frame.loc[fit_groups, columns]))
+    fit_x = scaler.transform(imputer.transform(frame.loc[fit_groups, columns]))
+    query_x = scaler.transform(imputer.transform(frame.loc[query_groups, columns]))
     return np.asarray(fit_x, dtype=float), np.asarray(query_x, dtype=float)
 
 
@@ -117,10 +109,7 @@ def _ridge_prediction(
     )
     dynamics_prediction = float(dynamics.predict(dynamics_query)[0])
     weight = float(morphology_weight)
-    return (
-        weight * morphology_prediction
-        + (1.0 - weight) * dynamics_prediction
-    )
+    return weight * morphology_prediction + (1.0 - weight) * dynamics_prediction
 
 
 def _residual_sample_weights(
@@ -235,21 +224,15 @@ def _r3d_support(
     np.fill_diagonal(pairwise, np.inf)
     neighbors = min(3, len(fit_groups) - 1)
     self_knn = np.sort(pairwise, axis=1)[:, :neighbors].mean(axis=1)
-    query_distances = np.sqrt(
-        np.mean(np.square(fit_x - query_x), axis=1)
-    )
-    query_knn = float(
-        np.sort(query_distances)[: min(3, len(fit_groups))].mean()
-    )
+    query_distances = np.sqrt(np.mean(np.square(fit_x - query_x), axis=1))
+    query_knn = float(np.sort(query_distances)[: min(3, len(fit_groups))].mean())
     median = float(np.median(self_knn))
     mad = float(1.4826 * np.median(np.abs(self_knn - median)))
     density_z = float((query_knn - median) / max(mad, 0.10))
     return {
         "r3d_knn_training_distance": query_knn,
         "r3d_density_ood_z": density_z,
-        "r3d_support_confidence": float(
-            np.exp(-max(density_z, 0.0))
-        ),
+        "r3d_support_confidence": float(np.exp(-max(density_z, 0.0))),
     }
 
 
@@ -341,9 +324,7 @@ def predict_candidates(
     diagnostics = {
         "nearest_training_rheed_distance": support.nearest_distance,
         "knn_training_rheed_distance": support.knn_distance,
-        "maximum_absolute_robust_z": (
-            support.maximum_absolute_robust_z
-        ),
+        "maximum_absolute_robust_z": (support.maximum_absolute_robust_z),
         "ledoit_wolf_mahalanobis": support.mahalanobis_distance,
         "density_ood_z": support.density_ood_z,
         "support_confidence": support.support_confidence,
@@ -397,12 +378,8 @@ def _risk_score(
 ) -> np.ndarray:
     """Epistemic risk from temporal support and sparse target amplitude."""
 
-    r3d_ood = np.maximum(
-        diagnostics["r3d_density_ood_z"].to_numpy(float), 0.0
-    )
-    target_iqr = np.maximum(
-        diagnostics["training_target_iqr_nm"].to_numpy(float), 0.50
-    )
+    r3d_ood = np.maximum(diagnostics["r3d_density_ood_z"].to_numpy(float), 0.0)
+    target_iqr = np.maximum(diagnostics["training_target_iqr_nm"].to_numpy(float), 0.50)
     amplitude_extrapolation = np.maximum(
         (
             np.asarray(predictions, dtype=float)
@@ -424,17 +401,11 @@ def _expected_error_and_confidence(
     inner_risk = _risk_score(inner_diagnostics, inner_predictions)
     query_frame = pd.DataFrame([query_diagnostics])
     query_risk = float(
-        _risk_score(
-            query_frame, np.asarray([query_prediction], dtype=float)
-        )[0]
+        _risk_score(query_frame, np.asarray([query_prediction], dtype=float))[0]
     )
-    risk_scale = max(
-        float(np.quantile(inner_risk, 0.75, method="higher")), 0.50
-    )
+    risk_scale = max(float(np.quantile(inner_risk, 0.75, method="higher")), 0.50)
     baseline_error = float(np.median(inner_errors))
-    predicted_error = float(
-        baseline_error * (1.0 + query_risk / risk_scale)
-    )
+    predicted_error = float(baseline_error * (1.0 + query_risk / risk_scale))
     confidence = float(np.exp(-query_risk / risk_scale))
     return predicted_error, confidence, query_risk, inner_risk
 
@@ -464,15 +435,11 @@ def crossfit_robust_candidates(
             query_group=held,
             config=settings,
         )
-        inner_log: dict[str, list[float]] = {
-            method: [] for method in FIXED_METHODS
-        }
+        inner_log: dict[str, list[float]] = {method: [] for method in FIXED_METHODS}
         inner_truth: list[float] = []
         inner_diagnostics_rows: list[dict[str, float | str]] = []
         for inner_held in fit:
-            inner_fit = [
-                group for group in fit if group != inner_held
-            ]
+            inner_fit = [group for group in fit if group != inner_held]
             predictions, diagnostics = predict_candidates(
                 physics=physics,
                 embeddings=embeddings,
@@ -498,14 +465,10 @@ def crossfit_robust_candidates(
         calibrated_by_method: dict[str, np.ndarray] = {}
         for method in FIXED_METHODS:
             raw = np.exp(np.asarray(inner_log[method], dtype=float))
-            calibrated, errors = _nested_calibrated_errors(
-                raw, truth_array
-            )
+            calibrated, errors = _nested_calibrated_errors(raw, truth_array)
             calibrated_by_method[method] = calibrated
             method_errors[method] = errors
-            method_scores[method] = float(
-                np.mean(errors) + 0.25 * np.median(errors)
-            )
+            method_scores[method] = float(np.mean(errors) + 0.25 * np.median(errors))
             for position, inner_group in enumerate(fit):
                 inner_records.append(
                     {
@@ -545,12 +508,10 @@ def crossfit_robust_candidates(
                 outer_diagnostics,
                 calibrated_outer,
             )
-            adaptive_scores = method_errors[method] / (
-                1.0 + inner_risk
+            adaptive_scores = method_errors[method] / (1.0 + inner_risk)
+            radius = _higher_quantile(adaptive_scores, 1.0 - confidence_alpha) * (
+                1.0 + risk
             )
-            radius = _higher_quantile(
-                adaptive_scores, 1.0 - confidence_alpha
-            ) * (1.0 + risk)
             true_value = float(np.exp(log_target.loc[held]))
             record = {
                 "growth_run_id": held,

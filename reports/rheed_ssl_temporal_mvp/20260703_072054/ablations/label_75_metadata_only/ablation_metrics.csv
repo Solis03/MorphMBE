@@ -1,2 +1,0 @@
-variant,split,row_count,descriptor_mse,descriptor_mae,descriptor_rmse,descriptor_r2,descriptor_spearman,prototype_accuracy,prototype_macro_f1,beats_mean_condition_mse
-label_75_metadata_only,val,5,1.1043931245803833,0.7867981791496277,1.0509011012366403,-0.33606791496276855,0.08461538461538462,0.6,0.1875,True

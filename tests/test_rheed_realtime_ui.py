@@ -28,9 +28,7 @@ from rheed2morph.realtime.clips import (
     live_physics_row,
 )
 from rheed2morph.realtime.model import (
-    M17_MODEL_ID,
     M22_MODEL_ID,
-    MODEL_ID,
     RealtimeMorphologyPredictor,
     ScalarPrediction,
     SpotConnectivityReference,
@@ -55,15 +53,8 @@ from rheed2morph.rheed.orientation import (
 )
 
 REPOSITORY = Path(__file__).resolve().parents[1]
-CONFIG_PATH = REPOSITORY / "configs/rheed_realtime_ui.json"
-M17_CONFIG_PATH = (
-    REPOSITORY
-    / "configs/rheed_realtime_ui_m17_full27_line3_exclude6081_v9.json"
-)
-M22_CONFIG_PATH = (
-    REPOSITORY
-    / "configs/rheed_realtime_ui_m22_full27_dense_mid_v10.json"
-)
+CONFIG_PATH = REPOSITORY / "configs/morphmbe_m22_realtime.json"
+M22_CONFIG_PATH = REPOSITORY / "configs/morphmbe_m22_realtime.json"
 
 
 def test_video_catalog_groups_samples_and_excludes_removelist(
@@ -96,10 +87,7 @@ def test_clockwise_orientation_correction_is_shared_by_numeric_and_n_ids() -> No
 
 
 def test_selected_16_clip_preserves_keyframe_position() -> None:
-    frames = [
-        np.full((24, 32, 3), value, dtype=np.uint8)
-        for value in range(16)
-    ]
+    frames = [np.full((24, 32, 3), value, dtype=np.uint8) for value in range(16)]
     roi = Rect(
         x=0,
         y=0,
@@ -117,10 +105,7 @@ def test_selected_16_clip_preserves_keyframe_position() -> None:
 
 
 def test_causal_tta_views_match_k_plus_8_replay_ring() -> None:
-    frames = [
-        np.full((24, 32, 3), value, dtype=np.uint8)
-        for value in range(18)
-    ]
+    frames = [np.full((24, 32, 3), value, dtype=np.uint8) for value in range(18)]
     roi = Rect(
         x=0,
         y=0,
@@ -148,10 +133,7 @@ def test_live_physics_matches_frozen_m14_schema() -> None:
     frames = np.stack(
         [
             np.clip(
-                20
-                + 180 * np.exp(
-                    -((xx - 80 - index) ** 2 + (yy - 110) ** 2) / 120
-                ),
+                20 + 180 * np.exp(-((xx - 80 - index) ** 2 + (yy - 110) ** 2) / 120),
                 0,
                 255,
             ).astype(np.uint8)
@@ -161,9 +143,7 @@ def test_live_physics_matches_frozen_m14_schema() -> None:
     physics = live_physics_row(frames)
     required = set(CURATED_RHEED_FEATURES + DYNAMIC_NUCLEATION_FEATURES)
     assert required.issubset(physics.columns)
-    assert np.isfinite(
-        physics[list(required)].to_numpy(float)
-    ).all()
+    assert np.isfinite(physics[list(required)].to_numpy(float)).all()
 
 
 def test_event_clustering_keeps_one_tracker_per_rotation_vertex() -> None:
@@ -330,16 +310,12 @@ def test_deployment_cache_identifies_frozen_nonretrieval_pipeline() -> None:
     if not bundle_path.exists():
         return
     bundle = load_deployment_bundle(bundle_path)
-    assert bundle.model_id == MODEL_ID
+    assert bundle.model_id == M22_MODEL_ID
     generation_config = json.loads(
-        (REPOSITORY / config["generation_config"]).read_text(
-            encoding="utf-8"
-        )
+        (REPOSITORY / config["generation_config"]).read_text(encoding="utf-8")
     )
     assert len(bundle.groups) == generation_config["expected_growth_count"]
-    assert bundle.generation_config["selected_method"] == (
-        "M16b_regime_adaptive_microisland_terrace"
-    )
+    assert bundle.generation_config["selected_method"] == ("M22c_gap_completion_strong")
     assert "line3" in bundle.generation_config["afm_descriptors"]
     assert bundle.rq_reference.confidence_risk_reference is not None
     assert bundle.rq_reference.confidence_error_reference is not None
@@ -351,15 +327,10 @@ def test_deployment_cache_identifies_frozen_nonretrieval_pipeline() -> None:
     assert bundle.measured_afm_patch_at_inference is False
 
 
-def test_realtime_config_and_ui_identify_m16_m16b_pipeline() -> None:
+def test_realtime_config_and_ui_identify_m20_m22c_pipeline() -> None:
     config = json.loads(CONFIG_PATH.read_text(encoding="utf-8"))
     manifest_path = REPOSITORY / config["deployment_manifest"]
-    assert "m16_m16b" in Path(config["deployment_bundle"]).name
-    assert "line3" in Path(config["deployment_bundle"]).name
-    assert "full28" in Path(config["deployment_bundle"]).name
-    assert "orientation90_keyframe_locked" in Path(
-        config["deployment_bundle"]
-    ).name
+    assert Path(config["deployment_bundle"]).name == "morphmbe_m22.joblib"
     assert config["rheed_rotation_clockwise_degrees_by_sample"] == {
         "6389": 90,
         "6390": 90,
@@ -370,51 +341,32 @@ def test_realtime_config_and_ui_identify_m16_m16b_pipeline() -> None:
         "6389",
         "6390",
     }
-    assert config["replay_keyframe_override_by_sample"]["6389"][
-        "source_name"
-    ] == "Rampdown to 300C.avi"
-    assert "m16_m16b" in manifest_path.name
+    assert (
+        config["replay_keyframe_override_by_sample"]["6389"]["source_name"]
+        == "Rampdown to 300C.avi"
+    )
+    assert manifest_path.name == "morphmbe_m22_manifest.json"
     assert config["metrology_audited_mode"] is True
-    assert "line3" in config["generation_config"]
+    assert (
+        "line3"
+        in load_config(REPOSITORY / config["generation_config"])["afm_target_variant"]
+    )
     if manifest_path.exists():
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-        assert manifest["model_id"] == MODEL_ID
-        assert manifest["method"]["image_generator"] == (
-            "M16b_regime_adaptive_microisland_terrace"
-        )
-        assert manifest["method"]["Sq_nm"] == (
-            "M16_endpoint_streak_dual_resolution"
-        )
+        assert manifest["model_id"] == M22_MODEL_ID
+        assert manifest["method"]["image_generator"] == ("M22c_gap_completion_strong")
+        assert manifest["method"]["Sq_nm"] == ("M20_spot_connectivity_calibrated_sq")
         assert manifest["method"]["legacy_internal_target_name"] == "Rq_nm"
         assert "third-order" in manifest["method"]["afm_metrology"]
         assert manifest["method"]["retrieval_at_inference"] is False
         assert manifest["method"]["measured_afm_patch_at_inference"] is False
+    assert config["ui_scalar_model_label"] == ("M20 spot-connectivity calibrated Sq")
+    assert config["ui_generator_model_label"] == (
+        "M22c dense-intermediate gap-completion AFM generation"
+    )
     source = inspect.getsource(RealtimeMainWindow._build_ui)
-    assert "M16 endpoint-aware R3D" in source
     assert "actually passed to the scalar and" in source
     assert "actually passed to M14i/M12a" not in source
-
-
-def test_m17_realtime_config_excludes_6081_and_selects_sparse_generator() -> None:
-    config = json.loads(M17_CONFIG_PATH.read_text(encoding="utf-8"))
-    generation = json.loads(
-        (REPOSITORY / config["generation_config"]).read_text(
-            encoding="utf-8"
-        )
-    )
-    excluded = read_removelist(REPOSITORY / config["removelist_path"])
-    excluded.update(map(str, config["ui_excluded_sample_ids"]))
-    assert "6081" in excluded
-    assert generation["expected_growth_count"] == 27
-    assert "6081" in generation["explicitly_excluded_growths"]
-    assert generation["selected_method"] == (
-        "M17b_topology_sparse_peak_terrace"
-    )
-    assert generation["selected_renderer"]["mode"] == (
-        "regime_adaptive_topology_sparse_terrace"
-    )
-    assert "m17b" in config["deployment_bundle"]
-    assert config["ui_model_badge"] == "M16 + M17b | READY"
 
 
 def test_standalone_nested_config_resolves_archive_root(tmp_path: Path) -> None:
@@ -424,19 +376,13 @@ def test_standalone_nested_config_resolves_archive_root(tmp_path: Path) -> None:
     nested.mkdir(parents=True)
     config_path = nested / "ui.json"
     config_path.write_text("{}\n", encoding="utf-8")
-    assert repository_root_from_config(
-        config_path, {"repository_root": "."}
-    ) == root
+    assert repository_root_from_config(config_path, {"repository_root": "."}) == root
 
 
 def test_realtime_renderer_receives_predicted_island_target() -> None:
     source = inspect.getsource(RealtimeMorphologyPredictor.predict)
     assert "island_target=island_target" in source
-    assert "config[\"selected_renderer\"]" in source
-
-
-def test_m17_model_identity_is_supported() -> None:
-    assert "M17b-TopologySparsePeakTerrace" in M17_MODEL_ID
+    assert 'config["selected_renderer"]' in source
 
 
 def test_m22_realtime_config_resolves_dense_mid_generator() -> None:
@@ -447,9 +393,7 @@ def test_m22_realtime_config_resolves_dense_mid_generator() -> None:
     assert generation["selected_method"] == "M22c_gap_completion_strong"
     assert generation["selected_renderer"] == {
         "mode": "regime_adaptive_separated_islands",
-        "island_generator_mode": (
-            "separated_ellipse_growth_layered_gapfill_strong"
-        ),
+        "island_generator_mode": ("separated_ellipse_growth_layered_gapfill_strong"),
         "rough_start_nm": 2.2,
         "rough_full_nm": 3.6,
         "rough_structure_weight": 0.85,
@@ -459,7 +403,7 @@ def test_m22_realtime_config_resolves_dense_mid_generator() -> None:
         "rough_isolation_strength": 1.0,
     }
     assert config["ui_model_badge"] == "M20 + M22c | READY"
-    assert "m20_m22c" in config["deployment_bundle"]
+    assert config["deployment_bundle"] == "assets/models/morphmbe_m22.joblib"
     assert "M22c-DenseMidGapCompletion" in M22_MODEL_ID
 
 
@@ -477,12 +421,10 @@ def test_online_m20_spot_connectivity_upgrade_uses_query_rheed_only() -> None:
     )
 
     physical_frame = {
-        name: physics[:, index]
-        for index, name in enumerate(CONNECTIVITY_FEATURES)
+        name: physics[:, index] for index, name in enumerate(CONNECTIVITY_FEATURES)
     }
     query = {
-        name: [physics[0, index]]
-        for index, name in enumerate(CONNECTIVITY_FEATURES)
+        name: [physics[0, index]] for index, name in enumerate(CONNECTIVITY_FEATURES)
     }
     reference = SpotConnectivityReference(
         groups=["a", "b", "c"],
@@ -532,8 +474,7 @@ def test_online_m20_spot_connectivity_upgrade_uses_query_rheed_only() -> None:
 def test_realtime_ui_source_contains_no_cjk_text() -> None:
     realtime_root = REPOSITORY / "src" / "rheed2morph" / "realtime"
     source = "\n".join(
-        path.read_text(encoding="utf-8")
-        for path in sorted(realtime_root.glob("*.py"))
+        path.read_text(encoding="utf-8") for path in sorted(realtime_root.glob("*.py"))
     )
     assert not any("\u3400" <= character <= "\u9fff" for character in source)
 
@@ -546,8 +487,6 @@ def test_v8_model_input_roi_bundle_has_strict_loo_provenance() -> None:
     if not bundle_path.exists():
         return
     bundle = joblib.load(bundle_path)
-    assert bundle["validation_method"] == (
-        "v8_orientation_model_input_q20_q80"
-    )
+    assert bundle["validation_method"] == ("v8_orientation_model_input_q20_q80")
     assert bundle["validation_protocol"] == "strict_leave_one_video_out"
     assert bundle["held_video_overlap_sum"] == 0

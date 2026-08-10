@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import csv
-from dataclasses import asdict
 import json
-from pathlib import Path
 import time
+from dataclasses import asdict
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -28,14 +28,11 @@ class SessionRecorder:
     ) -> None:
         stamp = time.strftime("%Y%m%d_%H%M%S")
         safe_video = Path(source).stem.replace(" ", "_")[:48]
-        candidate = (
-            Path(root) / f"{stamp}_{sample_id}_{safe_video}"
-        ).resolve()
+        candidate = (Path(root) / f"{stamp}_{sample_id}_{safe_video}").resolve()
         suffix = 1
         while candidate.exists():
             candidate = (
-                Path(root)
-                / f"{stamp}_{sample_id}_{safe_video}_{suffix:02d}"
+                Path(root) / f"{stamp}_{sample_id}_{safe_video}_{suffix:02d}"
             ).resolve()
             suffix += 1
         self.root = candidate
@@ -56,7 +53,7 @@ class SessionRecorder:
 
     def record_selection(
         self,
-        selection: "ReplaySelection",
+        selection: ReplaySelection,
         *,
         fps: float,
     ) -> None:
@@ -66,9 +63,7 @@ class SessionRecorder:
             "fps": float(fps),
             "frame_count": int(selection.frame_count),
             "selection_mode": selection.selection_mode,
-            "causal_warmup_frame_count": int(
-                selection.warmup_frame_count
-            ),
+            "causal_warmup_frame_count": int(selection.warmup_frame_count),
             "estimated_period_frames": selection.estimated_period_frames,
             "model_input_roi": asdict(selection.model_input_roi.rect),
             "physics_feature_roi_not_generator_input": asdict(
@@ -115,18 +110,12 @@ class SessionRecorder:
             "predicted_rq_nm": prediction.rq.value,
             "unconstrained_rq_nm": prediction.rq.unconstrained_value,
             "rq_support_clipped": prediction.rq.support_clipped,
-            "rq_expected_absolute_error_nm": (
-                prediction.rq.expected_absolute_error
-            ),
+            "rq_expected_absolute_error_nm": (prediction.rq.expected_absolute_error),
             "rq_interval_lower_nm": prediction.rq.interval_lower,
             "rq_interval_upper_nm": prediction.rq.interval_upper,
             "rq_tta_confidence": prediction.rq.tta_confidence,
-            "rq_rotation_period_risk": (
-                prediction.rq.rotation_period_risk
-            ),
-            "rq_head_agreement_confidence": (
-                prediction.rq.head_agreement_confidence
-            ),
+            "rq_rotation_period_risk": (prediction.rq.rotation_period_risk),
+            "rq_head_agreement_confidence": (prediction.rq.head_agreement_confidence),
             "predicted_fsmi_nm": prediction.fsmi.value,
             "unconstrained_fsmi_nm": prediction.fsmi.unconstrained_value,
             "fsmi_support_clipped": prediction.fsmi.support_clipped,
@@ -136,9 +125,7 @@ class SessionRecorder:
             "fsmi_interval_lower_nm": prediction.fsmi.interval_lower,
             "fsmi_interval_upper_nm": prediction.fsmi.interval_upper,
             "fsmi_tta_confidence": prediction.fsmi.tta_confidence,
-            "fsmi_rotation_period_risk": (
-                prediction.fsmi.rotation_period_risk
-            ),
+            "fsmi_rotation_period_risk": (prediction.fsmi.rotation_period_risk),
             "fsmi_head_agreement_confidence": (
                 prediction.fsmi.head_agreement_confidence
             ),

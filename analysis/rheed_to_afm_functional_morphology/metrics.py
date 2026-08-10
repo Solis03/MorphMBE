@@ -7,7 +7,6 @@ import pandas as pd
 from scipy import ndimage
 from skimage import measure
 
-
 FSMI_COMPONENTS = [
     "sq_nm",
     "height_increment_rms_31nm",
@@ -80,35 +79,21 @@ def extract_surface_metrics(
     increments = np.concatenate([dx.ravel(), dy.ravel()])
     increment_rms = float(np.sqrt(np.mean(np.square(increments))))
 
-    d2x = (
-        height[:, 2 * step :]
-        - 2.0 * height[:, step:-step]
-        + height[:, : -2 * step]
-    )
-    d2y = (
-        height[2 * step :, :]
-        - 2.0 * height[step:-step, :]
-        + height[: -2 * step, :]
-    )
+    d2x = height[:, 2 * step :] - 2.0 * height[:, step:-step] + height[:, : -2 * step]
+    d2y = height[2 * step :, :] - 2.0 * height[step:-step, :] + height[: -2 * step, :]
     second_differences = np.concatenate([d2x.ravel(), d2y.ravel()])
-    curvature_relief = float(
-        0.5 * np.sqrt(np.mean(np.square(second_differences)))
-    )
+    curvature_relief = float(0.5 * np.sqrt(np.mean(np.square(second_differences))))
 
-    core = height[step:-step, step:-step]
-    gx = (
-        height[step:-step, 2 * step :]
-        - height[step:-step, : -2 * step]
-    ) / (2.0 * realized_scale_nm)
-    gy = (
-        height[2 * step :, step:-step]
-        - height[: -2 * step, step:-step]
-    ) / (2.0 * realized_scale_nm)
+    height[step:-step, step:-step]
+    gx = (height[step:-step, 2 * step :] - height[step:-step, : -2 * step]) / (
+        2.0 * realized_scale_nm
+    )
+    gy = (height[2 * step :, step:-step] - height[: -2 * step, step:-step]) / (
+        2.0 * realized_scale_nm
+    )
     gradient = np.hypot(gx, gy)
     sdq = float(np.sqrt(np.mean(np.square(gradient))))
-    sdr_percent = float(
-        100.0 * np.mean(np.sqrt(1.0 + np.square(gradient)) - 1.0)
-    )
+    sdr_percent = float(100.0 * np.mean(np.sqrt(1.0 + np.square(gradient)) - 1.0))
 
     q01, q10, q50, q70, q90, q99 = np.quantile(
         height, [0.01, 0.10, 0.50, 0.70, 0.90, 0.99]
@@ -129,16 +114,13 @@ def extract_surface_metrics(
         [float(region.area) * pixel_nm**2 for region in regions],
         dtype=float,
     )
-    island_prominence = float(
-        np.median(prominences) if len(prominences) else 0.0
-    )
+    island_prominence = float(np.median(prominences) if len(prominences) else 0.0)
     island_area = float(np.median(areas_nm2) if len(areas_nm2) else 0.0)
 
     boundary = island_mask ^ ndimage.binary_erosion(island_mask)
     pixel_gradient = np.hypot(*np.gradient(smooth))
     boundary_contrast = float(
-        np.mean(pixel_gradient[boundary])
-        / max(float(np.mean(pixel_gradient)), 1e-12)
+        np.mean(pixel_gradient[boundary]) / max(float(np.mean(pixel_gradient)), 1e-12)
     )
 
     sq = float(np.sqrt(np.mean(np.square(height))))
@@ -164,9 +146,7 @@ def extract_surface_metrics(
         ),
         "curvature_relief_31nm": curvature_relief,
         "scale_dependent_rms_curvature_31nm_inv": (
-            2.0
-            * curvature_relief
-            / max(realized_scale_nm**2, 1e-12)
+            2.0 * curvature_relief / max(realized_scale_nm**2, 1e-12)
         ),
         "sdq_31nm": sdq,
         "sdr_31nm_percent": sdr_percent,
@@ -213,6 +193,4 @@ def group_metric_table(scan_metrics: pd.DataFrame) -> pd.DataFrame:
         .reset_index()
     )
     result["growth_run_id"] = result["growth_run_id"].astype(str)
-    return result.sort_values(["split", "growth_run_id"]).reset_index(
-        drop=True
-    )
+    return result.sort_values(["split", "growth_run_id"]).reset_index(drop=True)

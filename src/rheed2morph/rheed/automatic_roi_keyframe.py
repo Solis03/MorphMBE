@@ -19,12 +19,11 @@ vertices.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
 import json
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
-from collections.abc import Callable
-from dataclasses import replace
-from typing import Any, Iterable, Iterator, Mapping, Sequence
+from typing import Any
 
 import imageio.v2 as imageio
 import numpy as np
@@ -35,7 +34,6 @@ from skimage import measure, morphology
 from skimage.filters import threshold_otsu
 
 from .orientation import rotate_frame_clockwise
-
 
 SUPPORTED_VIDEO_SUFFIXES = {
     ".avi",
@@ -114,7 +112,7 @@ class Rect:
     def y2(self) -> int:
         return self.y + self.height
 
-    def clipped(self) -> "Rect":
+    def clipped(self) -> Rect:
         x0 = int(np.clip(self.x, 0, max(self.source_width - 1, 0)))
         y0 = int(np.clip(self.y, 0, max(self.source_height - 1, 0)))
         x1 = int(np.clip(self.x2, x0 + 1, self.source_width))
@@ -255,9 +253,12 @@ def iter_video_frames(
     reader = imageio.get_reader(str(source), "ffmpeg")
     try:
         for index, frame in enumerate(reader):
-            yield index, rotate_frame_clockwise(
-                _rgb_uint8(frame),
-                rotation_clockwise_degrees,
+            yield (
+                index,
+                rotate_frame_clockwise(
+                    _rgb_uint8(frame),
+                    rotation_clockwise_degrees,
+                ),
             )
     finally:
         reader.close()
@@ -276,9 +277,12 @@ def iter_png_frames(
 ) -> Iterator[tuple[int, np.ndarray]]:
     for frame_path in sorted_png_paths(path):
         with Image.open(frame_path) as image:
-            yield int(frame_path.stem), rotate_frame_clockwise(
-                np.asarray(image.convert("RGB"), dtype=np.uint8),
-                rotation_clockwise_degrees,
+            yield (
+                int(frame_path.stem),
+                rotate_frame_clockwise(
+                    np.asarray(image.convert("RGB"), dtype=np.uint8),
+                    rotation_clockwise_degrees,
+                ),
             )
 
 
@@ -347,9 +351,9 @@ def sample_frames(
     )
     if known_count is not None:
         paths = sorted_png_paths(source)
-        indices = np.linspace(
-            0, len(paths) - 1, min(maximum, len(paths))
-        ).round().astype(int)
+        indices = (
+            np.linspace(0, len(paths) - 1, min(maximum, len(paths))).round().astype(int)
+        )
         frames = []
         for position in indices:
             with Image.open(paths[int(position)]) as image:
@@ -467,11 +471,15 @@ def analyze_aperture(
 
 
 def _integral(values: np.ndarray) -> np.ndarray:
-    return np.pad(
-        np.asarray(values),
-        ((1, 0), (1, 0)),
-        mode="constant",
-    ).cumsum(axis=0).cumsum(axis=1)
+    return (
+        np.pad(
+            np.asarray(values),
+            ((1, 0), (1, 0)),
+            mode="constant",
+        )
+        .cumsum(axis=0)
+        .cumsum(axis=1)
+    )
 
 
 def _rect_sums(integral: np.ndarray, height: int, width: int) -> np.ndarray:
@@ -529,16 +537,10 @@ def _search_safe_rectangle(
             size_penalty = abs(rect_width - target_width) / maximum_width
             scores = coverage - 0.55 * size_penalty - 0.03 * area_fraction
         elif method == "activity_safe":
-            mean_activity = activity_sum / max(
-                float(rect_width * rect_height), 1.0
-            )
-            density_scale = max(
-                float(np.percentile(mean_activity[valid], 95)), 1e-8
-            )
+            mean_activity = activity_sum / max(float(rect_width * rect_height), 1.0)
+            density_scale = max(float(np.percentile(mean_activity[valid], 95)), 1e-8)
             scores = (
-                coverage
-                - 0.16 * area_fraction
-                + 0.05 * mean_activity / density_scale
+                coverage - 0.16 * area_fraction + 0.05 * mean_activity / density_scale
             )
         else:
             raise ValueError(f"Unknown ROI method: {method}")
@@ -602,9 +604,7 @@ def predict_roi(
     aperture = analysis or analyze_aperture(frames)
     if method == "full_lattice":
         if lattice_calibration is None:
-            raise ValueError(
-                "full_lattice ROI requires a lattice calibration bundle"
-            )
+            raise ValueError("full_lattice ROI requires a lattice calibration bundle")
         from rheed2morph.rheed.lattice_roi import (
             predict_full_lattice_roi,
         )
@@ -664,9 +664,8 @@ def _spot_features(frame: np.ndarray, roi: Rect) -> dict[str, float]:
         0.0,
         1.0,
     )
-    response = (
-        ndimage.gaussian_filter(normalized, 0.8)
-        - ndimage.gaussian_filter(normalized, 5.0)
+    response = ndimage.gaussian_filter(normalized, 0.8) - ndimage.gaussian_filter(
+        normalized, 5.0
     )
     response[:8] = 0.0
     response[-8:] = 0.0
@@ -674,9 +673,7 @@ def _spot_features(frame: np.ndarray, roi: Rect) -> dict[str, float]:
     response[:, -5:] = 0.0
     positive = np.maximum(response, 0.0)
     compact_threshold = float(np.percentile(positive, 99.3))
-    compact_weights = (
-        np.maximum(positive - compact_threshold, 0.0) ** 2
-    )
+    compact_weights = np.maximum(positive - compact_threshold, 0.0) ** 2
     yy, xx = np.indices(positive.shape)
     if float(compact_weights.sum()) < 1e-8:
         y, x = np.unravel_index(int(np.argmax(response)), response.shape)
@@ -684,20 +681,14 @@ def _spot_features(frame: np.ndarray, roi: Rect) -> dict[str, float]:
         compact_y = float(y)
     else:
         compact_total = float(compact_weights.sum())
-        compact_x = float(
-            (xx * compact_weights).sum() / compact_total
-        )
-        compact_y = float(
-            (yy * compact_weights).sum() / compact_total
-        )
+        compact_x = float((xx * compact_weights).sum() / compact_total)
+        compact_y = float((yy * compact_weights).sum() / compact_total)
 
     # Track the horizontal front of the complete diffraction family rather
     # than only the single brightest pixel.  The latter can jump between
     # vertically separated streaks and create false trajectory vertices.
     aggregate_threshold = float(np.percentile(positive, 95.0))
-    aggregate_weights = np.maximum(
-        positive - aggregate_threshold, 0.0
-    )
+    aggregate_weights = np.maximum(positive - aggregate_threshold, 0.0)
     aggregate_total = float(aggregate_weights.sum())
     if aggregate_total < 1e-8:
         front_x = compact_x
@@ -705,13 +696,10 @@ def _spot_features(frame: np.ndarray, roi: Rect) -> dict[str, float]:
     else:
         columns = aggregate_weights.sum(axis=0)
         cumulative = np.cumsum(columns)
-        front_x = float(
-            np.searchsorted(cumulative, 0.85 * cumulative[-1])
-        )
+        front_x = float(np.searchsorted(cumulative, 0.85 * cumulative[-1]))
         rows = aggregate_weights.sum(axis=1)
         aggregate_y = float(
-            (np.arange(len(rows), dtype=float) * rows).sum()
-            / aggregate_total
+            (np.arange(len(rows), dtype=float) * rows).sum() / aggregate_total
         )
     raw_narrow = ndimage.gaussian_filter(work, 0.8)
     raw_wide = ndimage.gaussian_filter(work, 5.0)
@@ -722,9 +710,7 @@ def _spot_features(frame: np.ndarray, roi: Rect) -> dict[str, float]:
         "spot_y": aggregate_y,
         "compact_spot_x": compact_x,
         "compact_spot_y": compact_y,
-        "clarity": float(
-            np.percentile(response, 99.8) / (np.std(response) + 1e-6)
-        ),
+        "clarity": float(np.percentile(response, 99.8) / (np.std(response) + 1e-6)),
         "sharpness": float(np.mean(np.hypot(gx, gy))),
         "spot_energy": float(np.percentile(response, 99.5)),
         "absolute_contrast": float(np.percentile(raw_response, 99.5)),
@@ -753,15 +739,11 @@ def extract_multi_roi_trajectories(
 
     if not rois:
         raise ValueError("At least one ROI is required")
-    records: dict[str, list[dict[str, float | int]]] = {
-        name: [] for name in rois
-    }
+    records: dict[str, list[dict[str, float | int]]] = {name: [] for name in rois}
     for frame_index, frame in frames:
         for name, roi in rois.items():
             feature = _spot_features(frame, roi)
-            records[name].append(
-                {"frame_index": int(frame_index), **feature}
-            )
+            records[name].append({"frame_index": int(frame_index), **feature})
     if min(map(len, records.values())) < 3:
         raise ValueError("At least three decoded frames are required")
     return records
@@ -803,14 +785,9 @@ def _select_keyframes_core(
     clarity = np.asarray([float(row["clarity"]) for row in trajectory])
     sharpness = np.asarray([float(row["sharpness"]) for row in trajectory])
     energy = np.asarray([float(row["spot_energy"]) for row in trajectory])
-    mean_intensity = np.asarray(
-        [float(row["mean_intensity"]) for row in trajectory]
-    )
+    mean_intensity = np.asarray([float(row["mean_intensity"]) for row in trajectory])
     absolute_contrast = np.asarray(
-        [
-            float(row.get("absolute_contrast", row["spot_energy"]))
-            for row in trajectory
-        ]
+        [float(row.get("absolute_contrast", row["spot_energy"])) for row in trajectory]
     )
     x = ndimage.gaussian_filter1d(
         ndimage.median_filter(x_raw, size=3, mode="nearest"),
@@ -860,9 +837,7 @@ def _select_keyframes_core(
                 "sharpness": float(np.median(sharpness[local])),
                 "spot_energy": float(np.median(energy[local])),
                 "mean_intensity": float(np.median(mean_intensity[local])),
-                "absolute_contrast": float(
-                    np.median(absolute_contrast[local])
-                ),
+                "absolute_contrast": float(np.median(absolute_contrast[local])),
                 "prominence": float(prominences[candidate_index]),
                 "pre_dx": pre_dx,
                 "post_dx": post_dx,
@@ -886,7 +861,7 @@ def _select_keyframes_core(
     ):
         values = np.asarray([float(row[name]) for row in candidate_rows])
         ranks = _rank(values)
-        for row, rank in zip(candidate_rows, ranks):
+        for row, rank in zip(candidate_rows, ranks, strict=False):
             row[f"q_{name}"] = float(rank)
     for row in candidate_rows:
         row["vertex_clarity_score"] = float(
@@ -923,17 +898,13 @@ def _select_keyframes_core(
 
     predictions: dict[str, KeyframePrediction] = {}
     quality_median = float(np.median(quality_all))
-    quality_mad = float(
-        1.4826 * np.median(np.abs(quality_all - quality_median))
-    )
+    quality_mad = float(1.4826 * np.median(np.abs(quality_all - quality_median)))
     quality_confidence = float(
         1.0
         / (
             1.0
             + np.exp(
-                -(
-                    float(quality_all[quality_position]) - quality_median
-                )
+                -(float(quality_all[quality_position]) - quality_median)
                 / max(quality_mad, 0.05)
             )
         )
@@ -995,9 +966,7 @@ def _select_keyframes_core(
             else float(selected[score_name])
         )
         support = min(len(candidate_rows) / 5.0, 1.0)
-        direction_bonus = (
-            1.0 if bool(selected["direction_consistent"]) else 0.65
-        )
+        direction_bonus = 1.0 if bool(selected["direction_consistent"]) else 0.65
         confidence = float(
             np.clip(
                 (0.45 + 0.55 * min(max(margin, 0.0) / 0.20, 1.0))
@@ -1029,10 +998,7 @@ def select_keyframes(
     """Return front-tracker and compact bright-spot model predictions."""
 
     predictions, candidate_rows = _select_keyframes_core(trajectory)
-    if all(
-        "compact_spot_x" in row and "compact_spot_y" in row
-        for row in trajectory
-    ):
+    if all("compact_spot_x" in row and "compact_spot_y" in row for row in trajectory):
         compact_trajectory = [
             {
                 **row,
@@ -1064,8 +1030,7 @@ def _supervised_candidate_rows(
 ) -> tuple[list[dict[str, Any]], dict[str, float | None]]:
     front_predictions, front_candidates = _select_keyframes_core(trajectory)
     if not all(
-        "compact_spot_x" in row and "compact_spot_y" in row
-        for row in trajectory
+        "compact_spot_x" in row and "compact_spot_y" in row for row in trajectory
     ):
         raise ValueError(
             "The supervised ranker requires V2 front and compact coordinates"
@@ -1078,25 +1043,19 @@ def _supervised_candidate_rows(
         }
         for row in trajectory
     ]
-    compact_predictions, compact_candidates = _select_keyframes_core(
-        compact_trajectory
-    )
+    compact_predictions, compact_candidates = _select_keyframes_core(compact_trajectory)
     by_tracker = {
         "front": front_candidates,
         "compact": compact_candidates,
     }
     rows: list[dict[str, Any]] = []
     for tracker, candidates in by_tracker.items():
-        other = by_tracker[
-            "compact" if tracker == "front" else "front"
-        ]
+        other = by_tracker["compact" if tracker == "front" else "front"]
         for candidate in candidates:
             frame_index = int(candidate["frame_index"])
             nearest = min(
                 other,
-                key=lambda item: abs(
-                    int(item["frame_index"]) - frame_index
-                ),
+                key=lambda item: abs(int(item["frame_index"]) - frame_index),
             )
             distance = abs(int(nearest["frame_index"]) - frame_index)
             rows.append(
@@ -1105,22 +1064,15 @@ def _supervised_candidate_rows(
                     "tracker": tracker,
                     "tracker_front": float(tracker == "front"),
                     "cross_tracker_distance": float(min(distance, 60)),
-                    "cross_tracker_agreement": float(
-                        np.exp(-distance / 3.0)
-                    ),
+                    "cross_tracker_agreement": float(np.exp(-distance / 3.0)),
                     "cross_tracker_direction_support": float(
-                        bool(nearest["direction_consistent"])
-                        and distance <= 4
+                        bool(nearest["direction_consistent"]) and distance <= 4
                     ),
                 }
             )
     periods = {
-        "front": front_predictions[
-            "physics_vertex"
-        ].estimated_period_frames,
-        "compact": compact_predictions[
-            "physics_vertex"
-        ].estimated_period_frames,
+        "front": front_predictions["physics_vertex"].estimated_period_frames,
+        "compact": compact_predictions["physics_vertex"].estimated_period_frames,
     }
     return rows, periods
 
@@ -1141,19 +1093,13 @@ def predict_keyframe_with_ranker(
     bundle = joblib.load(Path(ranker_path))
     features = tuple(bundle["features"])
     if features != SUPERVISED_PHASE_FEATURES:
-        raise ValueError(
-            "Ranker feature schema does not match this selector version"
-        )
+        raise ValueError("Ranker feature schema does not match this selector version")
     candidates, periods = _supervised_candidate_rows(trajectory)
     table = pd.DataFrame(candidates)
-    scores = np.asarray(
-        bundle["model"].predict(table[list(features)]), dtype=float
-    )
+    scores = np.asarray(bundle["model"].predict(table[list(features)]), dtype=float)
     position = int(np.argmax(scores))
     selected = candidates[position]
-    calibrated = float(
-        bundle["calibrator"].predict([scores[position]])[0]
-    )
+    calibrated = float(bundle["calibrator"].predict([scores[position]])[0])
     return KeyframePrediction(
         method="supervised_phase_ranker",
         frame_index=int(selected["frame_index"]),
@@ -1223,9 +1169,7 @@ def select_from_source(
     deep_visibility_ranker_path: str | Path | None = None,
     foundation_cache_dir: str | Path | None = None,
     deep_device: str | None = None,
-    full_lattice_calibration_path: (
-        Mapping[str, Any] | str | Path | None
-    ) = None,
+    full_lattice_calibration_path: (Mapping[str, Any] | str | Path | None) = None,
 ) -> tuple[AutomaticSelection, list[dict[str, Any]], ApertureAnalysis]:
     """Run keyframe selection and optional complete-lattice ROI refinement.
 
@@ -1246,23 +1190,19 @@ def select_from_source(
         aspect_ratio=aspect_ratio,
         calibrated_scale=calibrated_scale,
         lattice_calibration=(
-            full_lattice_calibration_path
-            if roi_method == "full_lattice"
-            else None
+            full_lattice_calibration_path if roi_method == "full_lattice" else None
         ),
     )
     factory, known_count, display_source = _source_factory(source)
     trajectory = extract_spot_trajectory(factory(), roi.rect)
     predictions, candidates = select_keyframes(trajectory)
     if phase_ranker_path is not None:
-        predictions["supervised_phase_ranker"] = (
-            predict_keyframe_with_ranker(trajectory, phase_ranker_path)
+        predictions["supervised_phase_ranker"] = predict_keyframe_with_ranker(
+            trajectory, phase_ranker_path
         )
     if deep_visibility_ranker_path is not None:
         deep_candidates, _ = _supervised_candidate_rows(trajectory)
-        required = {
-            int(candidate["frame_index"]) for candidate in deep_candidates
-        }
+        required = {int(candidate["frame_index"]) for candidate in deep_candidates}
         candidate_frames: dict[int, np.ndarray] = {}
         for frame_index, frame in factory():
             if frame_index in required:
@@ -1271,25 +1211,18 @@ def select_from_source(
                 break
         if len(candidate_frames) != len(required):
             missing = sorted(required - set(candidate_frames))
-            raise IndexError(
-                f"Could not decode {len(missing)} candidate frames"
-            )
-        predictions["deep_visibility_ranker"] = (
-            predict_keyframe_with_deep_visibility(
-                trajectory,
-                candidate_frames,
-                roi.rect,
-                deep_visibility_ranker_path,
-                foundation_cache_dir=foundation_cache_dir,
-                device=deep_device,
-            )
+            raise IndexError(f"Could not decode {len(missing)} candidate frames")
+        predictions["deep_visibility_ranker"] = predict_keyframe_with_deep_visibility(
+            trajectory,
+            candidate_frames,
+            roi.rect,
+            deep_visibility_ranker_path,
+            foundation_cache_dir=foundation_cache_dir,
+            device=deep_device,
         )
     frame_count = known_count or counted or len(trajectory)
     output_roi = roi
-    if (
-        full_lattice_calibration_path is not None
-        and roi_method != "full_lattice"
-    ):
+    if full_lattice_calibration_path is not None and roi_method != "full_lattice":
         output_roi, _ = predict_roi(
             sampled,
             method="full_lattice",

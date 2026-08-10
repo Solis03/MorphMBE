@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import math
 from pathlib import Path
 from typing import Any
@@ -14,7 +13,6 @@ from scipy.stats import pearsonr, spearmanr
 
 from analysis.rheed_to_afm_functional_morphology.run import M10
 from analysis.rheed_to_afm_functional_morphology.visualization import (
-    BASELINE_COLOR,
     REAL_COLOR,
     SELECTED_COLOR,
     _comparison_figure,
@@ -23,7 +21,6 @@ from analysis.rheed_to_afm_functional_morphology.visualization import (
     _real_afm_label,
     _rheed_keyframe,
     _save,
-    _scale_bar,
     _style,
     _surface_panel,
 )
@@ -33,7 +30,6 @@ from analysis.rheed_video_afm_story.common import (
 )
 
 from .run import load_config, load_source_tables
-
 
 SOURCE_COLORS = {
     "original_23_batch": "#0072B2",
@@ -51,9 +47,7 @@ def _method_label(method: str) -> str:
         "M17c_topology_sparse_finetexture_terrace": (
             "M17c topology-conditioned sparse-peak texture"
         ),
-        "M17b_topology_sparse_peak_terrace": (
-            "M17b topology-conditioned sparse peaks"
-        ),
+        "M17b_topology_sparse_peak_terrace": ("M17b topology-conditioned sparse peaks"),
         "M16b_regime_adaptive_microisland_terrace": (
             "M16b regime-adaptive micro-island terrace"
         ),
@@ -73,9 +67,7 @@ def _external_target_confidence(
     fsmi_path: str | Path | None = None,
     fsmi_method: str | None = None,
 ) -> pd.DataFrame:
-    predictions = pd.read_csv(
-        repo_path(path), dtype={"growth_run_id": str}
-    )
+    predictions = pd.read_csv(repo_path(path), dtype={"growth_run_id": str})
     required = {
         "growth_run_id",
         "target",
@@ -92,19 +84,14 @@ def _external_target_confidence(
             f"external confidence columns missing from {path}: {missing}"
         )
     if predictions["outer_target_used_for_training"].astype(bool).any():
-        raise RuntimeError(
-            f"external confidence reports outer target leakage: {path}"
-        )
+        raise RuntimeError(f"external confidence reports outer target leakage: {path}")
     selected = predictions.loc[predictions["method"] == str(method)]
     if selected.empty:
         available = sorted(predictions["method"].astype(str).unique())
         raise RuntimeError(
-            f"external confidence method {method!r} is unavailable; "
-            f"found {available}"
+            f"external confidence method {method!r} is unavailable; found {available}"
         )
-    rq = selected.loc[selected["target"] == "Rq_nm"].set_index(
-        "growth_run_id"
-    )
+    rq = selected.loc[selected["target"] == "Rq_nm"].set_index("growth_run_id")
     fsmi_source = selected
     if fsmi_path is not None:
         fsmi_predictions = pd.read_csv(
@@ -115,16 +102,14 @@ def _external_target_confidence(
             fsmi_predictions["method"] == fsmi_selected_method
         ]
         if fsmi_source.empty:
-            available = sorted(
-                fsmi_predictions["method"].astype(str).unique()
-            )
+            available = sorted(fsmi_predictions["method"].astype(str).unique())
             raise RuntimeError(
                 f"external FSMI confidence method "
                 f"{fsmi_selected_method!r} is unavailable; found {available}"
             )
-    fsmi = fsmi_source.loc[
-        fsmi_source["target"] == "FSMI_nm"
-    ].set_index("growth_run_id")
+    fsmi = fsmi_source.loc[fsmi_source["target"] == "FSMI_nm"].set_index(
+        "growth_run_id"
+    )
     expected = int(fallback["growth_run_id"].astype(str).nunique())
     if set(rq.index) != set(fsmi.index) or len(rq) != expected:
         raise RuntimeError(
@@ -132,28 +117,19 @@ def _external_target_confidence(
             f"expected {expected}, found Sq={len(rq)}, FSMI={len(fsmi)}"
         )
     result = fallback.set_index("growth_run_id").loc[rq.index].copy()
-    result["joint_confidence_index"] = (
-        100.0 * np.sqrt(rq["confidence"] * fsmi["confidence"])
+    result["joint_confidence_index"] = 100.0 * np.sqrt(
+        rq["confidence"] * fsmi["confidence"]
     )
     result["realized_rq_absolute_error_nm"] = rq["absolute_error"]
-    result["predicted_rq_absolute_error_nm"] = rq[
-        "predicted_absolute_error"
-    ]
+    result["predicted_rq_absolute_error_nm"] = rq["predicted_absolute_error"]
     result["realized_fsmi_absolute_error_nm"] = fsmi["absolute_error"]
-    result["predicted_fsmi_absolute_error_nm"] = fsmi[
-        "predicted_absolute_error"
-    ]
+    result["predicted_fsmi_absolute_error_nm"] = fsmi["predicted_absolute_error"]
     result["rq_interval_covered"] = rq["interval_covered"].astype(bool)
-    result["fsmi_interval_covered"] = fsmi[
-        "interval_covered"
-    ].astype(bool)
+    result["fsmi_interval_covered"] = fsmi["interval_covered"].astype(bool)
     result["realized_joint_error_index"] = 0.5 * (
-        rq["absolute_error"].rank(pct=True)
-        + fsmi["absolute_error"].rank(pct=True)
+        rq["absolute_error"].rank(pct=True) + fsmi["absolute_error"].rank(pct=True)
     )
-    result["confidence_basis"] = (
-        "geometric mean of strict-LOO Sq and FSMI confidence"
-    )
+    result["confidence_basis"] = "geometric mean of strict-LOO Sq and FSMI confidence"
     return result.reset_index()
 
 
@@ -194,9 +170,7 @@ def plot_full_atlas(
     method: str,
     cohort_count: int,
 ) -> list[str]:
-    groups = list(
-        rq.sort_values("true_target")["growth_run_id"].astype(str)
-    )
+    groups = list(rq.sort_values("true_target")["growth_run_id"].astype(str))
     pages = int(math.ceil(len(groups) / 5))
     stems: list[str] = []
     for page, start in enumerate(range(0, len(groups), 5), start=1):
@@ -231,25 +205,17 @@ def plot_target_scatter(
     source: pd.DataFrame,
     cohort_count: int,
 ) -> None:
-    conf = confidence.set_index("growth_run_id")[
-        "joint_confidence_index"
-    ]
+    conf = confidence.set_index("growth_run_id")["joint_confidence_index"]
     source_map = source.set_index("growth_run_id")["cohort_origin"]
-    figure, axes = plt.subplots(
-        1, 2, figsize=(9.0, 4.0), constrained_layout=True
-    )
+    figure, axes = plt.subplots(1, 2, figsize=(9.0, 4.0), constrained_layout=True)
     for axis, values, label in (
         (axes[0], rq.copy(), "Sq (nm)"),
         (axes[1], fsmi.copy(), "FSMI (nm)"),
     ):
         values["cohort_origin"] = values["growth_run_id"].map(source_map)
         scatter = _source_scatter(axis, values, conf)
-        lower = (
-            values["predicted_target"] - values["interval_lower"]
-        ).to_numpy(float)
-        upper = (
-            values["interval_upper"] - values["predicted_target"]
-        ).to_numpy(float)
+        lower = (values["predicted_target"] - values["interval_lower"]).to_numpy(float)
+        upper = (values["interval_upper"] - values["predicted_target"]).to_numpy(float)
         axis.errorbar(
             values["true_target"],
             values["predicted_target"],
@@ -260,23 +226,15 @@ def plot_target_scatter(
             lw=0.7,
             zorder=1,
         )
-        lo = float(
-            min(values["true_target"].min(), values["interval_lower"].min())
-        )
-        hi = float(
-            max(values["true_target"].max(), values["interval_upper"].max())
-        )
+        lo = float(min(values["true_target"].min(), values["interval_lower"].min()))
+        hi = float(max(values["true_target"].max(), values["interval_upper"].max()))
         axis.plot([lo, hi], [lo, hi], "--", color="black", lw=1)
         axis.set_xlim(max(0.0, lo - 0.25), hi + 0.25)
         axis.set_ylim(max(0.0, lo - 0.25), hi + 0.25)
         axis.set_xlabel(f"measured {label}")
         axis.set_ylabel(f"LOO-predicted {label}")
-        pearson = pearsonr(
-            values["true_target"], values["predicted_target"]
-        )
-        rank = spearmanr(
-            values["true_target"], values["predicted_target"]
-        )
+        pearson = pearsonr(values["true_target"], values["predicted_target"])
+        rank = spearmanr(values["true_target"], values["predicted_target"])
         mae = float(values["absolute_error"].mean())
         axis.set_title(
             f"{label}: r={pearson.statistic:.2f}, "
@@ -294,8 +252,7 @@ def plot_target_scatter(
     colorbar = figure.colorbar(scatter, ax=axes, shrink=0.82)
     colorbar.set_label("cross-fitted confidence index (0–100)")
     figure.suptitle(
-        f"Every point is held out once ({cohort_count - 1} growths fit, "
-        "one predicted)",
+        f"Every point is held out once ({cohort_count - 1} growths fit, one predicted)",
         fontsize=11,
         fontweight="bold",
     )
@@ -319,8 +276,7 @@ def plot_protocol_comparison(
             f"{current_method_label}: same 15 points\n({fit_count} fit)"
         ),
         f"current_full{cohort_count}_train{fit_count}_all{cohort_count}": (
-            f"{current_method_label}: all {cohort_count} points\n"
-            f"({fit_count} fit)"
+            f"{current_method_label}: all {cohort_count} points\n({fit_count} fit)"
         ),
     }
     metrics = [
@@ -329,14 +285,12 @@ def plot_protocol_comparison(
         ("pearson_r", "Pearson r", True),
         ("spearman_rho", "Spearman ρ", True),
     ]
-    figure, axes = plt.subplots(
-        2, 2, figsize=(9.1, 6.0), constrained_layout=True
-    )
+    figure, axes = plt.subplots(2, 2, figsize=(9.1, 6.0), constrained_layout=True)
     colors = ["#56B4E9", "#E69F00", "#D55E00"]
     protocols = list(labels)
     x = np.arange(2)
     width = 0.24
-    for axis, (column, title, higher) in zip(axes.ravel(), metrics):
+    for axis, (column, title, higher) in zip(axes.ravel(), metrics, strict=False):
         for index, protocol in enumerate(protocols):
             rows = (
                 comparison.loc[comparison["protocol"] == protocol]
@@ -383,14 +337,10 @@ def plot_rq_order(
     confidence: pd.DataFrame,
     cohort_count: int,
 ) -> None:
-    conf = confidence.set_index("growth_run_id")[
-        "joint_confidence_index"
-    ]
+    conf = confidence.set_index("growth_run_id")["joint_confidence_index"]
     ordered = rq.sort_values("true_target").reset_index(drop=True)
     x = np.arange(len(ordered))
-    figure, axis = plt.subplots(
-        figsize=(10.0, 4.2), constrained_layout=True
-    )
+    figure, axis = plt.subplots(figsize=(10.0, 4.2), constrained_layout=True)
     axis.plot(
         x,
         ordered["true_target"],
@@ -428,9 +378,7 @@ def plot_rq_order(
         alpha=0.6,
     )
     axis.set_xticks(x)
-    axis.set_xticklabels(
-        ordered["growth_run_id"], rotation=55, ha="right", fontsize=7
-    )
+    axis.set_xticklabels(ordered["growth_run_id"], rotation=55, ha="right", fontsize=7)
     axis.set_xlabel("held-out growth (ordered by measured Sq)")
     axis.set_ylabel("Sq (nm)")
     axis.set_title(
@@ -443,16 +391,12 @@ def plot_rq_order(
     _save(figure, figure_dir / f"Fig4_full{cohort_count}_rq_ordered")
 
 
-def plot_confidence_audit(
-    *, figure_dir: Path, confidence: pd.DataFrame
-) -> None:
+def plot_confidence_audit(*, figure_dir: Path, confidence: pd.DataFrame) -> None:
     rho = spearmanr(
         confidence["joint_confidence_index"],
         confidence["realized_joint_error_index"],
     )
-    figure, axes = plt.subplots(
-        1, 2, figsize=(9.0, 3.8), constrained_layout=True
-    )
+    figure, axes = plt.subplots(1, 2, figsize=(9.0, 3.8), constrained_layout=True)
     points = axes[0].scatter(
         confidence["joint_confidence_index"],
         confidence["realized_joint_error_index"],
@@ -462,9 +406,7 @@ def plot_confidence_audit(
         edgecolor="black",
         linewidth=0.4,
     )
-    for _, row in confidence.nlargest(
-        5, "realized_joint_error_index"
-    ).iterrows():
+    for _, row in confidence.nlargest(5, "realized_joint_error_index").iterrows():
         axes[0].annotate(
             str(row["growth_run_id"]),
             (
@@ -501,14 +443,10 @@ def plot_confidence_audit(
         coverage,
         color=[SELECTED_COLOR, "#009E73", "#E69F00"],
     )
-    axes[1].axhline(
-        0.90, color="black", ls="--", lw=1, label="nominal 90%"
-    )
+    axes[1].axhline(0.90, color="black", ls="--", lw=1, label="nominal 90%")
     axes[1].set_ylim(0, 1.05)
     axes[1].set_ylabel("outer-LOO empirical coverage")
-    axes[1].set_title(
-        "Strict-LOO empirical interval coverage"
-    )
+    axes[1].set_title("Strict-LOO empirical interval coverage")
     axes[1].legend(frameon=False, fontsize=8)
     _save(figure, figure_dir / "Fig5_confidence_audit")
 
@@ -534,9 +472,7 @@ def plot_renderer_strata(
     )
     for row_index, group in enumerate(groups):
         rheed = _rheed_keyframe(phase1, group)
-        baseline, _ = _generated(
-            output, split="crossfit", method=M10, group=group
-        )
+        baseline, _ = _generated(output, split="crossfit", method=M10, group=group)
         selected, _ = _generated(
             output,
             split="crossfit",
@@ -545,16 +481,13 @@ def plot_renderer_strata(
         )
         real = _real_afm(phase1, group)
         real_label = _real_afm_label(phase1, group)
-        scale = np.concatenate(
-            [baseline.ravel(), selected.ravel(), real.ravel()]
-        )
+        scale = np.concatenate([baseline.ravel(), selected.ravel(), real.ravel()])
         vmin, vmax = np.quantile(scale, [0.01, 0.99])
         axes[row_index, 0].imshow(rheed, cmap="gray")
         axes[row_index, 0].set_xticks([])
         axes[row_index, 0].set_yticks([])
         axes[row_index, 0].set_title(
-            f"{group} RHEED\nsample median Sq="
-            f"{lookup.loc[group, 'true_target']:.2f} nm"
+            f"{group} RHEED\nsample median Sq={lookup.loc[group, 'true_target']:.2f} nm"
         )
         _surface_panel(
             axes[row_index, 1],
@@ -611,9 +544,7 @@ def plot_largest_failures(
     confidence: pd.DataFrame,
     method: str,
 ) -> None:
-    groups = list(
-        rq.nlargest(4, "absolute_error")["growth_run_id"].astype(str)
-    )
+    groups = list(rq.nlargest(4, "absolute_error")["growth_run_id"].astype(str))
     figure = _comparison_figure(
         groups=groups,
         split="crossfit",
@@ -688,9 +619,7 @@ def plot_highlighted_renderer_comparison(
     )
     for row_index, group in enumerate(groups):
         rheed = _rheed_keyframe(phase1, group)
-        m10, _ = _generated(
-            output, split="crossfit", method=M10, group=group
-        )
+        m10, _ = _generated(output, split="crossfit", method=M10, group=group)
         selected, _ = _generated(
             output,
             split="crossfit",
@@ -775,27 +704,19 @@ def run(config: dict[str, Any]) -> None:
                     "M14i_target_specific_robust",
                 )
             ),
-            fsmi_path=config.get(
-                "external_fsmi_confidence_predictions"
-            ),
-            fsmi_method=config.get(
-                "external_fsmi_confidence_method"
-            ),
+            fsmi_path=config.get("external_fsmi_confidence_predictions"),
+            fsmi_method=config.get("external_fsmi_confidence_method"),
         )
     cohort = _read(report / "cohort_manifest.csv")
     cohort_count = int(cohort["growth_run_id"].nunique())
     if "cohort_origin" not in cohort.columns:
-        extra_batch = set(
-            map(str, config.get("extra_batch_growths", []))
-        )
+        extra_batch = set(map(str, config.get("extra_batch_growths", [])))
         cohort["cohort_origin"] = np.where(
             cohort["growth_run_id"].astype(str).isin(extra_batch),
             "extra_five_batch",
             "original_23_batch",
         )
-    comparison = pd.read_csv(
-        report / "comparison_to_prior15_targets.csv"
-    )
+    comparison = pd.read_csv(report / "comparison_to_prior15_targets.csv")
     selected = str(config["selected_method"])
 
     stems = plot_full_atlas(
@@ -819,9 +740,9 @@ def run(config: dict[str, Any]) -> None:
     plot_protocol_comparison(
         figure_dir=figure_dir,
         comparison=comparison,
-        current_method_label=str(
-            config.get("target_prediction_method", "M13")
-        ).split("_", maxsplit=1)[0],
+        current_method_label=str(config.get("target_prediction_method", "M13")).split(
+            "_", maxsplit=1
+        )[0],
         cohort_count=cohort_count,
     )
     plot_rq_order(

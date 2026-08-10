@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
-from pathlib import Path
 import random
 import time
+from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -70,15 +70,11 @@ def _prior_validation_score(
             )
             for _, row in group_rows.iterrows():
                 target = _load_unit_map(row, resolution)
-                metrics = reconstruction_metrics(
-                    target, generated, float(row["rq_nm"])
-                )
+                metrics = reconstruction_metrics(target, generated, float(row["rq_nm"]))
                 metrics["growth_run_id"] = group
                 metric_rows.append(metrics)
             sample_condition = condition.repeat(4, 1)
-            generator = torch.Generator(device=device).manual_seed(
-                90_000 + int(group)
-            )
+            generator = torch.Generator(device=device).manual_seed(90_000 + int(group))
             generated_samples = (
                 model.generate(sample_condition, generator=generator)
                 .squeeze(1)
@@ -87,8 +83,7 @@ def _prior_validation_score(
                 .numpy()
             )
             real_samples = [
-                _load_unit_map(row, resolution)
-                for _, row in group_rows.iterrows()
+                _load_unit_map(row, resolution) for _, row in group_rows.iterrows()
             ]
 
             def pairwise_l1(samples: list[np.ndarray] | np.ndarray) -> float:
@@ -100,8 +95,7 @@ def _prior_validation_score(
                 return float(np.median(values)) if values else 0.0
 
             diversity_ratios.append(
-                pairwise_l1(generated_samples)
-                / max(pairwise_l1(real_samples), 1e-8)
+                pairwise_l1(generated_samples) / max(pairwise_l1(real_samples), 1e-8)
             )
     frame = pd.DataFrame(metric_rows)
     group_metrics = frame.groupby("growth_run_id").median(numeric_only=True)
@@ -115,15 +109,11 @@ def _prior_validation_score(
     composite = float(group_metrics["composite_score"].median())
     rq_mae = float(np.mean(rq_errors))
     diversity_ratio = float(np.median(diversity_ratios))
-    diversity_penalty = float(
-        abs(np.log(np.clip(diversity_ratio, 1e-4, 1e4)))
-    )
+    diversity_penalty = float(abs(np.log(np.clip(diversity_ratio, 1e-4, 1e4))))
     return {
         "val_prior_composite": composite,
         "val_rq_mae_nm": rq_mae,
-        "val_selection_score": composite
-        + 0.10 * rq_mae
-        + 0.20 * diversity_penalty,
+        "val_selection_score": composite + 0.10 * rq_mae + 0.20 * diversity_penalty,
         "val_prior_ssim": float(group_metrics["ssim"].median()),
         "val_prior_psd_log_distance": float(
             group_metrics["normalized_psd_log_distance"].median()
@@ -210,8 +200,10 @@ def train_conditional_vae(
         augment=False,
     )
     group_counts = train_rows["growth_run_id"].astype(str).value_counts()
-    weights = train_rows["growth_run_id"].astype(str).map(
-        lambda group: 1.0 / float(group_counts[group])
+    weights = (
+        train_rows["growth_run_id"]
+        .astype(str)
+        .map(lambda group: 1.0 / float(group_counts[group]))
     )
     sampler_generator = torch.Generator().manual_seed(seed)
     sampler = WeightedRandomSampler(
@@ -313,15 +305,11 @@ def train_conditional_vae(
             total = (
                 reconstruction
                 + beta * kl
-                + float(config["diversity_regularizer_weight"])
-                * diversity_regularizer
-                + float(config["condition_regularizer_weight"])
-                * condition_regularizer
+                + float(config["diversity_regularizer_weight"]) * diversity_regularizer
+                + float(config["condition_regularizer_weight"]) * condition_regularizer
             )
             if not torch.isfinite(total):
-                raise FloatingPointError(
-                    f"non-finite training loss at epoch {epoch}"
-                )
+                raise FloatingPointError(f"non-finite training loss at epoch {epoch}")
             total.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
             optimizer.step()

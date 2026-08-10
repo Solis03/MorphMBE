@@ -19,17 +19,12 @@ from analysis.rheed_to_afm_functional_morphology.render import (
 
 def test_fsmi_has_physical_units_and_scales_with_height() -> None:
     y, x = np.mgrid[:128, :128]
-    surface = (
-        0.7 * np.sin(2 * np.pi * x / 19)
-        + 0.4 * np.cos(2 * np.pi * y / 27)
-    )
+    surface = 0.7 * np.sin(2 * np.pi * x / 19) + 0.4 * np.cos(2 * np.pi * y / 27)
     base = extract_surface_metrics(surface)
     doubled = extract_surface_metrics(2.0 * surface)
 
     for component in FSMI_COMPONENTS:
-        assert np.isclose(
-            doubled[component], 2.0 * base[component], rtol=1e-6
-        )
+        assert np.isclose(doubled[component], 2.0 * base[component], rtol=1e-6)
     assert np.isclose(
         doubled["functional_surface_morphology_index_nm"],
         2.0 * base["functional_surface_morphology_index_nm"],
@@ -50,8 +45,7 @@ def test_fsmi_distinguishes_equal_rq_surfaces_with_different_scales() -> None:
     assert np.isclose(coarse_metrics["sq_nm"], fine_metrics["sq_nm"])
     assert (
         fine_metrics["functional_surface_morphology_index_nm"]
-        > 1.20
-        * coarse_metrics["functional_surface_morphology_index_nm"]
+        > 1.20 * coarse_metrics["functional_surface_morphology_index_nm"]
     )
 
 
@@ -177,7 +171,7 @@ def test_separated_island_regime_keeps_m17_exact_below_rough_threshold() -> None
 
     assert all(
         np.array_equal(expected, actual)
-        for expected, actual in zip(frozen_m17, redesigned)
+        for expected, actual in zip(frozen_m17, redesigned, strict=False)
     )
 
 

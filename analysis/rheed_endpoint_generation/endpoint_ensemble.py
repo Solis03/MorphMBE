@@ -19,9 +19,7 @@ class FittedR3DExpert:
     ridge: Ridge
 
     def predict_raw(self, embedding: np.ndarray) -> float:
-        latent = self.pca.transform(
-            self.scaler.transform(np.asarray(embedding)[None])
-        )
+        latent = self.pca.transform(self.scaler.transform(np.asarray(embedding)[None]))
         return float(np.exp(self.ridge.predict(latent)[0]))
 
 
@@ -32,9 +30,7 @@ class FittedStreakExpert:
     streak_scaler: StandardScaler
     ridge: Ridge
 
-    def predict_raw(
-        self, embedding: np.ndarray, streak_feature: float
-    ) -> float:
+    def predict_raw(self, embedding: np.ndarray, streak_feature: float) -> float:
         latent = self.pca.transform(
             self.embedding_scaler.transform(np.asarray(embedding)[None])
         )
@@ -69,9 +65,7 @@ def _fit_r3d(
 ) -> FittedR3DExpert:
     scaler = StandardScaler().fit(embeddings[indices])
     standardized = scaler.transform(embeddings[indices])
-    pca = PCA(n_components=min(int(components), len(indices) - 1)).fit(
-        standardized
-    )
+    pca = PCA(n_components=min(int(components), len(indices) - 1)).fit(standardized)
     ridge = Ridge(alpha=float(alpha)).fit(
         pca.transform(standardized), log_target[indices]
     )
@@ -89,18 +83,14 @@ def _fit_streak(
 ) -> FittedStreakExpert:
     embedding_scaler = StandardScaler().fit(embeddings[indices])
     standardized = embedding_scaler.transform(embeddings[indices])
-    pca = PCA(n_components=min(int(components), len(indices) - 1)).fit(
-        standardized
-    )
+    pca = PCA(n_components=min(int(components), len(indices) - 1)).fit(standardized)
     streak_scaler = StandardScaler().fit(streak[indices, None])
     design = np.c_[
         pca.transform(standardized),
         streak_scaler.transform(streak[indices, None]),
     ]
     ridge = Ridge(alpha=float(alpha)).fit(design, log_target[indices])
-    return FittedStreakExpert(
-        embedding_scaler, pca, streak_scaler, ridge
-    )
+    return FittedStreakExpert(embedding_scaler, pca, streak_scaler, ridge)
 
 
 def _raw_reference(
@@ -115,22 +105,14 @@ def _raw_reference(
     for position, query in enumerate(train):
         fit = train[train != query]
         if kind == "temporal5":
-            model = _fit_r3d(
-                embeddings, log_target, fit, components=5, alpha=30.0
-            )
+            model = _fit_r3d(embeddings, log_target, fit, components=5, alpha=30.0)
             raw[position] = model.predict_raw(embeddings[query])
         elif kind == "temporal8":
-            model = _fit_r3d(
-                embeddings, log_target, fit, components=8, alpha=30.0
-            )
+            model = _fit_r3d(embeddings, log_target, fit, components=8, alpha=30.0)
             raw[position] = model.predict_raw(embeddings[query])
         elif kind == "streak":
-            model = _fit_streak(
-                embeddings, streak, log_target, fit
-            )
-            raw[position] = model.predict_raw(
-                embeddings[query], streak[query]
-            )
+            model = _fit_streak(embeddings, streak, log_target, fit)
+            raw[position] = model.predict_raw(embeddings[query], streak[query])
         else:
             raise ValueError(f"unknown expert kind: {kind}")
     return raw
@@ -147,19 +129,13 @@ def _calibrated_expert(
     kind: str,
 ) -> float:
     log_target = np.log(np.clip(target_nm, 1e-8, None))
-    reference = _raw_reference(
-        embeddings, streak, log_target, train, kind=kind
-    )
+    reference = _raw_reference(embeddings, streak, log_target, train, kind=kind)
     if kind == "temporal5":
-        model = _fit_r3d(
-            embeddings, log_target, train, components=5, alpha=30.0
-        )
+        model = _fit_r3d(embeddings, log_target, train, components=5, alpha=30.0)
         raw_query = model.predict_raw(query_embedding)
         calibration = "range30"
     elif kind == "temporal8":
-        model = _fit_r3d(
-            embeddings, log_target, train, components=8, alpha=30.0
-        )
+        model = _fit_r3d(embeddings, log_target, train, components=8, alpha=30.0)
         raw_query = model.predict_raw(query_embedding)
         calibration = "range30"
     elif kind == "streak":
@@ -225,46 +201,27 @@ def predict_endpoint(
         query_streak,
         kind="streak",
     )
-    streak_threshold = float(
-        np.quantile(streak[train], float(streak_gate_quantile))
-    )
-    upper_threshold = float(
-        np.quantile(target_nm[train], float(rough_gate_quantile))
-    )
+    streak_threshold = float(np.quantile(streak[train], float(streak_gate_quantile)))
+    upper_threshold = float(np.quantile(target_nm[train], float(rough_gate_quantile)))
     streak_gate = bool(query_streak > streak_threshold)
-    rough_gate = bool(
-        temporal_5 > upper_threshold and temporal_8 > upper_threshold
-    )
+    rough_gate = bool(temporal_5 > upper_threshold and temporal_8 > upper_threshold)
     if streak_gate:
         value = streak_expert
     elif rough_gate:
         value = max(temporal_5, temporal_8)
     else:
         value = temporal_8
-    expert_values = np.asarray(
-        [temporal_5, temporal_8, streak_expert], dtype=float
-    )
+    expert_values = np.asarray([temporal_5, temporal_8, streak_expert], dtype=float)
     distance_scaler = StandardScaler().fit(embeddings[train])
     standardized = distance_scaler.transform(embeddings[train])
-    query_standardized = distance_scaler.transform(
-        np.asarray(query_embedding)[None]
-    )[0]
+    query_standardized = distance_scaler.transform(np.asarray(query_embedding)[None])[0]
     nearest = float(
-        np.min(
-            np.sqrt(
-                np.mean(
-                    np.square(standardized - query_standardized), axis=1
-                )
-            )
-        )
+        np.min(np.sqrt(np.mean(np.square(standardized - query_standardized), axis=1)))
     )
     streak_median = float(np.median(streak[train]))
     streak_scale = max(
         float(
-            (
-                np.quantile(streak[train], 0.75)
-                - np.quantile(streak[train], 0.25)
-            )
+            (np.quantile(streak[train], 0.75) - np.quantile(streak[train], 0.25))
             / 1.349
         ),
         1e-6,
@@ -278,11 +235,7 @@ def predict_endpoint(
         rough_consensus_gate=rough_gate,
         streak_threshold=streak_threshold,
         upper_threshold_nm=upper_threshold,
-        expert_log_range=float(
-            np.ptp(np.log(np.clip(expert_values, 1e-8, None)))
-        ),
+        expert_log_range=float(np.ptp(np.log(np.clip(expert_values, 1e-8, None)))),
         nearest_embedding_distance=nearest,
-        streak_robust_z=float(
-            abs(query_streak - streak_median) / streak_scale
-        ),
+        streak_robust_z=float(abs(query_streak - streak_median) / streak_scale),
     )

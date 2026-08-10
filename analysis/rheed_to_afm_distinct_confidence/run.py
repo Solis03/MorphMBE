@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import joblib
 import numpy as np
@@ -33,11 +34,9 @@ from .uncertainty import (
     relative_confidence_index,
 )
 from .variance import (
-    VarianceCalibrator,
     condition_prediction_metrics,
     fit_variance_calibrator,
 )
-
 
 RAW_METHOD = "M4a_descriptor_matern_raw"
 MATERN_METHOD = "M4b_variance_calibrated_descriptor_matern"
@@ -49,9 +48,7 @@ def load_config(path: str | Path) -> dict[str, Any]:
     return json.loads(repo_path(path).read_text(encoding="utf-8"))
 
 
-def _group_targets(
-    descriptors: pd.DataFrame, columns: list[str]
-) -> pd.DataFrame:
+def _group_targets(descriptors: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
     return aggregate_group_conditions(descriptors, columns)
 
 
@@ -65,12 +62,8 @@ def _predictor_factory(
 
     def fit(groups: list[str], scaler: ConditionScaler) -> object:
         return _fit_hybrid_candidate(
-            morphology_embedding_id=str(
-                config["hybrid_morphology_embedding_id"]
-            ),
-            roughness_embedding_id=str(
-                config["hybrid_roughness_embedding_id"]
-            ),
+            morphology_embedding_id=str(config["hybrid_morphology_embedding_id"]),
+            roughness_embedding_id=str(config["hybrid_roughness_embedding_id"]),
             morphology_pls_components=1,
             embedding_registry=tables["registry"],
             physics_table=tables["physics"],
@@ -113,27 +106,19 @@ def _load_prior_validation(
     return {
         group: [
             np.asarray(array, dtype=np.float32)
-            for array in np.load(
-                base / f"{group}.npz", allow_pickle=False
-            )["generated_unit_shapes"]
+            for array in np.load(base / f"{group}.npz", allow_pickle=False)[
+                "generated_unit_shapes"
+            ]
         ]
         for group in groups
     }
 
 
-def _load_prior_crossfit(
-    root: str | Path, group: str
-) -> list[np.ndarray]:
-    path = (
-        repo_path(root)
-        / group
-        / "M2b_calibrated_spectral_rheed_condition.npz"
-    )
+def _load_prior_crossfit(root: str | Path, group: str) -> list[np.ndarray]:
+    path = repo_path(root) / group / "M2b_calibrated_spectral_rheed_condition.npz"
     return [
         np.asarray(array, dtype=np.float32)
-        for array in np.load(path, allow_pickle=False)[
-            "generated_unit_shapes"
-        ]
+        for array in np.load(path, allow_pickle=False)["generated_unit_shapes"]
     ]
 
 
@@ -164,9 +149,7 @@ def _aggregate_fold_evaluations(
         summary: dict[str, Any] = {
             "method": method,
             "held_out_growth_group_count": int(len(rows)),
-            "texture_gate_pass_fraction": float(
-                rows["afm_texture_gate_pass"].mean()
-            ),
+            "texture_gate_pass_fraction": float(rows["afm_texture_gate_pass"].mean()),
         }
         for column in (
             "rq_absolute_error_nm",
@@ -234,9 +217,7 @@ def _run_crossfit_generation(
         raw, z, _ = predict_groups(
             predictor, [held], tables["registry"], tables["physics"]
         )
-        true_raw = group_targets.loc[
-            held, scaler.columns
-        ].to_numpy(float)
+        true_raw = group_targets.loc[held, scaler.columns].to_numpy(float)
         true_z = scaler.transform(true_raw[None], clip=False)[0]
         raw_truths.append(true_raw)
         z_truths.append(true_z)
@@ -244,22 +225,16 @@ def _run_crossfit_generation(
         for cap in caps:
             factor = np.clip(calibrator.factors, 1.0, cap)
             calibrated_z = (z[0] * factor).astype(np.float32)
-            calibrated_raw = scaler.inverse_transform(
-                calibrated_z[None]
-            )[0]
+            calibrated_raw = scaler.inverse_transform(calibrated_z[None])[0]
             by_cap_z[cap].append(calibrated_z)
             by_cap_raw[cap].append(calibrated_raw)
             cap_conditions[cap] = calibrated_z
         raw_z = cap_conditions[1.0]
         selected_z = cap_conditions[selected_cap]
         rq_index = scaler.columns.index("log_rq_nm")
-        raw_rq = float(
-            np.exp(scaler.inverse_transform(raw_z[None])[0, rq_index])
-        )
+        raw_rq = float(np.exp(scaler.inverse_transform(raw_z[None])[0, rq_index]))
         selected_rq = float(
-            np.exp(
-                scaler.inverse_transform(selected_z[None])[0, rq_index]
-            )
+            np.exp(scaler.inverse_transform(selected_z[None])[0, rq_index])
         )
         generator = DescriptorMaternGenerator(
             scaler, resolution=int(config["resolution"])
@@ -267,19 +242,13 @@ def _run_crossfit_generation(
         seed = int(config["seed"]) + fold * 10_000
         generated = {
             RAW_METHOD: {
-                held: generator.generate_ensemble(
-                    raw_z, draws=draws, seed=seed
-                )
+                held: generator.generate_ensemble(raw_z, draws=draws, seed=seed)
             },
             MATERN_METHOD: {
-                held: generator.generate_ensemble(
-                    selected_z, draws=draws, seed=seed
-                )
+                held: generator.generate_ensemble(selected_z, draws=draws, seed=seed)
             },
         }
-        prior_arrays = _load_prior_crossfit(
-            config["prior_m2b_crossfit_output"], held
-        )
+        prior_arrays = _load_prior_crossfit(config["prior_m2b_crossfit_output"], held)
         prior_arrays = prior_arrays[:draws]
         generated[PRIOR_METHOD] = {held: prior_arrays}
         generated[SELECTED_METHOD] = {
@@ -305,12 +274,8 @@ def _run_crossfit_generation(
                 predicted_rq_nm=rq[method][held],
                 condition_z=raw_z if method == RAW_METHOD else selected_z,
             )
-        held_rows = train_rows.loc[
-            train_rows["growth_run_id"].astype(str) == held
-        ]
-        outer_rows = train_rows.loc[
-            train_rows["growth_run_id"].astype(str) != held
-        ]
+        held_rows = train_rows.loc[train_rows["growth_run_id"].astype(str) == held]
+        outer_rows = train_rows.loc[train_rows["growth_run_id"].astype(str) != held]
         evaluation = evaluate_method_sets(
             split_rows=held_rows,
             train_rows=outer_rows,
@@ -318,10 +283,7 @@ def _run_crossfit_generation(
             generated=generated,
             generated_rq=rq,
             output_dir=(
-                report_root
-                / "training_group_cross_validation"
-                / "folds"
-                / held
+                report_root / "training_group_cross_validation" / "folds" / held
             ),
             resolution=int(config["resolution"]),
         )
@@ -334,17 +296,13 @@ def _run_crossfit_generation(
             "true_rq_nm": float(np.exp(true_raw[rq_index])),
             "raw_predicted_rq_nm": raw_rq,
             "selected_predicted_rq_nm": selected_rq,
-            "inner_variance_factors": json.dumps(
-                calibrator.factors.tolist()
-            ),
+            "inner_variance_factors": json.dumps(calibrator.factors.tolist()),
             "inner_group_count": len(inner_predictions),
         }
         for position, column in enumerate(scaler.columns):
             record[f"true_z__{column}"] = float(true_z[position])
             record[f"raw_predicted_z__{column}"] = float(raw_z[position])
-            record[f"selected_predicted_z__{column}"] = float(
-                selected_z[position]
-            )
+            record[f"selected_predicted_z__{column}"] = float(selected_z[position])
             record[f"true_raw__{column}"] = float(true_raw[position])
             record[f"raw_predicted_raw__{column}"] = float(
                 scaler.inverse_transform(raw_z[None])[0, position]
@@ -354,9 +312,7 @@ def _run_crossfit_generation(
             )
         prediction_records.append(record)
     metrics_dir = report_root / "training_group_cross_validation"
-    per_group, method_summary = _aggregate_fold_evaluations(
-        fold_frames, metrics_dir
-    )
+    per_group, method_summary = _aggregate_fold_evaluations(fold_frames, metrics_dir)
     truth_raw_array = np.stack(raw_truths)
     truth_z_array = np.stack(z_truths)
     cap_rows = []
@@ -417,25 +373,19 @@ def _run_validation(
         minimum_predicted_std=float(config["minimum_predicted_std"]),
     )
     predictor = fit_predictor(train_groups, scaler)
-    raw, z, _ = predict_groups(
-        predictor, groups, tables["registry"], tables["physics"]
-    )
+    raw, z, _ = predict_groups(predictor, groups, tables["registry"], tables["physics"])
     calibrated_z = calibrator.transform_z(z)
     calibrated_raw = scaler.inverse_transform(calibrated_z)
-    raw_by_group = dict(zip(groups, raw))
-    z_by_group = dict(zip(groups, z))
-    selected_raw_by_group = dict(zip(groups, calibrated_raw))
-    selected_z_by_group = dict(zip(groups, calibrated_z))
-    generator = DescriptorMaternGenerator(
-        scaler, resolution=int(config["resolution"])
-    )
+    raw_by_group = dict(zip(groups, raw, strict=False))
+    z_by_group = dict(zip(groups, z, strict=False))
+    selected_raw_by_group = dict(zip(groups, calibrated_raw, strict=False))
+    selected_z_by_group = dict(zip(groups, calibrated_z, strict=False))
+    generator = DescriptorMaternGenerator(scaler, resolution=int(config["resolution"]))
     draws = 2 if smoke else int(config["draws"])
     generated: dict[str, dict[str, list[np.ndarray]]] = {
         RAW_METHOD: {},
         MATERN_METHOD: {},
-        PRIOR_METHOD: _load_prior_validation(
-            config["prior_m2b_output"], groups
-        ),
+        PRIOR_METHOD: _load_prior_validation(config["prior_m2b_output"], groups),
         SELECTED_METHOD: {},
     }
     rq_index = scaler.columns.index("log_rq_nm")
@@ -462,12 +412,8 @@ def _run_validation(
         generated[MATERN_METHOD][group][0] = generator.generate(
             selected_z_by_group[group], seed=coupled_seed
         )
-        rq[RAW_METHOD][group] = float(
-            np.exp(raw_by_group[group][rq_index])
-        )
-        rq[MATERN_METHOD][group] = float(
-            np.exp(selected_raw_by_group[group][rq_index])
-        )
+        rq[RAW_METHOD][group] = float(np.exp(raw_by_group[group][rq_index]))
+        rq[MATERN_METHOD][group] = float(np.exp(selected_raw_by_group[group][rq_index]))
         # Prior M2b uses the same raw RHEED condition predictor.
         rq[PRIOR_METHOD][group] = rq[RAW_METHOD][group]
         generated[SELECTED_METHOD][group] = _blend_ensembles(
@@ -506,9 +452,7 @@ def _run_validation(
         prediction_rows.append(
             {
                 "growth_run_id": group,
-                "condition_error_raw_z": float(
-                    np.mean(np.abs(z[index] - truth_z))
-                ),
+                "condition_error_raw_z": float(np.mean(np.abs(z[index] - truth_z))),
                 "condition_error_selected_z": float(
                     np.mean(np.abs(calibrated_z[index] - truth_z))
                 ),
@@ -566,9 +510,7 @@ def _cvplus_query(
         group: [] for group in query_groups
     }
     for excluded in calibration_groups:
-        fit_groups = [
-            group for group in calibration_groups if group != excluded
-        ]
+        fit_groups = [group for group in calibration_groups if group != excluded]
         scaler = ConditionScaler.fit(
             group_targets.reset_index(),
             enclosing_scaler.columns,
@@ -581,9 +523,7 @@ def _cvplus_query(
         )
         transformed = enclosing_scaler.transform(raw, clip=False)
         calibration_prediction.append(transformed[0])
-        true_raw = group_targets.loc[
-            excluded, enclosing_scaler.columns
-        ].to_numpy(float)
+        true_raw = group_targets.loc[excluded, enclosing_scaler.columns].to_numpy(float)
         calibration_truth.append(
             enclosing_scaler.transform(true_raw[None], clip=False)[0]
         )
@@ -621,9 +561,7 @@ def _run_uncertainty(
     audit_groups = train_groups[:3] if smoke else train_groups
     crossfit_lookup = crossfit_predictions.set_index("growth_run_id")
     for held in audit_groups:
-        calibration_groups = [
-            group for group in train_groups if group != held
-        ]
+        calibration_groups = [group for group in train_groups if group != held]
         enclosing_scaler = ConditionScaler.fit(
             train_rows,
             selected_columns,
@@ -641,21 +579,15 @@ def _run_uncertainty(
         lower, upper = interval
         point_z = np.asarray(
             [
-                crossfit_lookup.loc[
-                    held, f"selected_predicted_z__{column}"
-                ]
+                crossfit_lookup.loc[held, f"selected_predicted_z__{column}"]
                 for column in selected_columns
             ],
             dtype=float,
         )
         lower = np.minimum(lower, point_z)
         upper = np.maximum(upper, point_z)
-        truth_raw = group_targets.loc[
-            held, selected_columns
-        ].to_numpy(float)
-        truth_z = enclosing_scaler.transform(
-            truth_raw[None], clip=False
-        )[0]
+        truth_raw = group_targets.loc[held, selected_columns].to_numpy(float)
+        truth_z = enclosing_scaler.transform(truth_raw[None], clip=False)[0]
         rq_index = selected_columns.index("log_rq_nm")
         lower_raw = enclosing_scaler.inverse_transform(lower[None])[0]
         upper_raw = enclosing_scaler.inverse_transform(upper[None])[0]
@@ -674,12 +606,8 @@ def _run_uncertainty(
                 "predicted_rq_nm": float(
                     crossfit_lookup.loc[held, "selected_predicted_rq_nm"]
                 ),
-                "rq_interval_lower_nm": float(
-                    np.exp(lower_raw[rq_index])
-                ),
-                "rq_interval_upper_nm": float(
-                    np.exp(upper_raw[rq_index])
-                ),
+                "rq_interval_lower_nm": float(np.exp(lower_raw[rq_index])),
+                "rq_interval_upper_nm": float(np.exp(upper_raw[rq_index])),
                 **{
                     f"lower_z__{column}": float(lower[position])
                     for position, column in enumerate(selected_columns)
@@ -718,9 +646,7 @@ def _run_uncertainty(
         point_z = np.asarray(validation["selected_z"][group], dtype=float)
         lower = np.minimum(lower, point_z)
         upper = np.maximum(upper, point_z)
-        truth_raw = group_targets.loc[
-            group, selected_columns
-        ].to_numpy(float)
+        truth_raw = group_targets.loc[group, selected_columns].to_numpy(float)
         truth_z = full_scaler.transform(truth_raw[None], clip=False)[0]
         rq_index = selected_columns.index("log_rq_nm")
         lower_raw = full_scaler.inverse_transform(lower[None])[0]
@@ -737,15 +663,9 @@ def _run_uncertainty(
                     np.all((truth_z >= lower) & (truth_z <= upper))
                 ),
                 "true_rq_nm": float(np.exp(truth_raw[rq_index])),
-                "predicted_rq_nm": float(
-                    validation["rq"][SELECTED_METHOD][group]
-                ),
-                "rq_interval_lower_nm": float(
-                    np.exp(lower_raw[rq_index])
-                ),
-                "rq_interval_upper_nm": float(
-                    np.exp(upper_raw[rq_index])
-                ),
+                "predicted_rq_nm": float(validation["rq"][SELECTED_METHOD][group]),
+                "rq_interval_lower_nm": float(np.exp(lower_raw[rq_index])),
+                "rq_interval_upper_nm": float(np.exp(upper_raw[rq_index])),
             }
         )
     validation_frame = pd.DataFrame(validation_rows)
@@ -758,15 +678,12 @@ def _run_uncertainty(
         validation_frame,
         report_root / "uncertainty_validation_predictions.csv",
     )
-    rho = spearmanr(
-        audit["interval_width_z"], audit["point_error_z"]
-    ).statistic
+    rho = spearmanr(audit["interval_width_z"], audit["point_error_z"]).statistic
     confidence_rho = spearmanr(
         audit["relative_confidence_index"], audit["point_error_z"]
     ).statistic
-    rq_coverage = (
-        (audit["true_rq_nm"] >= audit["rq_interval_lower_nm"])
-        & (audit["true_rq_nm"] <= audit["rq_interval_upper_nm"])
+    rq_coverage = (audit["true_rq_nm"] >= audit["rq_interval_lower_nm"]) & (
+        audit["true_rq_nm"] <= audit["rq_interval_upper_nm"]
     )
     summary = pd.DataFrame(
         [
@@ -826,10 +743,7 @@ def _run_learning_curve(
             actual_repeats = 1 if size == len(candidates) else repeats
             for repeat in range(actual_repeats):
                 rng = np.random.default_rng(
-                    int(config["seed"])
-                    + 1009 * held_index
-                    + 7919 * size
-                    + repeat
+                    int(config["seed"]) + 1009 * held_index + 7919 * size + repeat
                 )
                 fit_groups = sorted(
                     rng.choice(candidates, size=size, replace=False).tolist()
@@ -843,9 +757,7 @@ def _run_learning_curve(
                 raw, z, _ = predict_groups(
                     predictor, [held], tables["registry"], tables["physics"]
                 )
-                truth_raw = group_targets.loc[
-                    held, scaler.columns
-                ].to_numpy(float)
+                truth_raw = group_targets.loc[held, scaler.columns].to_numpy(float)
                 truth_z = scaler.transform(truth_raw[None], clip=False)[0]
                 rq_index = scaler.columns.index("log_rq_nm")
                 records.append(
@@ -853,14 +765,9 @@ def _run_learning_curve(
                         "held_out_growth_group": held,
                         "training_group_count": size,
                         "repeat": repeat,
-                        "descriptor_mae_z": float(
-                            np.mean(np.abs(z[0] - truth_z))
-                        ),
+                        "descriptor_mae_z": float(np.mean(np.abs(z[0] - truth_z))),
                         "rq_absolute_error_nm": float(
-                            abs(
-                                np.exp(raw[0, rq_index])
-                                - np.exp(truth_raw[rq_index])
-                            )
+                            abs(np.exp(raw[0, rq_index]) - np.exp(truth_raw[rq_index]))
                         ),
                     }
                 )
@@ -986,24 +893,14 @@ def run_experiment(config: dict[str, Any], *, smoke: bool) -> None:
             "sample_ids": list(tables["removelist"].sample_ids),
             "overlap_after_filtering": [],
         },
-        "crossfit_method_summary": crossfit["summary"].to_dict(
-            orient="records"
-        ),
-        "validation_method_summary": validation["summary"].to_dict(
-            orient="records"
-        ),
-        "uncertainty_summary": uncertainty["summary"].to_dict(
-            orient="records"
-        ),
+        "crossfit_method_summary": crossfit["summary"].to_dict(orient="records"),
+        "validation_method_summary": validation["summary"].to_dict(orient="records"),
+        "uncertainty_summary": uncertainty["summary"].to_dict(orient="records"),
         "learning_curve": learning_curve.to_dict(orient="records"),
         "figure_directory": str(report_root / "figures"),
         "predictor": {
-            "path": str(
-                output_root / "rheed_descriptor_predictor.joblib"
-            ),
-            "sha256": sha256_file(
-                output_root / "rheed_descriptor_predictor.joblib"
-            ),
+            "path": str(output_root / "rheed_descriptor_predictor.joblib"),
+            "sha256": sha256_file(output_root / "rheed_descriptor_predictor.joblib"),
         },
         "claim_boundary": (
             "All current evidence is strict training-group cross-validation or "

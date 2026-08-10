@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -21,7 +20,6 @@ from .evaluation import evaluate_island_methods
 from .sample_guided_diffusion import _arrays
 from .train_guided_diffusion import _load_config
 
-
 M5 = "M5_cloudlike_spectral_hybrid"
 M6B = "M6b_multiscale_laguerre_terraces"
 M6C = "M6c_island_structure_plus_spectral_prior"
@@ -33,9 +31,7 @@ def _aggregate(frames: list[pd.DataFrame]) -> tuple[pd.DataFrame, pd.DataFrame]:
     for method, group in values.groupby("method"):
         record: dict[str, Any] = {"method": method}
         for column in group.select_dtypes(include=[np.number, bool]):
-            record[f"median_{column}"] = float(
-                group[column].astype(float).median()
-            )
+            record[f"median_{column}"] = float(group[column].astype(float).median())
         if "afm_texture_gate_pass" in group:
             record["texture_gate_pass_fraction"] = float(
                 group["afm_texture_gate_pass"].astype(float).mean()
@@ -54,23 +50,15 @@ def _edge_render(
     for index in range(max(len(structure), len(spectral))):
         island = structure[index % len(structure)]
         base = spectral[index % len(spectral)]
-        edge = island - ndimage.gaussian_filter(
-            island, sigma=1.35, mode="wrap"
-        )
+        edge = island - ndimage.gaussian_filter(island, sigma=1.35, mode="wrap")
         result.append(
-            project_unit_rq_np(base + float(edge_gain) * edge).astype(
-                np.float32
-            )
+            project_unit_rq_np(base + float(edge_gain) * edge).astype(np.float32)
         )
     return result
 
 
-def _quantized(
-    array: np.ndarray, *, levels: int, smooth_sigma: float
-) -> np.ndarray:
-    thresholds = np.quantile(
-        array, np.linspace(0.0, 1.0, int(levels) + 1)
-    )
+def _quantized(array: np.ndarray, *, levels: int, smooth_sigma: float) -> np.ndarray:
+    thresholds = np.quantile(array, np.linspace(0.0, 1.0, int(levels) + 1))
     centers = 0.5 * (thresholds[:-1] + thresholds[1:])
     labels = np.clip(
         np.digitize(array, thresholds[1:-1]),
@@ -78,9 +66,7 @@ def _quantized(
         len(centers) - 1,
     )
     terrace = centers[labels]
-    return ndimage.gaussian_filter(
-        terrace, sigma=float(smooth_sigma), mode="wrap"
-    )
+    return ndimage.gaussian_filter(terrace, sigma=float(smooth_sigma), mode="wrap")
 
 
 def _terrace_render(
@@ -139,9 +125,7 @@ def run(args: argparse.Namespace) -> None:
         fit_rows = train_rows.loc[
             train_rows["growth_run_id"].astype(str).isin(fit_groups)
         ]
-        held_rows = train_rows.loc[
-            train_rows["growth_run_id"].astype(str) == held
-        ]
+        held_rows = train_rows.loc[train_rows["growth_run_id"].astype(str) == held]
         m5 = _arrays(source / M5 / f"{held}.npz")
         m6b = _arrays(source / M6B / f"{held}.npz")
         m6c = _arrays(source / M6C / f"{held}.npz")
@@ -158,13 +142,11 @@ def run(args: argparse.Namespace) -> None:
                 structure_weight=float(args.structure_weight),
             )
         for weight in args.structure_weights:
-            methods[f"M10_structure_weight_{float(weight):.2f}"] = (
-                _structure_blend(m6b, m5, weight=float(weight))
+            methods[f"M10_structure_weight_{float(weight):.2f}"] = _structure_blend(
+                m6b, m5, weight=float(weight)
             )
         predicted_rq = float(
-            np.load(source / M6C / f"{held}.npz", allow_pickle=False)[
-                "predicted_rq_nm"
-            ]
+            np.load(source / M6C / f"{held}.npz", allow_pickle=False)["predicted_rq_nm"]
         )
         scaler = ConditionScaler.fit(
             train_rows,
@@ -175,13 +157,8 @@ def run(args: argparse.Namespace) -> None:
             split_rows=held_rows,
             train_rows=fit_rows,
             condition_scaler=scaler,
-            generated={
-                method: {held: arrays}
-                for method, arrays in methods.items()
-            },
-            generated_rq={
-                method: {held: predicted_rq} for method in methods
-            },
+            generated={method: {held: arrays} for method, arrays in methods.items()},
+            generated_rq={method: {held: predicted_rq} for method in methods},
             output_dir=output / "folds" / held / "standard",
             resolution=int(config["resolution"]),
         )["per_group"]
@@ -213,9 +190,7 @@ def run(args: argparse.Namespace) -> None:
             "edge_gains": [float(value) for value in args.edge_gains],
             "terrace_levels": [int(value) for value in args.terrace_levels],
             "structure_weight": float(args.structure_weight),
-            "structure_weights": [
-                float(value) for value in args.structure_weights
-            ],
+            "structure_weights": [float(value) for value in args.structure_weights],
             "growth_groups": groups,
             "historical_test_used": False,
             "validation_used": False,
@@ -238,9 +213,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--edge-gains", type=float, nargs="+", default=[0.25, 0.50, 0.75]
     )
-    parser.add_argument(
-        "--terrace-levels", type=int, nargs="+", default=[5, 7, 9]
-    )
+    parser.add_argument("--terrace-levels", type=int, nargs="+", default=[5, 7, 9])
     parser.add_argument("--structure-weight", type=float, default=0.60)
     parser.add_argument(
         "--structure-weights",

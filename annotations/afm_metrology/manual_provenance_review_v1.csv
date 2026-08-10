@@ -1,5 +1,0 @@
-sample_id,afm_file_id,decision,reason,status
-6094,N6081_1um_000,exclude,explicit four-digit sample ID conflicts with containing sample 6094; conservative exclusion prevents unresolved provenance from entering targets,requires_lab_notebook_confirmation
-6078,N74_ctr_004,include_flagged,legacy short ID conflicts with containing sample but corrected Sq agrees with the N78 scan family,requires_lab_notebook_confirmation
-6078,N74_ctr_005,include_flagged,legacy short ID conflicts with containing sample but corrected Sq agrees with the N78 scan family,requires_lab_notebook_confirmation
-6070,*,include_flagged,all AFM files use legacy N69 naming while paired growth is 6070; exclusion would remove the whole sample,requires_lab_notebook_confirmation

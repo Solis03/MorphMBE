@@ -1,23 +1,22 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 import joblib
 import numpy as np
 import pandas as pd
+import torch
 from sklearn.decomposition import PCA
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import LeaveOneOut
 from sklearn.preprocessing import StandardScaler
-import torch
 from torch.utils.data import Dataset
 
 from analysis.rheed_single_frame.removelist import assert_no_removed_samples
 from analysis.rheed_video_afm_story.common import repo_path
-
 
 PHYSICS_COLUMNS = [
     "spot_summary_raw",
@@ -48,9 +47,11 @@ def aggregate_group_conditions(
             # Some nested routines pass a reduced condition table containing
             # only transformed columns. Recover physical scan Sq before
             # aggregation rather than reverting to median(log(Sq)).
-            sq_nm = np.exp(
-                descriptors["log_rq_nm"].astype(float)
-            ).groupby(descriptors["growth_run_id"]).median()
+            sq_nm = (
+                np.exp(descriptors["log_rq_nm"].astype(float))
+                .groupby(descriptors["growth_run_id"])
+                .median()
+            )
         table["log_rq_nm"] = np.log(np.clip(sq_nm.astype(float), 1e-6, None))
     table.index = table.index.astype(str)
     table.index.name = "growth_run_id"
@@ -109,7 +110,11 @@ def build_fixed_split(
     train_groups = all_groups - validation_groups - test_groups
     if not train_groups or not validation_groups or not test_groups:
         raise ValueError("fixed split contains an empty partition")
-    if train_groups & validation_groups or train_groups & test_groups or validation_groups & test_groups:
+    if (
+        train_groups & validation_groups
+        or train_groups & test_groups
+        or validation_groups & test_groups
+    ):
         raise ValueError("growth-group leakage detected in fixed split")
 
     split_lookup = {
@@ -143,11 +148,9 @@ class ConditionScaler:
         descriptors: pd.DataFrame,
         columns: list[str],
         train_groups: set[str],
-    ) -> "ConditionScaler":
+    ) -> ConditionScaler:
         group_medians = aggregate_group_conditions(
-            descriptors.loc[
-                descriptors["growth_run_id"].isin(train_groups)
-            ],
+            descriptors.loc[descriptors["growth_run_id"].isin(train_groups)],
             columns,
         )
         values = group_medians.to_numpy(float)
@@ -156,7 +159,9 @@ class ConditionScaler:
         scale = np.where(scale > 1e-8, scale, 1.0)
         lower = np.nanpercentile(values, 1, axis=0)
         upper = np.nanpercentile(values, 99, axis=0)
-        return cls(columns=list(columns), mean=mean, scale=scale, lower=lower, upper=upper)
+        return cls(
+            columns=list(columns), mean=mean, scale=scale, lower=lower, upper=upper
+        )
 
     def transform(self, values: np.ndarray, *, clip: bool = True) -> np.ndarray:
         array = np.asarray(values, dtype=float)
@@ -231,7 +236,9 @@ def load_rheed_feature_table(
         [sample_id not in excluded for sample_id in sample_ids], dtype=bool
     )
     sample_ids = [
-        sample_id for sample_id, keep_sample in zip(sample_ids, keep) if keep_sample
+        sample_id
+        for sample_id, keep_sample in zip(sample_ids, keep, strict=False)
+        if keep_sample
     ]
     embeddings = embeddings[keep]
     assert_no_removed_samples(

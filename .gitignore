@@ -1,52 +1,29 @@
+# Python and tooling
 .venv/
-.pytest_cache/
 __pycache__/
 *.py[cod]
 *.egg-info/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
 .DS_Store
 *.log
-*.npy
-*.pt
-*.pth
-*.ckpt
-*.joblib
 
-data/
+# Local inputs and derived artifacts
 data/raw/
-data/SEM/
 data/processed/
 data/processed_afm/
 data/pair/
-data/rheed_keyframe_selection/**/frames/*.png
-data/plane_corrected_afm/
-outputs/
+artifacts/
 checkpoints/
 tmp/
-standalone/
 
-# Local decode/cache files from prospective unseen keyframe selection.
-publication_freeze/prospective_unseen_single_frame_v1/cache/
-publication_freeze/prospective_unseen_single_frame_v1/logs/
-
-# Large derived paper-freeze archives stay local or belong in Releases/LFS.
-paper_freeze/*.tar.gz
-paper_freeze/*.tar.gz.sha256
-paper_freeze/*.zip
-paper_freeze/*.zip.sha256
-
-# Generated experiment artifacts under reports/
-reports/**/descriptor_data/
-reports/**/descriptor_report/
-reports/**/afm_autoencoder*/*.csv
-reports/**/afm_autoencoder*/*.json
-reports/**/afm_autoencoder*/*.npy
-reports/**/afm_autoencoder*/*.png
-reports/**/afm_autoencoder*/*.pt
-reports/**/rheed_to_afm_latent*/*.csv
-reports/**/rheed_to_afm_latent*/*.json
-reports/**/rheed_to_afm_latent*/*.npy
-reports/**/rheed_to_afm_latent*/*.png
-reports/**/rheed_to_afm_latent*/*.pt
-reports/**/embedding_pca.png
-reports/**/nearest_neighbor_qualitative_grid.png
-reports/**/predicted_vs_true_scatter.png
+# Large learned outputs not explicitly frozen under assets/
+*.ckpt
+*.npy
+*.npz
+*.pt
+*.pth
+*.joblib
+!assets/**/*.joblib

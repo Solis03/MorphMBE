@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 import numpy as np
 import pandas as pd
@@ -15,8 +15,8 @@ from analysis.rheed_video_afm_story.pretrained_embeddings import (
     load_r3d18,
     preprocess_frames,
 )
-from rheed2morph.rheed.automatic_roi_keyframe import Rect
 from rheed2morph.realtime.clips import build_model_clip
+from rheed2morph.rheed.automatic_roi_keyframe import Rect
 
 
 @dataclass(frozen=True)
@@ -109,9 +109,7 @@ def extract_perturbation_embeddings(
             if pd.notna(row.get("frame_rotation_clockwise_degrees", 0))
             else 0
         )
-        base_roi = _rect_from_row(
-            pd.concat([row, metadata.loc[group]])
-        )
+        base_roi = _rect_from_row(pd.concat([row, metadata.loc[group]]))
         decoded: dict[int, list[np.ndarray]] = {}
         sample_embeddings = []
         for view in view_list:
@@ -130,14 +128,11 @@ def extract_perturbation_embeddings(
                 video=True,
             ).to(torch_device)
             embedding = model(tensor).detach().cpu().numpy()[0]
-            sample_embeddings.append(
-                np.asarray(embedding, dtype=np.float32)
-            )
+            sample_embeddings.append(np.asarray(embedding, dtype=np.float32))
         matrices.append(np.stack(sample_embeddings))
         if progress:
             print(
-                f"[R3D perturbation {position:02d}/{len(groups):02d}] "
-                f"{group}",
+                f"[R3D perturbation {position:02d}/{len(groups):02d}] {group}",
                 flush=True,
             )
     return (
@@ -165,9 +160,7 @@ def save_perturbation_embeddings(
         embeddings=np.asarray(embeddings, dtype=np.float32),
         embedding_dim=np.asarray(embeddings.shape[-1]),
         weight_identifier=np.asarray(weight_identifier),
-        temporal_semantics=np.asarray(
-            "causal_8=k-7..k; offsets {-2,-1,0,+1,+2}"
-        ),
+        temporal_semantics=np.asarray("causal_8=k-7..k; offsets {-2,-1,0,+1,+2}"),
         target_blind=np.asarray(True),
     )
     return target

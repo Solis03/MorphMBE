@@ -138,9 +138,7 @@ def prepare_full_cohort(
         set(groups) & set(map(str, tables["removelist"].sample_ids))
     )
     if removed_overlap:
-        raise RuntimeError(
-            f"removelist growths entered full cohort: {removed_overlap}"
-        )
+        raise RuntimeError(f"removelist growths entered full cohort: {removed_overlap}")
     source_split = (
         descriptors[["growth_run_id", "source_split"]]
         .drop_duplicates()
@@ -152,9 +150,7 @@ def prepare_full_cohort(
     physics_groups = set(tables["physics"]["growth_run_id"].astype(str))
     missing_physics = sorted(set(groups) - physics_groups)
     if missing_physics:
-        raise RuntimeError(
-            f"full-cohort RHEED physics missing: {missing_physics}"
-        )
+        raise RuntimeError(f"full-cohort RHEED physics missing: {missing_physics}")
     return descriptors, source_split
 
 
@@ -182,9 +178,7 @@ def _load_external_predictions(
     groups: list[str],
     log_target: pd.Series,
 ) -> pd.DataFrame:
-    frame = pd.read_csv(
-        repo_path(path), dtype={"growth_run_id": str}
-    )
+    frame = pd.read_csv(repo_path(path), dtype={"growth_run_id": str})
     if "target" in frame.columns:
         target_lookup = {
             "log_rq_nm": "Rq_nm",
@@ -213,26 +207,14 @@ def _load_external_predictions(
         raise RuntimeError(
             f"external prediction columns missing from {path}: {missing}"
         )
-    if set(frame["growth_run_id"]) != set(groups) or len(frame) != len(
-        groups
-    ):
-        raise RuntimeError(
-            f"external predictions do not match full cohort: {path}"
-        )
+    if set(frame["growth_run_id"]) != set(groups) or len(frame) != len(groups):
+        raise RuntimeError(f"external predictions do not match full cohort: {path}")
     expected = np.exp(log_target.loc[groups].to_numpy(float))
-    actual = (
-        frame.set_index("growth_run_id")
-        .loc[groups, "true_target"]
-        .to_numpy(float)
-    )
+    actual = frame.set_index("growth_run_id").loc[groups, "true_target"].to_numpy(float)
     if not np.allclose(expected, actual, rtol=1e-7, atol=1e-7):
-        raise RuntimeError(
-            f"external prediction truth values do not match: {path}"
-        )
+        raise RuntimeError(f"external prediction truth values do not match: {path}")
     if frame["outer_target_used_for_training"].astype(bool).any():
-        raise RuntimeError(
-            f"external predictions report outer target leakage: {path}"
-        )
+        raise RuntimeError(f"external predictions report outer target leakage: {path}")
     return frame.sort_values("growth_run_id").reset_index(drop=True)
 
 
@@ -258,12 +240,8 @@ def _summarize_methods(frame: pd.DataFrame) -> pd.DataFrame:
             "growth_group_count": int(rows["growth_run_id"].nunique()),
         }
         for column in rows.select_dtypes(include=[np.number, bool]).columns:
-            record[f"median_{column}"] = float(
-                rows[column].astype(float).median()
-            )
-            record[f"mean_{column}"] = float(
-                rows[column].astype(float).mean()
-            )
+            record[f"median_{column}"] = float(rows[column].astype(float).median())
+            record[f"mean_{column}"] = float(rows[column].astype(float).mean())
         records.append(record)
     return pd.DataFrame(records).sort_values("method").reset_index(drop=True)
 
@@ -308,27 +286,29 @@ def _comparison_target_rows(
                     **_prediction_metrics(table, label=target),
                 }
             )
-    per_group = prior_rq[
-        ["growth_run_id", "true_target", "predicted_target", "absolute_error"]
-    ].rename(
-        columns={
-            "predicted_target": "prior_predicted_rq_nm",
-            "absolute_error": "prior_rq_absolute_error_nm",
-        }
-    ).merge(
-        current_rq_same[
-            [
-                "growth_run_id",
-                "predicted_target",
-                "absolute_error",
-            ]
-        ].rename(
+    per_group = (
+        prior_rq[["growth_run_id", "true_target", "predicted_target", "absolute_error"]]
+        .rename(
             columns={
-                "predicted_target": "current_predicted_rq_nm",
-                "absolute_error": "current_rq_absolute_error_nm",
+                "predicted_target": "prior_predicted_rq_nm",
+                "absolute_error": "prior_rq_absolute_error_nm",
             }
-        ),
-        on="growth_run_id",
+        )
+        .merge(
+            current_rq_same[
+                [
+                    "growth_run_id",
+                    "predicted_target",
+                    "absolute_error",
+                ]
+            ].rename(
+                columns={
+                    "predicted_target": "current_predicted_rq_nm",
+                    "absolute_error": "current_rq_absolute_error_nm",
+                }
+            ),
+            on="growth_run_id",
+        )
     )
     per_group["rq_absolute_error_change_nm"] = (
         per_group["current_rq_absolute_error_nm"]
@@ -339,9 +319,7 @@ def _comparison_target_rows(
 
 def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     started = time.time()
-    suffix = "smoke" if smoke else str(
-        config.get("full_run_suffix", "full23_loo")
-    )
+    suffix = "smoke" if smoke else str(config.get("full_run_suffix", "full23_loo"))
     output = repo_path(config["output_root"]) / suffix
     report = repo_path(config["report_root"]) / suffix
     output.mkdir(parents=True, exist_ok=True)
@@ -373,9 +351,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
                 "growth_run_id": groups_all,
                 "source_split": [source_split[group] for group in groups_all],
                 "cohort_origin": [
-                    "extra_five_batch"
-                    if group in extra_batch
-                    else "original_23_batch"
+                    "extra_five_batch" if group in extra_batch else "original_23_batch"
                     for group in groups_all
                 ],
                 "full_cohort_role": "outer_loo_once",
@@ -424,12 +400,8 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             confidence_alpha=float(config["confidence_alpha"]),
         )
     if smoke and config.get("smoke_growths"):
-        requested_smoke_groups = [
-            str(group) for group in config["smoke_growths"]
-        ]
-        unknown_smoke_groups = sorted(
-            set(requested_smoke_groups) - set(groups_all)
-        )
+        requested_smoke_groups = [str(group) for group in config["smoke_growths"]]
+        unknown_smoke_groups = sorted(set(requested_smoke_groups) - set(groups_all))
         if unknown_smoke_groups:
             raise RuntimeError(
                 "smoke_growths contains unavailable or excluded growths: "
@@ -437,15 +409,11 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             )
         groups = requested_smoke_groups
     else:
-        groups = groups_all[
-            : int(config["smoke_growth_count"])
-        ] if smoke else groups_all
-    cross_rq = cross_rq_all.loc[
-        cross_rq_all["growth_run_id"].isin(groups)
-    ].copy()
-    cross_fsmi = cross_fsmi_all.loc[
-        cross_fsmi_all["growth_run_id"].isin(groups)
-    ].copy()
+        groups = (
+            groups_all[: int(config["smoke_growth_count"])] if smoke else groups_all
+        )
+    cross_rq = cross_rq_all.loc[cross_rq_all["growth_run_id"].isin(groups)].copy()
+    cross_fsmi = cross_fsmi_all.loc[cross_fsmi_all["growth_run_id"].isin(groups)].copy()
     for frame, stem in (
         (cross_rq, "rq_crossfit_predictions"),
         (cross_fsmi, "fsmi_crossfit_predictions"),
@@ -457,9 +425,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     rq_lookup = cross_rq.set_index("growth_run_id")
     fsmi_lookup = cross_fsmi.set_index("growth_run_id")
     metric_lookup = group_metrics.set_index("growth_run_id")
-    condition_targets = _group_targets(
-        descriptors, list(config["condition_columns"])
-    )
+    condition_targets = _group_targets(descriptors, list(config["condition_columns"]))
     fit_predictor = _predictor_factory(
         config=config,
         tables=tables,
@@ -492,9 +458,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         fit_rows = descriptors.loc[
             descriptors["growth_run_id"].isin(fit_group_set)
         ].copy()
-        held_rows = descriptors.loc[
-            descriptors["growth_run_id"] == held
-        ].copy()
+        held_rows = descriptors.loc[descriptors["growth_run_id"] == held].copy()
         scaler = ConditionScaler.fit(
             descriptors,
             list(config["condition_columns"]),
@@ -521,15 +485,11 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         selected_z = variance_calibrator.transform_z(raw_z)[0]
         predicted_rq = float(rq_lookup.loc[held, "predicted_target"])
         predicted_fsmi = float(fsmi_lookup.loc[held, "predicted_target"])
-        isolation_value = rq_lookup.loc[held].get(
-            "rheed_spot_isolation_score", 0.50
-        )
+        isolation_value = rq_lookup.loc[held].get("rheed_spot_isolation_score", 0.50)
         predicted_isolation = (
             0.50 if pd.isna(isolation_value) else float(isolation_value)
         )
-        condition_z = _condition_with_amplitude(
-            selected_z, scaler, predicted_rq
-        )
+        condition_z = _condition_with_amplitude(selected_z, scaler, predicted_rq)
 
         matern_generator = DescriptorMaternGenerator(
             scaler, resolution=int(config["resolution"])
@@ -593,30 +553,18 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         selected_method = str(config["selected_method"])
         renderer_definitions = config.get("candidate_renderers")
         if renderer_definitions is None:
-            renderer_definitions = {
-                selected_method: config["selected_renderer"]
-            }
+            renderer_definitions = {selected_method: config["selected_renderer"]}
         if selected_method not in renderer_definitions:
-            raise RuntimeError(
-                "selected method is absent from candidate_renderers"
-            )
-        structure_cache: dict[str, list[np.ndarray]] = {
-            "laguerre": baseline_structure
-        }
+            raise RuntimeError("selected method is absent from candidate_renderers")
+        structure_cache: dict[str, list[np.ndarray]] = {"laguerre": baseline_structure}
         requested_modes = sorted(
             {
-                str(
-                    renderer_parameters.get(
-                        "island_generator_mode", "laguerre"
-                    )
-                )
+                str(renderer_parameters.get("island_generator_mode", "laguerre"))
                 for renderer_parameters in renderer_definitions.values()
             }
             - {"laguerre"}
         )
-        for mode_index, generator_mode in enumerate(
-            requested_modes, start=1
-        ):
+        for mode_index, generator_mode in enumerate(requested_modes, start=1):
             if generator_mode in structure_cache:
                 continue
             if (
@@ -633,37 +581,27 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
                             seed=(
                                 fold_seed
                                 + 300_000
-                                + STABLE_GENERATOR_SEED_OFFSETS[
-                                    canonical_mode
-                                ]
+                                + STABLE_GENERATOR_SEED_OFFSETS[canonical_mode]
                             ),
                             mode=canonical_mode,
                         )
                     )
-                structure_cache[generator_mode] = structure_cache[
-                    canonical_mode
-                ]
+                structure_cache[generator_mode] = structure_cache[canonical_mode]
                 continue
             seed_offset = STABLE_GENERATOR_SEED_OFFSETS.get(
                 generator_mode, mode_index * 100_000
             )
-            structure_cache[generator_mode] = (
-                island_generator.generate_ensemble(
-                    island_target,
-                    draws=int(config["draws"]),
-                    seed=fold_seed + 300_000 + seed_offset,
-                    mode=generator_mode,
-                )
+            structure_cache[generator_mode] = island_generator.generate_ensemble(
+                island_target,
+                draws=int(config["draws"]),
+                seed=fold_seed + 300_000 + seed_offset,
+                mode=generator_mode,
             )
         methods = {M10: m10}
         for renderer_name, renderer_parameters in renderer_definitions.items():
-            parameters = dict(
-                config.get("candidate_renderer_defaults", {})
-            )
+            parameters = dict(config.get("candidate_renderer_defaults", {}))
             parameters.update(renderer_parameters)
-            generator_mode = str(
-                parameters.pop("island_generator_mode", "laguerre")
-            )
+            generator_mode = str(parameters.pop("island_generator_mode", "laguerre"))
             methods[str(renderer_name)] = render_ensemble(
                 structure_cache[generator_mode],
                 m5,
@@ -684,17 +622,12 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
                 condition_z=condition_z,
             )
 
-        generated_rq = {
-            method: {held: predicted_rq} for method in methods
-        }
+        generated_rq = {method: {held: predicted_rq} for method in methods}
         standard = evaluate_method_sets(
             split_rows=held_rows,
             train_rows=fit_rows,
             condition_scaler=scaler,
-            generated={
-                method: {held: arrays}
-                for method, arrays in methods.items()
-            },
+            generated={method: {held: arrays} for method, arrays in methods.items()},
             generated_rq=generated_rq,
             output_dir=report / "crossfit" / "folds" / held / "standard",
             resolution=int(config["resolution"]),
@@ -710,26 +643,20 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         island.insert(0, "cross_validation_fold", fold)
         island_frames.append(island)
         true_fsmi = float(
-            metric_lookup.loc[
-                held, "functional_surface_morphology_index_nm"
-            ]
+            metric_lookup.loc[held, "functional_surface_morphology_index_nm"]
         )
         surface_frames.append(
             _surface_method_metrics(
                 group=held,
                 true_fsmi_nm=true_fsmi,
-                predicted_rq_nm={
-                    method: predicted_rq for method in methods
-                },
+                predicted_rq_nm={method: predicted_rq for method in methods},
                 arrays=methods,
                 scan_size_nm=float(config["scan_size_nm"]),
                 analysis_scale_nm=float(config["analysis_scale_nm"]),
             )
         )
 
-        true_raw = condition_targets.loc[
-            held, scaler.columns
-        ].to_numpy(float)
+        true_raw = condition_targets.loc[held, scaler.columns].to_numpy(float)
         true_z = scaler.transform(true_raw[None], clip=False)[0]
         record: dict[str, Any] = {
             "growth_run_id": held,
@@ -743,22 +670,14 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             "amplitude_predicted_rq_nm": predicted_rq,
             "rheed_spot_isolation_score": predicted_isolation,
             "amplitude_predicted_fsmi_nm": predicted_fsmi,
-            "condition_descriptor_mae_z": float(
-                np.mean(np.abs(condition_z - true_z))
-            ),
-            "variance_factors": json.dumps(
-                variance_calibrator.factors.tolist()
-            ),
+            "condition_descriptor_mae_z": float(np.mean(np.abs(condition_z - true_z))),
+            "variance_factors": json.dumps(variance_calibrator.factors.tolist()),
         }
         for position, column in enumerate(scaler.columns):
             record[f"true_z__{column}"] = float(true_z[position])
             record[f"raw_predicted_z__{column}"] = float(raw_z[0, position])
-            record[f"selected_predicted_z__{column}"] = float(
-                condition_z[position]
-            )
-            record[f"raw_predicted_raw__{column}"] = float(
-                raw_condition[0, position]
-            )
+            record[f"selected_predicted_z__{column}"] = float(condition_z[position])
+            record[f"raw_predicted_raw__{column}"] = float(raw_condition[0, position])
         condition_records.append(record)
         fold_audit = {
             "outer_fold": fold,
@@ -770,9 +689,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             "fit_growth_run_ids": fit_groups,
             "morphology_fit_growth_count": len(fit_groups),
             "morphology_fit_growth_run_ids": fit_groups,
-            "morphology_excluded_growth_run_ids": sorted(
-                morphology_excluded_growths
-            ),
+            "morphology_excluded_growth_run_ids": sorted(morphology_excluded_growths),
             "held_overlap_with_fit": bool(held in fit_group_set),
             "condition_inner_growth_count": int(
                 inner_conditions["growth_run_id"].nunique()
@@ -840,22 +757,15 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         ]
     )
     write_csv(target_summary, report / "target_prediction_summary.csv")
-    method_summary = (
-        standard_summary.merge(
-            island_summary, on="method", suffixes=("_standard", "_island")
-        )
-        .merge(surface_summary, on="method", suffixes=("", "_surface"))
-    )
+    method_summary = standard_summary.merge(
+        island_summary, on="method", suffixes=("_standard", "_island")
+    ).merge(surface_summary, on="method", suffixes=("", "_surface"))
     write_csv(method_summary, report / "method_summary.csv")
 
     cohort_count = len(groups_all)
     fit_count = cohort_count - 1
-    current_protocol = (
-        f"current_full{cohort_count}_train{fit_count}_all{cohort_count}"
-    )
-    current_same_protocol = (
-        f"current_full{cohort_count}_train{fit_count}_same15"
-    )
+    current_protocol = f"current_full{cohort_count}_train{fit_count}_all{cohort_count}"
+    current_same_protocol = f"current_full{cohort_count}_train{fit_count}_same15"
     comparison, paired = _comparison_target_rows(
         current_rq=cross_rq,
         current_fsmi=cross_fsmi,
@@ -866,9 +776,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
     write_csv(comparison, report / "comparison_to_prior15_targets.csv")
     write_csv(paired, report / "comparison_to_prior15_per_group.csv")
     prior_standard = pd.read_csv(
-        repo_path(config["prior_m12_report"])
-        / "crossfit"
-        / "standard_per_group.csv",
+        repo_path(config["prior_m12_report"]) / "crossfit" / "standard_per_group.csv",
         dtype={"growth_run_id": str},
     )
     current_prior_groups = standard.loc[
@@ -884,15 +792,11 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             _summarize_methods(current_prior_groups).assign(
                 protocol=current_same_protocol
             ),
-            _summarize_methods(standard).assign(
-                protocol=current_protocol
-            ),
+            _summarize_methods(standard).assign(protocol=current_protocol),
         ],
         ignore_index=True,
     )
-    write_csv(
-        image_comparison, report / "comparison_to_prior15_image_metrics.csv"
-    )
+    write_csv(image_comparison, report / "comparison_to_prior15_image_metrics.csv")
 
     manifest = {
         "experiment_id": config["experiment_id"],
@@ -904,9 +808,7 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         "outer_growth_group_count": len(groups),
         "full_available_growth_group_count": len(groups_all),
         "outer_fit_growth_count": len(groups_all) - 1,
-        "morphology_excluded_growths": sorted(
-            morphology_excluded_growths
-        ),
+        "morphology_excluded_growths": sorted(morphology_excluded_growths),
         "morphology_fit_growth_count_range": sorted(
             {int(row["morphology_fit_growth_count"]) for row in fold_audits}
         ),
@@ -941,17 +843,11 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
         "all_outer_fold_leakage_checks_passed": bool(
             all(not row["held_overlap_with_fit"] for row in fold_audits)
         ),
-        "removelist_sha256": sha256_file(
-            repo_path(config["removelist_path"])
-        ),
-        "target_prediction_summary": target_summary.to_dict(
-            orient="records"
-        ),
+        "removelist_sha256": sha256_file(repo_path(config["removelist_path"])),
+        "target_prediction_summary": target_summary.to_dict(orient="records"),
         "confidence": confidence_manifest,
         "method_summary": method_summary.to_dict(orient="records"),
-        "comparison_to_prior15_targets": comparison.to_dict(
-            orient="records"
-        ),
+        "comparison_to_prior15_targets": comparison.to_dict(orient="records"),
         "runtime_seconds": time.time() - started,
         "claim_boundary": str(
             config.get(

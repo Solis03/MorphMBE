@@ -1,13 +1,20 @@
-# Data Directory
+# Data availability and layout
 
-This directory stores lightweight data documentation and manifests.
+Raw RHEED videos and AFM measurements are not distributed in this repository.
+They remain read-only research records and are excluded from Git. Authorized
+users can stage them without changing tracked files:
 
-Large raw and generated data are intentionally excluded from git:
+```text
+data/raw/raw_RHEED/<growth-id>/<video>
+data/raw/raw_AFM/<growth-id>/<scan>
+```
 
-- `data/raw/`
-- `data/pair/`
-- `data/processed/`
-- `data/processed_afm/`
+Sample IDs, physical units, orientation corrections, and growth-group split
+metadata must be preserved. A growth group is the minimum leakage boundary:
+frames or scans from a held growth must not enter fitting, calibration, model
+selection, or retrieval for that fold. Missing measurements must never be
+imputed or fabricated.
 
-Use `data/manifests/` for small CSV/JSON files that describe available samples,
-splits, labels, or provenance.
+The frozen aggregate and per-growth tables needed to audit the published M22
+claims are versioned under `results/m22/`. Derived local outputs belong under
+`data/processed/` or `artifacts/`; both are ignored by Git.

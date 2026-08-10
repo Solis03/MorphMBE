@@ -1,4 +1,0 @@
-issue,resolution,severity
-"Freeze all_23_sample_atlas is copied from Phase7A per-sample best visual output, not fixed A3.",Use Phase7B Fig_fixed_retrieval_all_23_strict_oof_atlas for the fixed final retrieval figure.,method-clarification
-Phase7A condition_vectors predicted_rq_nm column can reflect descriptor-predicted rq after descriptor loop.,Use condition_q50_rq_nm for the Rq conditioning and predicted Rq in fixed atlases.,column-semantics
-"Frozen unseen inference script uses deterministic placeholder vectors and Rq-nearest scan, not actual DINO extraction plus full A3 descriptor ranking.",Treat the script as technical smoke code until replaced by a true DINO/A3 implementation.,deployment-gap

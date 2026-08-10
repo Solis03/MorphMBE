@@ -150,9 +150,7 @@ class VideoCanvas(QWidget):
                 physics_rect.adjusted(4, 32, 0, 0),
                 "Physics-feature ROI (not used by generator)",
             )
-        banner = (
-            f"frame {self._frame_index:05d}   t = {self._seconds:6.2f} s"
-        )
+        banner = f"frame {self._frame_index:05d}   t = {self._seconds:6.2f} s"
         if self._event:
             banner += "   ● MORPHOLOGY INFERENCE TRIGGERED"
         painter.fillRect(
@@ -211,9 +209,7 @@ class AFMCanvas(FigureCanvasQTAgg):
                 f"model confidence {prediction.model_confidence * 100:.0f}%"
             ),
         )
-        colorbar = self.figure.colorbar(
-            image, ax=axis, fraction=0.048, pad=0.04
-        )
+        colorbar = self.figure.colorbar(image, ax=axis, fraction=0.048, pad=0.04)
         colorbar.set_label("Relative height (nm)")
         for item in (
             axis.title,
@@ -290,9 +286,7 @@ class TrendCanvas(FigureCanvasQTAgg):
                 linewidths=0.7,
                 zorder=3,
             )
-            colorbar = self.figure.colorbar(
-                scatter, ax=axis, fraction=0.035, pad=0.025
-            )
+            colorbar = self.figure.colorbar(scatter, ax=axis, fraction=0.035, pad=0.025)
             colorbar.set_label("Confidence index")
             colorbar.outline.set_edgecolor("#6f8796")
             colorbar.ax.yaxis.label.set_color("#dfeaf0")
@@ -357,9 +351,7 @@ class RealtimeMainWindow(QMainWindow):
         self._start_prediction_worker()
 
     def _build_ui(self) -> None:
-        self.setWindowTitle(
-            "MorphMBE · Real-Time RHEED-to-AFM Morphology Monitoring"
-        )
+        self.setWindowTitle("MorphMBE · Real-Time RHEED-to-AFM Morphology Monitoring")
         self.resize(1540, 980)
         root = QWidget()
         self.setCentralWidget(root)
@@ -372,12 +364,12 @@ class RealtimeMainWindow(QMainWindow):
         title = QLabel("MorphMBE  Real-Time Surface Morphology Monitoring")
         title.setObjectName("appTitle")
         scalar_label = str(
-            self.config.get("ui_scalar_model_label", "M16 endpoint-aware R3D")
+            self.config.get("ui_scalar_model_label", "M20 spot-connectivity Sq")
         )
         generator_label = str(
             self.config.get(
                 "ui_generator_model_label",
-                "M16b non-retrieval AFM generation",
+                "M22c dense-mid AFM generation",
             )
         )
         subtitle = QLabel(
@@ -574,12 +566,8 @@ class RealtimeMainWindow(QMainWindow):
         )
 
     def _load_catalog(self) -> None:
-        excluded = read_removelist(
-            self.repository / self.config["removelist_path"]
-        )
-        excluded.update(
-            map(str, self.config.get("ui_excluded_sample_ids", []))
-        )
+        excluded = read_removelist(self.repository / self.config["removelist_path"])
+        excluded.update(map(str, self.config.get("ui_excluded_sample_ids", [])))
         roots = [
             self.config["raw_video_root"],
             *self.config.get("additional_raw_video_roots", []),
@@ -602,9 +590,7 @@ class RealtimeMainWindow(QMainWindow):
         generation_config = load_config(
             self.repository / self.config["generation_config"]
         )
-        training_growth_count = int(
-            generation_config.get("expected_growth_count", 0)
-        )
+        training_growth_count = int(generation_config.get("expected_growth_count", 0))
         self.append_log(
             f"Discovered {len(entries)} raw videos across "
             f"{len(self.entries)} selectable sample IDs; removelist excludes "
@@ -636,9 +622,7 @@ class RealtimeMainWindow(QMainWindow):
         self.prediction_worker = PredictionWorker(
             bundle_path=self.repository / self.config["deployment_bundle"],
             device=str(self.config.get("prediction_device", "auto")),
-            queue_capacity=int(
-                self.config.get("prediction_queue_capacity", 0)
-            ),
+            queue_capacity=int(self.config.get("prediction_queue_capacity", 0)),
         )
         self.prediction_worker.log.connect(self.append_log)
         self.prediction_worker.ready.connect(self._model_loaded)
@@ -649,15 +633,11 @@ class RealtimeMainWindow(QMainWindow):
     def _model_loaded(self, model_id: str) -> None:
         self._model_ready = True
         self.model_badge.setText(
-            str(self.config.get("ui_model_badge", "M16 + M16b · READY"))
+            str(self.config.get("ui_model_badge", "M20 + M22c · READY"))
         )
         self.model_badge.setToolTip(model_id)
-        self.start_button.setEnabled(
-            self.mode_combo.currentData() == "video"
-        )
-        display_name = str(
-            self.config.get("deployment_display_name", model_id)
-        )
+        self.start_button.setEnabled(self.mode_combo.currentData() == "video")
+        display_name = str(self.config.get("deployment_display_name", model_id))
         self.append_log(f"Model ready: {display_name}")
 
     def append_log(self, message: str) -> None:
@@ -718,9 +698,7 @@ class RealtimeMainWindow(QMainWindow):
         self.replay_worker.prepared.connect(self._replay_prepared)
         self.replay_worker.frame.connect(self.video_canvas.set_frame)
         self.replay_worker.prediction_job.connect(self._submit_prediction)
-        self.replay_worker.stream_summary.connect(
-            self._stream_summary_ready
-        )
+        self.replay_worker.stream_summary.connect(self._stream_summary_ready)
         self.replay_worker.completed.connect(self._replay_completed)
         self.replay_worker.failed.connect(self._worker_failed)
         self.replay_worker.start()
@@ -794,14 +772,20 @@ class RealtimeMainWindow(QMainWindow):
         )
         percent = round(prediction.model_confidence * 100)
         self.confidence_card.value.setText(f"{percent}%")
-        tta_percent = min(
-            prediction.rq.tta_confidence,
-            prediction.fsmi.tta_confidence,
-        ) * 100
-        agreement_percent = min(
-            prediction.rq.head_agreement_confidence,
-            prediction.fsmi.head_agreement_confidence,
-        ) * 100
+        tta_percent = (
+            min(
+                prediction.rq.tta_confidence,
+                prediction.fsmi.tta_confidence,
+            )
+            * 100
+        )
+        agreement_percent = (
+            min(
+                prediction.rq.head_agreement_confidence,
+                prediction.fsmi.head_agreement_confidence,
+            )
+            * 100
+        )
         self.confidence_card.detail.setText(
             f"Angular coverage + TTA {tta_percent:.0f}%  ·  "
             f"head agreement {agreement_percent:.0f}%  ·  "
@@ -864,8 +848,7 @@ class RealtimeMainWindow(QMainWindow):
         ):
             self.stream_state.setText("NO CLEAR MOMENT")
             self.start_button.setEnabled(
-                self._model_ready
-                and self.mode_combo.currentData() == "video"
+                self._model_ready and self.mode_combo.currentData() == "video"
             )
             if not self._completion_announced:
                 self._completion_announced = True
@@ -874,18 +857,20 @@ class RealtimeMainWindow(QMainWindow):
                     "strict tracker or the full-lattice safety fallback"
                 )
             return
-        if event_pipeline_complete(
-            self._detected_count,
-            self._submitted_count,
-            self._completed_count,
-            scatter_points,
-        ) and self._worker_triggered_count == self._submitted_count:
+        if (
+            event_pipeline_complete(
+                self._detected_count,
+                self._submitted_count,
+                self._completed_count,
+                scatter_points,
+            )
+            and self._worker_triggered_count == self._submitted_count
+        ):
             self.stream_state.setText(
                 f"COMPLETE {self._completed_count}/{self._detected_count}"
             )
             self.start_button.setEnabled(
-                self._model_ready
-                and self.mode_combo.currentData() == "video"
+                self._model_ready and self.mode_combo.currentData() == "video"
             )
             if not self._completion_announced:
                 self._completion_announced = True

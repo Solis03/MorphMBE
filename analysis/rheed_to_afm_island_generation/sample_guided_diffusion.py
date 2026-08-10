@@ -25,7 +25,6 @@ from .guided_diffusion import (
 )
 from .train_guided_diffusion import _device, _load_config
 
-
 M6B = "M6b_multiscale_laguerre_terraces"
 M6C = "M6c_island_structure_plus_spectral_prior"
 M7 = "M7_structure_guided_residual_diffusion"
@@ -53,9 +52,7 @@ def _blend(
 def _load_model(
     checkpoint_path: Path, device: torch.device
 ) -> tuple[StructureGuidedResidualUNet, StructureGuidedDiffusion, dict]:
-    checkpoint = torch.load(
-        checkpoint_path, map_location=device, weights_only=True
-    )
+    checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=True)
     model_config = checkpoint["config"]
     model = StructureGuidedResidualUNet(
         base_channels=int(model_config["base_channels"]),
@@ -101,9 +98,7 @@ def _refine(
             seed=int(seed) + index,
             strength=float(strength),
         )
-        generated = (
-            guide + float(residual_scale) * residual[0, 0].cpu().numpy()
-        )
+        generated = guide + float(residual_scale) * residual[0, 0].cpu().numpy()
         refined.append(project_unit_rq_np(generated).astype(np.float32))
     return refined
 
@@ -126,18 +121,15 @@ def _figure(
         images = [guides[group][0], refined[group][0], real]
         titles = ["M6b structure guide", "M7 diffusion", "Real AFM"]
         low, high = np.percentile(np.concatenate([x.ravel() for x in images]), [1, 99])
-        for column, (image, title) in enumerate(zip(images, titles)):
-            axes[index, column].imshow(
-                image, cmap="afmhot", vmin=low, vmax=high
-            )
+        for column, (image, title) in enumerate(zip(images, titles, strict=False)):
+            axes[index, column].imshow(image, cmap="afmhot", vmin=low, vmax=high)
             axes[index, column].set_axis_off()
             axes[index, column].set_title(
                 f"{title}\nGrowth {group}" if column == 0 else title,
                 fontsize=9,
             )
     figure.suptitle(
-        "Structure-guided residual diffusion smoke evaluation "
-        "(unit-Rq morphology)",
+        "Structure-guided residual diffusion smoke evaluation (unit-Rq morphology)",
         fontsize=12,
     )
     figure.tight_layout()
@@ -150,9 +142,7 @@ def sample(args: argparse.Namespace) -> None:
     output = repo_path(args.output)
     output.mkdir(parents=True, exist_ok=True)
     device = _device(args.device)
-    model, diffusion, checkpoint = _load_model(
-        repo_path(args.checkpoint), device
-    )
+    model, diffusion, checkpoint = _load_model(repo_path(args.checkpoint), device)
     tables = _load_tables(config)
     descriptors = tables["descriptors"]
     train_rows = descriptors.loc[descriptors["split"] == "train"].copy()
@@ -218,8 +208,7 @@ def sample(args: argparse.Namespace) -> None:
                 measured_afm_patch_used_at_inference=np.asarray(False),
             )
     rq = {
-        method: {group: predicted_rq[group] for group in groups}
-        for method in generated
+        method: {group: predicted_rq[group] for group in groups} for method in generated
     }
     standard = evaluate_method_sets(
         split_rows=validation_rows,
@@ -263,9 +252,7 @@ def sample(args: argparse.Namespace) -> None:
         {
             "checkpoint": str(repo_path(args.checkpoint)),
             "checkpoint_step": int(checkpoint["step"]),
-            "checkpoint_validation_loss": float(
-                checkpoint["best_validation_loss"]
-            ),
+            "checkpoint_validation_loss": float(checkpoint["best_validation_loss"]),
             "device": str(device),
             "sampling_steps": int(args.sampling_steps),
             "strength": float(args.strength),

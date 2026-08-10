@@ -20,7 +20,6 @@ from .streak_features import (
     extract_streak_features_from_npz,
 )
 
-
 MODEL_NAME = "M16_endpoint_streak_dual_resolution"
 
 
@@ -37,13 +36,7 @@ def _diagnostic_vector(
     log_target = np.log(np.clip(training_targets, 1e-8, None))
     center = float(np.median(log_target))
     scale = max(
-        float(
-            (
-                np.quantile(log_target, 0.75)
-                - np.quantile(log_target, 0.25)
-            )
-            / 1.349
-        ),
+        float((np.quantile(log_target, 0.75) - np.quantile(log_target, 0.25)) / 1.349),
         1e-6,
     )
     return np.asarray(
@@ -90,20 +83,13 @@ def _support_risk(
     center = float(np.median(log_truth))
     query_distance = abs(np.log(prediction.value_nm) - center)
     amplitude_risk = float(
-        (
-            np.sum(np.abs(log_truth - center) < query_distance) + 0.5
-        )
+        (np.sum(np.abs(log_truth - center) < query_distance) + 0.5)
         / (len(log_truth) + 1.0)
     )
     unsupported_low = float(
-        prediction.value_nm < np.quantile(truth, 0.25)
-        and not prediction.streak_gate
+        prediction.value_nm < np.quantile(truth, 0.25) and not prediction.streak_gate
     )
-    risk = (
-        0.80 * amplitude_risk
-        + 0.10 * float(legacy_risk)
-        + 0.10 * unsupported_low
-    )
+    risk = 0.80 * amplitude_risk + 0.10 * float(legacy_risk) + 0.10 * unsupported_low
     if prediction.streak_gate:
         risk *= 0.30
     return float(np.clip(risk, 0.0, 1.0))
@@ -131,9 +117,7 @@ def _metrics(frame: pd.DataFrame, model: str) -> dict[str, Any]:
         "rough_count": int(np.sum(rough)),
         "rough_mae_nm": float(np.mean(error[rough])),
         "rough_bias_nm": float(np.mean((predicted - truth)[rough])),
-        "confidence_vs_error_spearman": float(
-            spearmanr(confidence, error).statistic
-        ),
+        "confidence_vs_error_spearman": float(spearmanr(confidence, error).statistic),
         "prediction_min_nm": float(np.min(predicted)),
         "prediction_max_nm": float(np.max(predicted)),
     }
@@ -164,11 +148,9 @@ def run(args: argparse.Namespace) -> None:
     if args.removelist is not None:
         removelist_audit = load_removelist_audit(Path.cwd(), args.removelist)
         excluded = set(map(str, removelist_audit.sample_ids))
-    keep = np.asarray(
-        [group not in excluded for group in source_groups], dtype=bool
-    )
+    keep = np.asarray([group not in excluded for group in source_groups], dtype=bool)
     groups = [
-        group for group, retained in zip(source_groups, keep) if retained
+        group for group, retained in zip(source_groups, keep, strict=False) if retained
     ]
     views = [str(value) for value in payload["view_names"]]
     base = views.index("base")
@@ -186,23 +168,20 @@ def run(args: argparse.Namespace) -> None:
     )
     features = _feature_table(manifest, args.data_root).loc[groups]
     streak = features[PRIMARY_STREAK_FEATURE].to_numpy(float)
-    baseline = pd.read_csv(
-        args.baseline_predictions, dtype={"growth_run_id": str}
-    )
+    baseline = pd.read_csv(args.baseline_predictions, dtype={"growth_run_id": str})
     baseline_sq = (
         baseline.loc[baseline["target"] == "Rq_nm"]
         .set_index("growth_run_id")
         .loc[groups]
     )
     nested_baseline = pd.read_csv(
-        args.baseline_nested, dtype={
+        args.baseline_nested,
+        dtype={
             "outer_held_growth_group": str,
             "inner_held_growth_group": str,
-        }
+        },
     )
-    nested_baseline = nested_baseline.loc[
-        nested_baseline["target"] == "Rq_nm"
-    ]
+    nested_baseline = nested_baseline.loc[nested_baseline["target"] == "Rq_nm"]
     indices = np.arange(len(groups))
     records: list[dict[str, Any]] = []
     nested_records: list[dict[str, Any]] = []
@@ -237,44 +216,34 @@ def run(args: argparse.Namespace) -> None:
             )
             inner_predictions.append(prediction)
             inner_diagnostics.append(diagnostic)
-            inner_errors.append(
-                abs(prediction.value_nm - targets[inner_index])
-            )
+            inner_errors.append(abs(prediction.value_nm - targets[inner_index]))
         diagnostic_matrix = np.stack(inner_diagnostics)
         inner_new_risk = np.asarray(
             [
                 _risk(
                     diagnostic_matrix[position],
-                    diagnostic_matrix[
-                        np.arange(len(diagnostic_matrix)) != position
-                    ],
+                    diagnostic_matrix[np.arange(len(diagnostic_matrix)) != position],
                 )
                 for position in range(len(diagnostic_matrix))
             ]
         )
         outer_new_risk = _risk(outer_diagnostic, diagnostic_matrix)
         old_inner = (
-            nested_baseline.loc[
-                nested_baseline["outer_held_growth_group"] == held
-            ]
+            nested_baseline.loc[nested_baseline["outer_held_growth_group"] == held]
             .set_index("inner_held_growth_group")
             .loc[[groups[index] for index in fit]]
         )
         old_inner_risk = old_inner["uncertainty_risk_score"].to_numpy(float)
-        old_outer_risk = float(
-            baseline_sq.loc[held, "uncertainty_risk_score"]
-        )
+        old_outer_risk = float(baseline_sq.loc[held, "uncertainty_risk_score"])
         inner_combined_risk = np.asarray(
             [
                 _support_risk(
                     prediction,
-                    training_targets=targets[
-                        fit[fit != inner_index]
-                    ],
+                    training_targets=targets[fit[fit != inner_index]],
                     legacy_risk=old_inner_risk[position],
                 )
                 for position, (inner_index, prediction) in enumerate(
-                    zip(fit, inner_predictions)
+                    zip(fit, inner_predictions, strict=False)
                 )
             ]
         )
@@ -289,12 +258,9 @@ def run(args: argparse.Namespace) -> None:
             inner_errors_array,
             outer_risk,
         )
-        adaptive = inner_errors_array / np.maximum(
-            0.50 + inner_combined_risk, 0.25
-        )
+        adaptive = inner_errors_array / np.maximum(0.50 + inner_combined_risk, 0.25)
         radius = float(
-            np.quantile(adaptive, 0.90, method="higher")
-            * (0.50 + outer_risk)
+            np.quantile(adaptive, 0.90, method="higher") * (0.50 + outer_risk)
         )
         confidence = float(np.clip(1.0 - outer_risk, 0.0, 1.0))
         for position, inner_index in enumerate(fit):
@@ -318,30 +284,23 @@ def run(args: argparse.Namespace) -> None:
                 "growth_run_id": held,
                 "true_target": targets[outer_index],
                 "predicted_target": outer_prediction.value_nm,
-                "absolute_error": abs(
-                    outer_prediction.value_nm - targets[outer_index]
-                ),
+                "absolute_error": abs(outer_prediction.value_nm - targets[outer_index]),
                 "predicted_absolute_error": expected_error,
                 "confidence": confidence,
                 "uncertainty_risk_score": outer_risk,
                 "new_diagnostic_risk": outer_new_risk,
                 "legacy_tta_head_risk": old_outer_risk,
-                "interval_lower": max(
-                    outer_prediction.value_nm - radius, 0.0
-                ),
+                "interval_lower": max(outer_prediction.value_nm - radius, 0.0),
                 "interval_upper": outer_prediction.value_nm + radius,
                 "interval_radius": radius,
                 "interval_covered": bool(
-                    abs(outer_prediction.value_nm - targets[outer_index])
-                    <= radius
+                    abs(outer_prediction.value_nm - targets[outer_index]) <= radius
                 ),
                 "temporal_5_nm": outer_prediction.temporal_5_nm,
                 "temporal_8_nm": outer_prediction.temporal_8_nm,
                 "streak_expert_nm": outer_prediction.streak_expert_nm,
                 "streak_gate": outer_prediction.streak_gate,
-                "rough_consensus_gate": (
-                    outer_prediction.rough_consensus_gate
-                ),
+                "rough_consensus_gate": (outer_prediction.rough_consensus_gate),
                 "streak_feature": streak[outer_index],
                 "streak_threshold": outer_prediction.streak_threshold,
                 "upper_threshold_nm": outer_prediction.upper_threshold_nm,
@@ -373,12 +332,8 @@ def run(args: argparse.Namespace) -> None:
     result = pd.DataFrame(records)
     nested = pd.DataFrame(nested_records)
     result.to_csv(args.output / "m16_strict_loo_predictions.csv", index=False)
-    nested.to_csv(
-        args.output / "m16_nested_inner_predictions.csv", index=False
-    )
-    features.reset_index().to_csv(
-        args.output / "streak_features.csv", index=False
-    )
+    nested.to_csv(args.output / "m16_nested_inner_predictions.csv", index=False)
+    features.reset_index().to_csv(args.output / "streak_features.csv", index=False)
     baseline_metric_input = baseline_sq.reset_index().copy()
     metrics = pd.DataFrame(
         [
@@ -392,9 +347,7 @@ def run(args: argparse.Namespace) -> None:
         "protocol": "strict nested leave-one-growth-out",
         "growth_count": len(groups),
         "growth_run_ids": groups,
-        "excluded_growths_present_in_source": sorted(
-            set(source_groups) & excluded
-        ),
+        "excluded_growths_present_in_source": sorted(set(source_groups) & excluded),
         "removelist_sha256": (
             removelist_audit.sha256 if removelist_audit is not None else None
         ),

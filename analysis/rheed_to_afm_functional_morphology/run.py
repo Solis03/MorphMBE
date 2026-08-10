@@ -39,7 +39,6 @@ from .metrics import (
 )
 from .render import render_ensemble
 
-
 M10 = "M10_dense_island_spectral_pareto"
 
 
@@ -80,9 +79,7 @@ def _target_series(
     log_rq.name = "log_rq_nm"
     fsmi = (
         metrics.loc[metrics["split"] == split]
-        .set_index("growth_run_id")[
-            "functional_surface_morphology_index_nm"
-        ]
+        .set_index("growth_run_id")["functional_surface_morphology_index_nm"]
         .sort_index()
     )
     fsmi.index = fsmi.index.astype(str)
@@ -98,10 +95,7 @@ def _condition_vector(
     predicted_rq_nm: float,
 ) -> np.ndarray:
     values = np.asarray(
-        [
-            row[f"selected_predicted_z__{column}"]
-            for column in scaler.columns
-        ],
+        [row[f"selected_predicted_z__{column}"] for column in scaler.columns],
         dtype=np.float32,
     )
     rq_position = scaler.columns.index("log_rq_nm")
@@ -151,12 +145,8 @@ def _aggregate(
             "growth_group_count": int(rows["growth_run_id"].nunique()),
         }
         for column in rows.select_dtypes(include=[np.number, bool]):
-            record[f"median_{column}"] = float(
-                rows[column].astype(float).median()
-            )
-            record[f"mean_{column}"] = float(
-                rows[column].astype(float).mean()
-            )
+            record[f"median_{column}"] = float(rows[column].astype(float).median())
+            record[f"mean_{column}"] = float(rows[column].astype(float).mean())
         if "afm_texture_gate_pass" in rows:
             record["texture_gate_pass_fraction"] = float(
                 rows["afm_texture_gate_pass"].astype(float).mean()
@@ -181,8 +171,7 @@ def _surface_method_metrics(
     for method, ensemble in arrays.items():
         generated = [
             extract_surface_metrics(
-                np.asarray(array, dtype=float)
-                * float(predicted_rq_nm[method]),
+                np.asarray(array, dtype=float) * float(predicted_rq_nm[method]),
                 scan_size_nm=scan_size_nm,
                 analysis_scale_nm=analysis_scale_nm,
             )
@@ -214,13 +203,7 @@ def _source_paths(
     m10_root = repo_path(config["parent_m10_output"])
     island_root = repo_path(config["parent_island_output"])
     if validation:
-        old_m10 = (
-            m10_root
-            / "validation"
-            / "generated_maps"
-            / M10
-            / f"{group}.npz"
-        )
+        old_m10 = m10_root / "validation" / "generated_maps" / M10 / f"{group}.npz"
         spectral = (
             island_root
             / "generated_maps"
@@ -228,13 +211,7 @@ def _source_paths(
             / f"{group}.npz"
         )
     else:
-        old_m10 = (
-            m10_root
-            / "crossfit"
-            / "generated_maps"
-            / M10
-            / f"{group}.npz"
-        )
+        old_m10 = m10_root / "crossfit" / "generated_maps" / M10 / f"{group}.npz"
         spectral = (
             island_root
             / "crossfit"
@@ -281,9 +258,7 @@ def _prediction_metrics(
         "target": label,
         "group_count": len(predictions),
         "mean_absolute_error": float(np.mean(np.abs(truth - predicted))),
-        "median_absolute_error": float(
-            np.median(np.abs(truth - predicted))
-        ),
+        "median_absolute_error": float(np.median(np.abs(truth - predicted))),
         "rmse": float(np.sqrt(np.mean(np.square(truth - predicted)))),
         "pearson_r": float(pearson.statistic),
         "pearson_pvalue": float(pearson.pvalue),
@@ -320,54 +295,55 @@ def _confidence_table(
 
     method_standard = standard.loc[standard["method"] == method]
     method_island = island.loc[island["method"] == method]
-    cross = method_standard.merge(
-        method_island,
-        on=["growth_run_id", "method"],
-        suffixes=("", "_island"),
-    ).merge(
-        rq_predictions[
-            [
-                "growth_run_id",
-                "absolute_error",
-                "predicted_absolute_error",
-                "interval_lower",
-                "interval_upper",
-                "interval_covered",
-            ]
-        ],
-        on="growth_run_id",
-    ).rename(
-        columns={
-            "absolute_error": "rq_target_absolute_error_nm",
-            "predicted_absolute_error": (
-                "predicted_rq_absolute_error_nm"
-            ),
-            "interval_lower": "rq_interval_lower_nm",
-            "interval_upper": "rq_interval_upper_nm",
-            "interval_covered": "rq_interval_covered",
-        }
-    ).merge(
-        fsmi_predictions[
-            [
-                "growth_run_id",
-                "absolute_error",
-                "predicted_absolute_error",
-                "interval_lower",
-                "interval_upper",
-                "interval_covered",
-            ]
-        ].rename(
+    cross = (
+        method_standard.merge(
+            method_island,
+            on=["growth_run_id", "method"],
+            suffixes=("", "_island"),
+        )
+        .merge(
+            rq_predictions[
+                [
+                    "growth_run_id",
+                    "absolute_error",
+                    "predicted_absolute_error",
+                    "interval_lower",
+                    "interval_upper",
+                    "interval_covered",
+                ]
+            ],
+            on="growth_run_id",
+        )
+        .rename(
             columns={
-                "absolute_error": "fsmi_target_absolute_error_nm",
-                "predicted_absolute_error": (
-                    "predicted_fsmi_absolute_error_nm"
-                ),
-                "interval_lower": "fsmi_interval_lower_nm",
-                "interval_upper": "fsmi_interval_upper_nm",
-                "interval_covered": "fsmi_interval_covered",
+                "absolute_error": "rq_target_absolute_error_nm",
+                "predicted_absolute_error": ("predicted_rq_absolute_error_nm"),
+                "interval_lower": "rq_interval_lower_nm",
+                "interval_upper": "rq_interval_upper_nm",
+                "interval_covered": "rq_interval_covered",
             }
-        ),
-        on="growth_run_id",
+        )
+        .merge(
+            fsmi_predictions[
+                [
+                    "growth_run_id",
+                    "absolute_error",
+                    "predicted_absolute_error",
+                    "interval_lower",
+                    "interval_upper",
+                    "interval_covered",
+                ]
+            ].rename(
+                columns={
+                    "absolute_error": "fsmi_target_absolute_error_nm",
+                    "predicted_absolute_error": ("predicted_fsmi_absolute_error_nm"),
+                    "interval_lower": "fsmi_interval_lower_nm",
+                    "interval_upper": "fsmi_interval_upper_nm",
+                    "interval_covered": "fsmi_interval_covered",
+                }
+            ),
+            on="growth_run_id",
+        )
     )
     x = cross[FEATURES].to_numpy(float)
     y = cross["island_feature_mae_z"].to_numpy(float)
@@ -377,15 +353,11 @@ def _confidence_table(
         keep = np.arange(len(cross)) != held
         alpha, _ = _select_alpha(x[keep], y[keep])
         inner = _loo_predictions(x[keep], y[keep], alpha=alpha)
-        radius = float(
-            np.quantile(np.abs(inner - y[keep]), 0.90, method="higher")
-        )
+        radius = float(np.quantile(np.abs(inner - y[keep]), 0.90, method="higher"))
         predicted_morphology_error[held] = _fit_predict(
             x[keep], y[keep], x[held : held + 1], alpha=alpha
         )[0]
-        morphology_upper[held] = (
-            predicted_morphology_error[held] + radius
-        )
+        morphology_upper[held] = predicted_morphology_error[held] + radius
 
     # FSMI already contains height amplitude, scale-dependent texture,
     # curvature, bearing-curve relief and island prominence.  Adding Rq again
@@ -393,55 +365,33 @@ def _confidence_table(
     # put the physical FSMI error (nm) and topology error (z) on a common,
     # target-blind inference-time scale.
     fsmi_uncertainty = (
-        cross["predicted_fsmi_absolute_error_nm"]
-        .rank(pct=True)
-        .to_numpy(float)
+        cross["predicted_fsmi_absolute_error_nm"].rank(pct=True).to_numpy(float)
     )
     morphology_uncertainty = (
-        pd.Series(predicted_morphology_error).rank(pct=True).to_numpy(
-            float
-        )
+        pd.Series(predicted_morphology_error).rank(pct=True).to_numpy(float)
     )
-    predicted_joint_error = 0.5 * (
-        fsmi_uncertainty + morphology_uncertainty
-    )
+    predicted_joint_error = 0.5 * (fsmi_uncertainty + morphology_uncertainty)
     realized_fsmi_rank = (
-        cross["fsmi_target_absolute_error_nm"]
-        .rank(pct=True)
-        .to_numpy(float)
+        cross["fsmi_target_absolute_error_nm"].rank(pct=True).to_numpy(float)
     )
-    realized_morphology_rank = pd.Series(y).rank(pct=True).to_numpy(
-        float
-    )
-    realized_joint_error = 0.5 * (
-        realized_fsmi_rank + realized_morphology_rank
-    )
-    confidence = _relative_confidence(
-        predicted_joint_error, predicted_joint_error
-    )
+    realized_morphology_rank = pd.Series(y).rank(pct=True).to_numpy(float)
+    realized_joint_error = 0.5 * (realized_fsmi_rank + realized_morphology_rank)
+    confidence = _relative_confidence(predicted_joint_error, predicted_joint_error)
     result = pd.DataFrame(
         {
             "growth_run_id": cross["growth_run_id"],
-            "predicted_rq_absolute_error_nm": cross[
-                "predicted_rq_absolute_error_nm"
-            ],
-            "realized_rq_absolute_error_nm": cross[
-                "rq_target_absolute_error_nm"
-            ],
+            "predicted_rq_absolute_error_nm": cross["predicted_rq_absolute_error_nm"],
+            "realized_rq_absolute_error_nm": cross["rq_target_absolute_error_nm"],
             "rq_interval_lower_nm": cross["rq_interval_lower_nm"],
             "rq_interval_upper_nm": cross["rq_interval_upper_nm"],
             "rq_interval_covered": cross["rq_interval_covered"],
             "predicted_fsmi_absolute_error_nm": cross[
                 "predicted_fsmi_absolute_error_nm"
             ],
-            "realized_fsmi_absolute_error_nm": cross[
-                "fsmi_target_absolute_error_nm"
-            ],
+            "realized_fsmi_absolute_error_nm": cross["fsmi_target_absolute_error_nm"],
             "fsmi_interval_lower_nm": cross["fsmi_interval_lower_nm"],
             "fsmi_interval_upper_nm": cross["fsmi_interval_upper_nm"],
-            "fsmi_interval_covered": cross[
-                "fsmi_interval_covered"
-            ],
+            "fsmi_interval_covered": cross["fsmi_interval_covered"],
             "predicted_island_error_z": predicted_morphology_error,
             "island_error_90_upper_z": morphology_upper,
             "realized_island_error_z": y,
@@ -456,9 +406,7 @@ def _confidence_table(
     )
     manifest = {
         "method": method,
-        "joint_confidence_vs_realized_error_spearman": float(
-            rho.statistic
-        ),
+        "joint_confidence_vs_realized_error_spearman": float(rho.statistic),
         "joint_confidence_vs_realized_error_pvalue": float(rho.pvalue),
         "rq_expected_error_vs_realized_error_spearman": float(
             spearmanr(
@@ -486,8 +434,7 @@ def _confidence_table(
         ),
         "morphology_90_upper_coverage": float(
             np.mean(
-                result["realized_island_error_z"]
-                <= result["island_error_90_upper_z"]
+                result["realized_island_error_z"] <= result["island_error_90_upper_z"]
             )
         ),
         "confidence_is_probability": False,
@@ -518,16 +465,12 @@ def _validation_confidence_table(
         _select_alpha,
     )
 
-    train = cross_standard.loc[
-        cross_standard["method"] == method
-    ].merge(
+    train = cross_standard.loc[cross_standard["method"] == method].merge(
         cross_island.loc[cross_island["method"] == method],
         on=["growth_run_id", "method"],
         suffixes=("", "_island"),
     )
-    validation = validation_standard.loc[
-        validation_standard["method"] == method
-    ].merge(
+    validation = validation_standard.loc[validation_standard["method"] == method].merge(
         validation_island.loc[validation_island["method"] == method],
         on=["growth_run_id", "method"],
         suffixes=("", "_island"),
@@ -542,25 +485,20 @@ def _validation_confidence_table(
         alpha=alpha,
     )
 
-    cross_fsmi_expected = cross_fsmi_predictions[
-        "predicted_absolute_error"
-    ].to_numpy(float)
-    cross_morphology_expected = cross_confidence[
-        "predicted_island_error_z"
-    ].to_numpy(float)
+    cross_fsmi_expected = cross_fsmi_predictions["predicted_absolute_error"].to_numpy(
+        float
+    )
+    cross_morphology_expected = cross_confidence["predicted_island_error_z"].to_numpy(
+        float
+    )
 
     def percentile(value: float, reference: np.ndarray) -> float:
-        return float(
-            (1.0 + np.sum(reference <= float(value)))
-            / (len(reference) + 1.0)
-        )
+        return float((1.0 + np.sum(reference <= float(value))) / (len(reference) + 1.0))
 
     rows = []
     rq = validation_rq_predictions.set_index("growth_run_id")
     fsmi = validation_fsmi_predictions.set_index("growth_run_id")
-    cross_joint = cross_confidence[
-        "predicted_joint_error_index"
-    ].to_numpy(float)
+    cross_joint = cross_confidence["predicted_joint_error_index"].to_numpy(float)
     for position, (_, row) in enumerate(validation.iterrows()):
         group = str(row["growth_run_id"])
         fsmi_rank = percentile(
@@ -573,9 +511,7 @@ def _validation_confidence_table(
         )
         joint = 0.5 * (fsmi_rank + morphology_rank)
         confidence = float(
-            100.0
-            * (1.0 + np.sum(cross_joint >= joint))
-            / (len(cross_joint) + 1.0)
+            100.0 * (1.0 + np.sum(cross_joint >= joint)) / (len(cross_joint) + 1.0)
         )
         rows.append(
             {
@@ -585,30 +521,18 @@ def _validation_confidence_table(
                 "predicted_rq_absolute_error_nm": float(
                     rq.loc[group, "predicted_absolute_error"]
                 ),
-                "realized_rq_absolute_error_nm": float(
-                    rq.loc[group, "absolute_error"]
-                ),
-                "rq_interval_lower_nm": float(
-                    rq.loc[group, "interval_lower"]
-                ),
-                "rq_interval_upper_nm": float(
-                    rq.loc[group, "interval_upper"]
-                ),
-                "rq_interval_covered": bool(
-                    rq.loc[group, "interval_covered"]
-                ),
+                "realized_rq_absolute_error_nm": float(rq.loc[group, "absolute_error"]),
+                "rq_interval_lower_nm": float(rq.loc[group, "interval_lower"]),
+                "rq_interval_upper_nm": float(rq.loc[group, "interval_upper"]),
+                "rq_interval_covered": bool(rq.loc[group, "interval_covered"]),
                 "predicted_fsmi_absolute_error_nm": float(
                     fsmi.loc[group, "predicted_absolute_error"]
                 ),
                 "realized_fsmi_absolute_error_nm": float(
                     fsmi.loc[group, "absolute_error"]
                 ),
-                "predicted_island_error_z": float(
-                    predicted_morphology[position]
-                ),
-                "realized_island_error_z": float(
-                    row["island_feature_mae_z"]
-                ),
+                "predicted_island_error_z": float(predicted_morphology[position]),
+                "realized_island_error_z": float(row["island_feature_mae_z"]),
                 "confidence_is_probability": False,
             }
         )
@@ -639,12 +563,8 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
     write_csv(group_metrics, report / "surface_metrics_per_group.csv")
 
     train_rows = descriptors.loc[descriptors["split"] == "train"].copy()
-    validation_rows = descriptors.loc[
-        descriptors["split"] == "val"
-    ].copy()
-    log_rq, log_fsmi = _target_series(
-        descriptors, group_metrics, split="train"
-    )
+    validation_rows = descriptors.loc[descriptors["split"] == "val"].copy()
+    log_rq, log_fsmi = _target_series(descriptors, group_metrics, split="train")
     validation_log_rq, validation_log_fsmi = _target_series(
         descriptors, group_metrics, split="val"
     )
@@ -688,16 +608,13 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
         (validation_fsmi, validation_log_fsmi),
     ):
         true_lookup = np.exp(truth)
-        prediction["true_target"] = prediction["growth_run_id"].map(
-            true_lookup
-        )
+        prediction["true_target"] = prediction["growth_run_id"].map(true_lookup)
         prediction["absolute_error"] = np.abs(
             prediction["predicted_target"] - prediction["true_target"]
         )
         prediction["interval_covered"] = (
-            (prediction["interval_lower"] <= prediction["true_target"])
-            & (prediction["true_target"] <= prediction["interval_upper"])
-        )
+            prediction["interval_lower"] <= prediction["true_target"]
+        ) & (prediction["true_target"] <= prediction["interval_upper"])
     for table, name in (
         (cross_rq, "rq_crossfit_predictions"),
         (inner_rq, "rq_nested_inner_predictions"),
@@ -710,9 +627,7 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
 
     parent_report = repo_path(config["parent_condition_report"])
     parent_cross = pd.read_csv(
-        parent_report
-        / "training_group_cross_validation"
-        / "condition_predictions.csv",
+        parent_report / "training_group_cross_validation" / "condition_predictions.csv",
         dtype={"growth_run_id": str},
     ).set_index("growth_run_id")
     parent_validation = pd.read_csv(
@@ -743,9 +658,7 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
         fit_rows = train_rows.loc[
             train_rows["growth_run_id"].astype(str).isin(fit_groups)
         ]
-        held_rows = train_rows.loc[
-            train_rows["growth_run_id"].astype(str) == held
-        ]
+        held_rows = train_rows.loc[train_rows["growth_run_id"].astype(str) == held]
         scaler = ConditionScaler.fit(
             train_rows,
             list(config["condition_columns"]),
@@ -757,12 +670,8 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
             resolution=int(config["resolution"]),
             alphas=config["island_ridge_alphas"],
         )
-        predicted_rq = float(
-            cross_rq_map.loc[held, "predicted_target"]
-        )
-        predicted_fsmi = float(
-            cross_fsmi_map.loc[held, "predicted_target"]
-        )
+        predicted_rq = float(cross_rq_map.loc[held, "predicted_target"])
+        predicted_fsmi = float(cross_fsmi_map.loc[held, "predicted_target"])
         condition_z = _condition_vector(
             parent_cross.loc[held],
             scaler,
@@ -783,11 +692,7 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
         )
         for method, arrays in methods.items():
             method_rq = (
-                float(
-                    np.load(old_m10_path, allow_pickle=False)[
-                        "predicted_rq_nm"
-                    ]
-                )
+                float(np.load(old_m10_path, allow_pickle=False)["predicted_rq_nm"])
                 if method == M10
                 else predicted_rq
             )
@@ -803,11 +708,7 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
         rq_by_method = {
             method: {
                 held: (
-                    float(
-                        np.load(old_m10_path, allow_pickle=False)[
-                            "predicted_rq_nm"
-                        ]
-                    )
+                    float(np.load(old_m10_path, allow_pickle=False)["predicted_rq_nm"])
                     if method == M10
                     else predicted_rq
                 )
@@ -818,16 +719,9 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
             split_rows=held_rows,
             train_rows=fit_rows,
             condition_scaler=scaler,
-            generated={
-                method: {held: arrays}
-                for method, arrays in methods.items()
-            },
+            generated={method: {held: arrays} for method, arrays in methods.items()},
             generated_rq=rq_by_method,
-            output_dir=report
-            / "crossfit"
-            / "folds"
-            / held
-            / "standard",
+            output_dir=report / "crossfit" / "folds" / held / "standard",
             resolution=int(config["resolution"]),
         )["per_group"]
         standard.insert(0, "cross_validation_fold", fold)
@@ -897,21 +791,15 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
     )
     validation_draws = 2 if smoke else int(config["validation_draws"])
     for fold, held in enumerate(validation_groups):
-        predicted_rq = float(
-            validation_rq_map.loc[held, "predicted_target"]
-        )
-        predicted_fsmi = float(
-            validation_fsmi_map.loc[held, "predicted_target"]
-        )
+        predicted_rq = float(validation_rq_map.loc[held, "predicted_target"])
+        predicted_fsmi = float(validation_fsmi_map.loc[held, "predicted_target"])
         condition_z = _condition_vector(
             parent_validation.loc[held],
             validation_scaler,
             predicted_rq_nm=predicted_rq,
         )
         island_target = island_model.predict(condition_z)
-        old_m10_path, spectral_path = _source_paths(
-            config, group=held, validation=True
-        )
+        old_m10_path, spectral_path = _source_paths(config, group=held, validation=True)
         methods = _candidate_ensembles(
             config=config,
             generator=generator,
@@ -924,9 +812,7 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
         held_rows = validation_rows.loc[
             validation_rows["growth_run_id"].astype(str) == held
         ]
-        old_rq = float(
-            np.load(old_m10_path, allow_pickle=False)["predicted_rq_nm"]
-        )
+        old_rq = float(np.load(old_m10_path, allow_pickle=False)["predicted_rq_nm"])
         for method, arrays in methods.items():
             method_rq = old_rq if method == M10 else predicted_rq
             validation_methods[method][held] = arrays
@@ -959,9 +845,7 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
                 group=held,
                 true_fsmi_nm=true_fsmi,
                 predicted_rq_nm={
-                    method: float(
-                        validation_rq_by_method[method][held]
-                    )
+                    method: float(validation_rq_by_method[method][held])
                     for method in methods
                 },
                 arrays=methods,
@@ -978,9 +862,7 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
         output_dir=report / "validation" / "standard_details",
         resolution=int(config["resolution"]),
     )
-    validation_standard_frames.append(
-        validation_standard["per_group"]
-    )
+    validation_standard_frames.append(validation_standard["per_group"])
     validation_standard_table, validation_standard_summary = _aggregate(
         validation_standard_frames,
         output=report / "validation",
@@ -1018,9 +900,7 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
         validation_island=validation_island,
         method=selected,
     )
-    write_csv(
-        validation_confidence, report / "confidence_validation.csv"
-    )
+    write_csv(validation_confidence, report / "confidence_validation.csv")
 
     target_summary = pd.DataFrame(
         [
@@ -1029,17 +909,14 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
         ]
     )
     write_csv(target_summary, report / "target_prediction_summary.csv")
-    summary = (
-        cross_standard_summary.merge(
-            cross_island_summary,
-            on="method",
-            suffixes=("_standard", "_island"),
-        )
-        .merge(
-            cross_surface_summary,
-            on="method",
-            suffixes=("", "_surface"),
-        )
+    summary = cross_standard_summary.merge(
+        cross_island_summary,
+        on="method",
+        suffixes=("_standard", "_island"),
+    ).merge(
+        cross_surface_summary,
+        on="method",
+        suffixes=("", "_surface"),
     )
     write_csv(summary, report / "candidate_summary.csv")
 
@@ -1059,52 +936,30 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
         ),
     ):
         for method in (M10, selected):
-            s = standard_summary.loc[
-                standard_summary["method"] == method
-            ].iloc[0]
-            i = island_summary.loc[
-                island_summary["method"] == method
-            ].iloc[0]
-            f = surface_summary.loc[
-                surface_summary["method"] == method
-            ].iloc[0]
+            s = standard_summary.loc[standard_summary["method"] == method].iloc[0]
+            i = island_summary.loc[island_summary["method"] == method].iloc[0]
+            f = surface_summary.loc[surface_summary["method"] == method].iloc[0]
             baseline_rows.append(
                 {
                     "split": split,
                     "method": method,
-                    "median_rq_absolute_error_nm": s[
-                        "median_rq_absolute_error_nm"
-                    ],
+                    "median_rq_absolute_error_nm": s["median_rq_absolute_error_nm"],
                     "median_condition_descriptor_mae_z": s[
                         "median_condition_descriptor_mae_z"
                     ],
-                    "median_psd_log_distance": s[
-                        "median_normalized_psd_log_distance"
-                    ],
-                    "median_sharpness_ratio": s[
-                        "median_sharpness_ratio"
-                    ],
-                    "median_composite_error": s[
-                        "median_composite_score"
-                    ],
-                    "texture_gate_pass_fraction": s[
-                        "texture_gate_pass_fraction"
-                    ],
-                    "median_island_feature_mae_z": i[
-                        "median_island_feature_mae_z"
-                    ],
-                    "median_afm_prior_mahalanobis": i[
-                        "median_afm_prior_mahalanobis"
-                    ],
+                    "median_psd_log_distance": s["median_normalized_psd_log_distance"],
+                    "median_sharpness_ratio": s["median_sharpness_ratio"],
+                    "median_composite_error": s["median_composite_score"],
+                    "texture_gate_pass_fraction": s["texture_gate_pass_fraction"],
+                    "median_island_feature_mae_z": i["median_island_feature_mae_z"],
+                    "median_afm_prior_mahalanobis": i["median_afm_prior_mahalanobis"],
                     "median_q70_area_log_error": i[
                         "median_median_area_q70_log_absolute_error"
                     ],
                     "median_q70_count_log_error": i[
                         "median_component_count_q70_log_absolute_error"
                     ],
-                    "median_fsmi_absolute_error_nm": f[
-                        "median_fsmi_absolute_error_nm"
-                    ],
+                    "median_fsmi_absolute_error_nm": f["median_fsmi_absolute_error_nm"],
                     "median_generated_boundary_contrast": f[
                         "median_generated_island_boundary_contrast"
                     ],
@@ -1119,17 +974,11 @@ def run(config: dict[str, Any], *, smoke: bool = False) -> None:
         "training_growth_groups": list(log_rq.index.astype(str)),
         "validation_growth_groups": validation_groups,
         "historical_test_used": False,
-        "test_rows_present_but_unselected": int(
-            (descriptors["split"] == "test").sum()
-        ),
+        "test_rows_present_but_unselected": int((descriptors["split"] == "test").sum()),
         "retrieval_at_inference": False,
         "measured_afm_patch_used_at_inference": False,
-        "removelist_sha256": sha256_file(
-            repo_path(config["removelist_path"])
-        ),
-        "target_prediction_summary": target_summary.to_dict(
-            orient="records"
-        ),
+        "removelist_sha256": sha256_file(repo_path(config["removelist_path"])),
+        "target_prediction_summary": target_summary.to_dict(orient="records"),
         "confidence": confidence_manifest,
         "candidate_summary": summary.to_dict(orient="records"),
         "baseline_vs_final": baseline.to_dict(orient="records"),

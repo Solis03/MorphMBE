@@ -29,14 +29,12 @@ def signed_distance_island_relief(
     )
     relief = np.zeros_like(source)
     width = max(float(boundary_width_px), 0.15)
-    for level, weight in zip(levels, level_weights):
+    for level, weight in zip(levels, level_weights, strict=False):
         mask = source >= float(np.quantile(source, level))
         inside = ndimage.distance_transform_edt(mask)
         outside = ndimage.distance_transform_edt(~mask)
         relief += float(weight) * expit((inside - outside) / width)
-    local_relief = source - ndimage.gaussian_filter(
-        source, sigma=3.0, mode="wrap"
-    )
+    local_relief = source - ndimage.gaussian_filter(source, sigma=3.0, mode="wrap")
     relief += 0.16 * np.tanh(1.4 * local_relief)
     return project_unit_rq_np(relief).astype(np.float32)
 
@@ -49,8 +47,7 @@ def amplitude_conditioned_blend(
 ) -> np.ndarray:
     return project_unit_rq_np(
         float(structure_weight) * np.asarray(structure, dtype=float)
-        + (1.0 - float(structure_weight))
-        * np.asarray(spectral, dtype=float)
+        + (1.0 - float(structure_weight)) * np.asarray(spectral, dtype=float)
     ).astype(np.float32)
 
 
@@ -67,9 +64,7 @@ def sdf_contour_blend(
         structure, boundary_width_px=boundary_width_px
     )
     base = np.asarray(prior, dtype=float)
-    fine = base - ndimage.gaussian_filter(
-        base, sigma=1.4, mode="wrap"
-    )
+    fine = base - ndimage.gaussian_filter(base, sigma=1.4, mode="wrap")
     amplitude_base = amplitude_conditioned_blend(
         structure, prior, structure_weight=base_structure_weight
     )
@@ -105,17 +100,12 @@ def edge_preserving_terrace_blend(
     )
     center = float(np.median(source))
     robust_scale = max(
-        float(np.quantile(source, 0.75) - np.quantile(source, 0.25))
-        / 1.349,
+        float(np.quantile(source, 0.75) - np.quantile(source, 0.25)) / 1.349,
         1e-6,
     )
     plateau = np.tanh((source - center) / (1.20 * robust_scale))
-    plateau = ndimage.gaussian_filter(
-        plateau, sigma=0.35, mode="wrap"
-    )
-    relief = signed_distance_island_relief(
-        source, boundary_width_px=boundary_width_px
-    )
+    plateau = ndimage.gaussian_filter(plateau, sigma=0.35, mode="wrap")
+    relief = signed_distance_island_relief(source, boundary_width_px=boundary_width_px)
     spectral = ndimage.gaussian_filter(
         np.asarray(prior, dtype=float), sigma=0.65, mode="wrap"
     )
@@ -133,9 +123,7 @@ def edge_preserving_terrace_blend(
         dtype=float,
     )
     if np.any(weights < 0) or not np.isclose(weights.sum(), 1.0):
-        raise ValueError(
-            "terrace renderer weights must be nonnegative and sum to 1"
-        )
+        raise ValueError("terrace renderer weights must be nonnegative and sum to 1")
     return project_unit_rq_np(
         weights[0] * source
         + weights[1] * plateau
@@ -163,15 +151,9 @@ def smooth_microtexture_blend(
     island = np.asarray(structure, dtype=float)
     spectral = np.asarray(prior, dtype=float)
     low = ndimage.gaussian_filter(island, sigma=3.5, mode="wrap")
-    spectral_mid = spectral - ndimage.gaussian_filter(
-        spectral, sigma=2.2, mode="wrap"
-    )
-    spectral_fine = spectral - ndimage.gaussian_filter(
-        spectral, sigma=0.8, mode="wrap"
-    )
-    island_micro = island - ndimage.gaussian_filter(
-        island, sigma=1.6, mode="wrap"
-    )
+    spectral_mid = spectral - ndimage.gaussian_filter(spectral, sigma=2.2, mode="wrap")
+    spectral_fine = spectral - ndimage.gaussian_filter(spectral, sigma=0.8, mode="wrap")
+    island_micro = island - ndimage.gaussian_filter(island, sigma=1.6, mode="wrap")
     texture = (
         float(low_frequency_weight) * low
         + 0.45 * spectral_mid
@@ -180,8 +162,7 @@ def smooth_microtexture_blend(
     )
     center = float(np.median(texture))
     robust_scale = max(
-        float(np.quantile(texture, 0.75) - np.quantile(texture, 0.25))
-        / 1.349,
+        float(np.quantile(texture, 0.75) - np.quantile(texture, 0.25)) / 1.349,
         1e-6,
     )
     # A soft robust clip removes the large connected extrema visible in the
@@ -233,9 +214,7 @@ def smooth_microisland_blend(
         + (1.0 - float(spectral_weight)) * structure_base
     )
 
-    peak_source = ndimage.gaussian_filter(
-        spectral, sigma=0.80, mode="wrap"
-    )
+    peak_source = ndimage.gaussian_filter(spectral, sigma=0.80, mode="wrap")
     maxima = peak_source == ndimage.maximum_filter(
         peak_source, size=spacing, mode="wrap"
     )
@@ -249,14 +228,12 @@ def smooth_microisland_blend(
     if float(np.std(microislands)) > 1e-8:
         microislands = project_unit_rq_np(microislands)
 
-    texture = (
-        (1.0 - float(microisland_weight)) * base
-        + float(microisland_weight) * microislands
-    )
+    texture = (1.0 - float(microisland_weight)) * base + float(
+        microisland_weight
+    ) * microislands
     center = float(np.median(texture))
     robust_scale = max(
-        float(np.quantile(texture, 0.75) - np.quantile(texture, 0.25))
-        / 1.349,
+        float(np.quantile(texture, 0.75) - np.quantile(texture, 0.25)) / 1.349,
         1e-6,
     )
     texture = np.tanh((texture - center) / (3.0 * robust_scale))
@@ -282,9 +259,7 @@ def _top_k_local_maxima(
     if spacing % 2 == 0:
         spacing += 1
     source = np.asarray(field, dtype=float)
-    maxima = source == ndimage.maximum_filter(
-        source, size=spacing, mode="wrap"
-    )
+    maxima = source == ndimage.maximum_filter(source, size=spacing, mode="wrap")
     maxima &= source >= float(np.quantile(source, minimum_quantile))
     coordinates = np.argwhere(maxima)
     impulses = np.zeros_like(source)
@@ -360,22 +335,16 @@ def topology_conditioned_sparse_microisland_blend(
     spectral = np.asarray(prior, dtype=float)
     island = np.asarray(structure, dtype=float)
     spectral_base = project_unit_rq_np(
-        ndimage.gaussian_filter(
-            spectral, sigma=float(spectral_sigma_px), mode="wrap"
-        )
+        ndimage.gaussian_filter(spectral, sigma=float(spectral_sigma_px), mode="wrap")
     )
     structure_base = project_unit_rq_np(
-        ndimage.gaussian_filter(
-            island, sigma=float(structure_sigma_px), mode="wrap"
-        )
+        ndimage.gaussian_filter(island, sigma=float(structure_sigma_px), mode="wrap")
     )
     base = project_unit_rq_np(
         float(spectral_weight) * spectral_base
         + (1.0 - float(spectral_weight)) * structure_base
     )
-    fine = spectral - ndimage.gaussian_filter(
-        spectral, sigma=0.72, mode="wrap"
-    )
+    fine = spectral - ndimage.gaussian_filter(spectral, sigma=0.72, mode="wrap")
     if float(np.std(fine)) > 1e-8:
         fine = project_unit_rq_np(fine)
 
@@ -481,14 +450,8 @@ def regime_adaptive_terrace_blend(
     )
     terrace_fraction = float(
         np.clip(
-            (
-                float(conditioning_sq_nm)
-                - float(smooth_full_below_nm)
-            )
-            / (
-                float(terrace_full_above_nm)
-                - float(smooth_full_below_nm)
-            ),
+            (float(conditioning_sq_nm) - float(smooth_full_below_nm))
+            / (float(terrace_full_above_nm) - float(smooth_full_below_nm)),
             0.0,
             1.0,
         )
@@ -544,14 +507,8 @@ def regime_adaptive_microisland_terrace_blend(
     )
     terrace_fraction = float(
         np.clip(
-            (
-                float(conditioning_sq_nm)
-                - float(smooth_full_below_nm)
-            )
-            / (
-                float(terrace_full_above_nm)
-                - float(smooth_full_below_nm)
-            ),
+            (float(conditioning_sq_nm) - float(smooth_full_below_nm))
+            / (float(terrace_full_above_nm) - float(smooth_full_below_nm)),
             0.0,
             1.0,
         )
@@ -765,8 +722,7 @@ def regime_adaptive_separated_island_blend(
     )
     highpass = project_unit_rq_np(highpass)
     rough = project_unit_rq_np(
-        float(rough_structure_weight) * rounded
-        + float(rough_texture_weight) * highpass
+        float(rough_structure_weight) * rounded + float(rough_texture_weight) * highpass
     )
     fraction = float(
         np.clip(
@@ -778,9 +734,9 @@ def regime_adaptive_separated_island_blend(
     )
     # Smoothstep avoids a visible model-regime seam around 3 nm.
     fraction = fraction * fraction * (3.0 - 2.0 * fraction)
-    return project_unit_rq_np(
-        (1.0 - fraction) * baseline + fraction * rough
-    ).astype(np.float32)
+    return project_unit_rq_np((1.0 - fraction) * baseline + fraction * rough).astype(
+        np.float32
+    )
 
 
 def render_ensemble(
@@ -862,9 +818,7 @@ def render_ensemble(
             )
         elif mode == "regime_adaptive_terrace":
             if conditioning_sq_nm is None:
-                raise ValueError(
-                    "regime-adaptive rendering requires conditioning Sq"
-                )
+                raise ValueError("regime-adaptive rendering requires conditioning Sq")
             rendered = regime_adaptive_terrace_blend(
                 island,
                 prior,
@@ -877,15 +831,11 @@ def render_ensemble(
                 relief_weight=relief_weight,
                 spectral_weight=spectral_weight,
                 texture_weight=texture_weight,
-                smooth_low_frequency_weight=(
-                    smooth_low_frequency_weight
-                ),
+                smooth_low_frequency_weight=(smooth_low_frequency_weight),
             )
         elif mode == "regime_adaptive_microisland_terrace":
             if conditioning_sq_nm is None:
-                raise ValueError(
-                    "regime-adaptive rendering requires conditioning Sq"
-                )
+                raise ValueError("regime-adaptive rendering requires conditioning Sq")
             rendered = regime_adaptive_microisland_terrace_blend(
                 island,
                 prior,
@@ -902,16 +852,12 @@ def render_ensemble(
                 smooth_spectral_sigma_px=smooth_spectral_sigma_px,
                 smooth_structure_sigma_px=smooth_structure_sigma_px,
                 smooth_microisland_weight=smooth_microisland_weight,
-                smooth_microisland_spacing_px=(
-                    smooth_microisland_spacing_px
-                ),
+                smooth_microisland_spacing_px=(smooth_microisland_spacing_px),
                 smooth_microisland_sigma_px=smooth_microisland_sigma_px,
             )
         elif mode == "regime_adaptive_topology_sparse_terrace":
             if conditioning_sq_nm is None:
-                raise ValueError(
-                    "regime-adaptive rendering requires conditioning Sq"
-                )
+                raise ValueError("regime-adaptive rendering requires conditioning Sq")
             rendered = regime_adaptive_topology_sparse_terrace_blend(
                 island,
                 prior,
@@ -942,16 +888,12 @@ def render_ensemble(
                 smooth_shoulder_count_max=smooth_shoulder_count_max,
                 smooth_shoulder_spacing_px=smooth_shoulder_spacing_px,
                 smooth_shoulder_sigma_px=smooth_shoulder_sigma_px,
-                smooth_shoulder_minimum_quantile=(
-                    smooth_shoulder_minimum_quantile
-                ),
+                smooth_shoulder_minimum_quantile=(smooth_shoulder_minimum_quantile),
                 smooth_winsor_quantile=smooth_winsor_quantile,
             )
         elif mode == "regime_adaptive_separated_islands":
             if conditioning_sq_nm is None:
-                raise ValueError(
-                    "regime-adaptive rendering requires conditioning Sq"
-                )
+                raise ValueError("regime-adaptive rendering requires conditioning Sq")
             if baseline_structure is None:
                 raise ValueError(
                     "separated-island rendering requires baseline structure"
@@ -989,17 +931,13 @@ def render_ensemble(
                 smooth_peak_count_max=smooth_peak_count_max,
                 smooth_peak_spacing_px=smooth_peak_spacing_px,
                 smooth_peak_sigma_px=smooth_peak_sigma_px,
-                smooth_peak_minimum_quantile=(
-                    smooth_peak_minimum_quantile
-                ),
+                smooth_peak_minimum_quantile=(smooth_peak_minimum_quantile),
                 smooth_shoulder_count_scale=smooth_shoulder_count_scale,
                 smooth_shoulder_count_min=smooth_shoulder_count_min,
                 smooth_shoulder_count_max=smooth_shoulder_count_max,
                 smooth_shoulder_spacing_px=smooth_shoulder_spacing_px,
                 smooth_shoulder_sigma_px=smooth_shoulder_sigma_px,
-                smooth_shoulder_minimum_quantile=(
-                    smooth_shoulder_minimum_quantile
-                ),
+                smooth_shoulder_minimum_quantile=(smooth_shoulder_minimum_quantile),
                 smooth_winsor_quantile=smooth_winsor_quantile,
             )
         else:

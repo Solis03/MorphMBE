@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from collections import deque
-from dataclasses import dataclass, replace
 import queue
 import threading
 import time
+from collections import deque
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import imageio.v2 as imageio
@@ -25,7 +25,6 @@ from .model import MorphologyPrediction, RealtimeMorphologyPredictor
 from .selector import (
     CausalClearMomentDetector,
     ReplayEvent,
-    ReplaySelection,
     analyze_replay,
     initialize_causal_stream,
 )
@@ -118,9 +117,7 @@ class PredictionWorker(QThread):
                     keyframe_quality=job.event.keyframe_quality,
                     seed=seed,
                 )
-                self.result.emit(
-                    PredictionResult(job=job, prediction=prediction)
-                )
+                self.result.emit(PredictionResult(job=job, prediction=prediction))
         except Exception as exc:  # noqa: BLE001
             self.failed.emit(f"{type(exc).__name__}: {exc}")
 
@@ -216,7 +213,7 @@ class ReplayWorker(QThread):
             reader.close()
             raise RuntimeError(
                 "Video ended before causal ROI warm-up completed"
-            )
+            ) from None
         selection = initialize_causal_stream(
             self.source,
             warmup_frames,
@@ -244,21 +241,15 @@ class ReplayWorker(QThread):
                 )
                 else None
             ),
-            bundle_path=(
-                repository / self.config["online_clear_moment_detector"]
-            ),
+            bundle_path=(repository / self.config["online_clear_moment_detector"]),
             minimum_event_frame=warmup_count,
             minimum_score=(
                 float(self.config["online_minimum_clear_score"])
                 if self.config.get("online_minimum_clear_score") is not None
                 else None
             ),
-            lookahead_frames=int(
-                self.config.get("online_vertex_lookahead_frames", 4)
-            ),
-            history_frames=int(
-                self.config.get("online_detector_history_frames", 41)
-            ),
+            lookahead_frames=int(self.config.get("online_vertex_lookahead_frames", 4)),
+            history_frames=int(self.config.get("online_detector_history_frames", 41)),
             minimum_vertex_separation_frames=int(
                 self.config.get(
                     "online_minimum_vertex_separation_frames",
@@ -327,8 +318,7 @@ class ReplayWorker(QThread):
             )
         if rotation:
             self.log.emit(
-                f"Applying acquisition-orientation correction online: "
-                f"CW {rotation}°"
+                f"Applying acquisition-orientation correction online: CW {rotation}°"
             )
         for index, frame in enumerate(warmup_frames):
             detector.observe(index, frame)
@@ -338,12 +328,8 @@ class ReplayWorker(QThread):
 
         self.prepared.emit(selection, fps)
         playback_fps = fps / self.playback_ratio
-        maximum_display = float(
-            self.config.get("maximum_display_fps", 24.0)
-        )
-        display_stride = max(
-            1, int(np.ceil(playback_fps / maximum_display))
-        )
+        maximum_display = float(self.config.get("maximum_display_fps", 24.0))
+        display_stride = max(1, int(np.ceil(playback_fps / maximum_display)))
         interval = self.playback_ratio / fps
         ring: deque[np.ndarray] = deque(warmup_frames[-18:], maxlen=18)
         pending: dict[int, tuple[ReplayEvent, float | None]] = {}
@@ -411,28 +397,22 @@ class ReplayWorker(QThread):
                         clip = build_model_clip(
                             selected_frames,
                             selection.model_input_roi.rect,
-                            output_size=int(
-                                self.config.get("model_image_size", 224)
-                            ),
+                            output_size=int(self.config.get("model_image_size", 224)),
                         )
                         physics_clip = build_model_clip(
                             selected_frames,
                             selection.physics_roi.rect,
-                            output_size=int(
-                                self.config.get("model_image_size", 224)
-                            ),
+                            output_size=int(self.config.get("model_image_size", 224)),
                         )
-                        view_names, causal_views = (
-                            build_causal_perturbation_clips(
-                                ring_frames,
-                                selection.model_input_roi.rect,
-                                output_size=int(
-                                    self.config.get(
-                                        "model_image_size",
-                                        224,
-                                    )
-                                ),
-                            )
+                        view_names, causal_views = build_causal_perturbation_clips(
+                            ring_frames,
+                            selection.model_input_roi.rect,
+                            output_size=int(
+                                self.config.get(
+                                    "model_image_size",
+                                    224,
+                                )
+                            ),
                         )
                         submitted_count += 1
                         self.log.emit(
@@ -454,15 +434,8 @@ class ReplayWorker(QThread):
                         )
 
                 playback_position = index - warmup_count + 1
-                target = (
-                    start
-                    + paused_total
-                    + playback_position * interval
-                )
-                while (
-                    not self._stop_event.is_set()
-                    and time.perf_counter() < target
-                ):
+                target = start + paused_total + playback_position * interval
+                while not self._stop_event.is_set() and time.perf_counter() < target:
                     time.sleep(
                         min(
                             0.015,
@@ -493,9 +466,7 @@ class ReplayWorker(QThread):
                 return
             repository = Path(self.config["repository_root"])
             rotation = rotation_for_sample(
-                self.config.get(
-                    "rheed_rotation_clockwise_degrees_by_sample"
-                ),
+                self.config.get("rheed_rotation_clockwise_degrees_by_sample"),
                 self.sample_id,
             )
             selection = analyze_replay(
@@ -514,9 +485,7 @@ class ReplayWorker(QThread):
                     if self.config.get("physics_roi_calibration")
                     else None
                 ),
-                foundation_cache_dir=(
-                    repository / self.config["foundation_cache_dir"]
-                ),
+                foundation_cache_dir=(repository / self.config["foundation_cache_dir"]),
                 device=self.config.get("selector_device"),
                 roi_sample_count=int(self.config["roi_sample_count"]),
                 minimum_event_quality=float(
@@ -586,12 +555,8 @@ class ReplayWorker(QThread):
                 fps = 30.0
             self.prepared.emit(selection, fps)
             playback_fps = fps / self.playback_ratio
-            maximum_display = float(
-                self.config.get("maximum_display_fps", 24.0)
-            )
-            display_stride = max(
-                1, int(np.ceil(playback_fps / maximum_display))
-            )
+            maximum_display = float(self.config.get("maximum_display_fps", 24.0))
+            display_stride = max(1, int(np.ceil(playback_fps / maximum_display)))
             interval = self.playback_ratio / fps
             events = {
                 event.frame_index
@@ -651,16 +616,12 @@ class ReplayWorker(QThread):
                                     self.config.get("model_image_size", 224)
                                 ),
                             )
-                            view_names, causal_views = (
-                                build_causal_perturbation_clips(
-                                    ring_frames,
-                                    selection.model_input_roi.rect,
-                                    output_size=int(
-                                        self.config.get(
-                                            "model_image_size", 224
-                                        )
-                                    ),
-                                )
+                            view_names, causal_views = build_causal_perturbation_clips(
+                                ring_frames,
+                                selection.model_input_roi.rect,
+                                output_size=int(
+                                    self.config.get("model_image_size", 224)
+                                ),
                             )
                             self.log.emit(
                                 f"Frame {event.frame_index}: full-lattice "
@@ -672,9 +633,7 @@ class ReplayWorker(QThread):
                                     sample_id=self.sample_id,
                                     source=self.source,
                                     event=event,
-                                    event_time_seconds=(
-                                        event.frame_index / fps
-                                    ),
+                                    event_time_seconds=(event.frame_index / fps),
                                     selected_16=clip,
                                     physics_selected_16=physics_clip,
                                     causal_view_names=tuple(view_names),
@@ -687,12 +646,9 @@ class ReplayWorker(QThread):
                             submitted_count += 1
                     target = start + paused_total + (index + 1) * interval
                     while (
-                        not self._stop_event.is_set()
-                        and time.perf_counter() < target
+                        not self._stop_event.is_set() and time.perf_counter() < target
                     ):
-                        time.sleep(
-                            min(0.015, max(target - time.perf_counter(), 0.0))
-                        )
+                        time.sleep(min(0.015, max(target - time.perf_counter(), 0.0)))
             finally:
                 reader.close()
             self.stream_summary.emit(len(selection.events), submitted_count)

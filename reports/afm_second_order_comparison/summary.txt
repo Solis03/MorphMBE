@@ -1,8 +1,0 @@
-raw_root: data/processed_afm
-first_order_root: data/plane_corrected_afm
-second_order_root: data/afm_second_order
-paired_scan_count: 260
-missing_pair_count: 0
-png: reports/afm_second_order_comparison/all_scans_raw_first_second_order_contact_sheet.png
-pdf: reports/afm_second_order_comparison/all_scans_raw_first_second_order_contact_sheet.pdf
-display_scaling: shared 2-98 percentile limits within each raw/first/second triplet; data files are unchanged

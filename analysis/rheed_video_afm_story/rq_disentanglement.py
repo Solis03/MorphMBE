@@ -4,7 +4,9 @@ import numpy as np
 import torch
 
 
-def center_and_rq(height_nm: np.ndarray, epsilon: float = 1e-6) -> tuple[np.ndarray, float]:
+def center_and_rq(
+    height_nm: np.ndarray, epsilon: float = 1e-6
+) -> tuple[np.ndarray, float]:
     arr = np.asarray(height_nm, dtype=np.float32)
     finite = np.isfinite(arr)
     if not finite.all():
@@ -17,7 +19,9 @@ def center_and_rq(height_nm: np.ndarray, epsilon: float = 1e-6) -> tuple[np.ndar
     return centered.astype(np.float32), q
 
 
-def unit_shape(height_nm: np.ndarray, epsilon: float = 1e-6) -> tuple[np.ndarray, np.ndarray, float]:
+def unit_shape(
+    height_nm: np.ndarray, epsilon: float = 1e-6
+) -> tuple[np.ndarray, np.ndarray, float]:
     centered, q = center_and_rq(height_nm, epsilon=epsilon)
     shape = centered / (q + epsilon)
     shape = project_unit_rq_np(shape, epsilon=epsilon)
@@ -50,5 +54,7 @@ def project_unit_rq_torch(x: torch.Tensor, epsilon: float = 1e-6) -> torch.Tenso
     return centered / q
 
 
-def physical_from_q(shape: np.ndarray, q_nm: float, epsilon: float = 1e-6) -> np.ndarray:
+def physical_from_q(
+    shape: np.ndarray, q_nm: float, epsilon: float = 1e-6
+) -> np.ndarray:
     return float(q_nm) * project_unit_rq_np(shape, epsilon=epsilon)

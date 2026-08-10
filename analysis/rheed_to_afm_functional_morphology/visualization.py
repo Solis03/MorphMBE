@@ -17,7 +17,6 @@ from analysis.rheed_video_afm_story.common import repo_path, write_json
 
 from .run import M10, load_config
 
-
 SELECTED_COLOR = "#0072B2"
 BASELINE_COLOR = "#999999"
 REAL_COLOR = "#D55E00"
@@ -51,11 +50,7 @@ def _generated(
     output: Path, *, split: str, method: str, group: str
 ) -> tuple[np.ndarray, float]:
     payload = np.load(
-        output
-        / split
-        / "generated_maps"
-        / method
-        / f"{group}.npz",
+        output / split / "generated_maps" / method / f"{group}.npz",
         allow_pickle=False,
     )
     unit = np.asarray(payload["generated_unit_shapes"][0], dtype=float)
@@ -64,9 +59,7 @@ def _generated(
 
 
 def _phase_row(phase1: pd.DataFrame, group: str) -> pd.Series:
-    row = phase1.loc[
-        phase1["growth_run_id"].astype(str) == str(group)
-    ]
+    row = phase1.loc[phase1["growth_run_id"].astype(str) == str(group)]
     if len(row) != 1:
         raise ValueError(f"phase-1 row is not unique for {group}")
     return row.iloc[0]
@@ -175,9 +168,7 @@ def _comparison_figure(
     figure.suptitle(title, fontsize=12, fontweight="bold")
     for row_index, group in enumerate(groups):
         rheed = _rheed_keyframe(phase1, group)
-        generated, _ = _generated(
-            output, split=split, method=method, group=group
-        )
+        generated, _ = _generated(output, split=split, method=method, group=group)
         real = _real_afm(phase1, group)
         real_label = _real_afm_label(phase1, group)
         combined = np.concatenate([generated.ravel(), real.ravel()])
@@ -186,9 +177,7 @@ def _comparison_figure(
         axes[row_index, 0].imshow(rheed, cmap="gray")
         axes[row_index, 0].set_xticks([])
         axes[row_index, 0].set_yticks([])
-        axes[row_index, 0].set_title(
-            f"{group}  RHEED key frame", fontsize=8.5
-        )
+        axes[row_index, 0].set_title(f"{group}  RHEED key frame", fontsize=8.5)
         image = _surface_panel(
             axes[row_index, 1],
             generated,
@@ -245,9 +234,7 @@ def plot_validation(
         fsmi_predictions=fsmi,
         confidence=confidence,
         method=method,
-        title=(
-            "Pre-existing validation: RHEED → generated AFM → measured AFM"
-        ),
+        title=("Pre-existing validation: RHEED → generated AFM → measured AFM"),
     )
     _save(figure, figure_dir / "Fig1_validation_rheed_generated_real")
 
@@ -294,23 +281,15 @@ def plot_target_scatter(
     confidence: pd.DataFrame,
 ) -> None:
     conf = confidence.set_index("growth_run_id")
-    figure, axes = plt.subplots(
-        1, 2, figsize=(8.2, 3.65), constrained_layout=True
-    )
+    figure, axes = plt.subplots(1, 2, figsize=(8.2, 3.65), constrained_layout=True)
     for axis, table, label in (
         (axes[0], rq, "Sq (nm)"),
         (axes[1], fsmi, "FSMI (nm)"),
     ):
         table = table.copy()
-        c = table["growth_run_id"].map(
-            conf["joint_confidence_index"]
-        )
-        lower = (
-            table["predicted_target"] - table["interval_lower"]
-        ).to_numpy(float)
-        upper = (
-            table["interval_upper"] - table["predicted_target"]
-        ).to_numpy(float)
+        c = table["growth_run_id"].map(conf["joint_confidence_index"])
+        lower = (table["predicted_target"] - table["interval_lower"]).to_numpy(float)
+        upper = (table["interval_upper"] - table["predicted_target"]).to_numpy(float)
         scatter = axis.scatter(
             table["true_target"],
             table["predicted_target"],
@@ -333,32 +312,20 @@ def plot_target_scatter(
             lw=0.8,
             zorder=1,
         )
-        lo = float(
-            min(table["true_target"].min(), table["interval_lower"].min())
-        )
-        hi = float(
-            max(table["true_target"].max(), table["interval_upper"].max())
-        )
+        lo = float(min(table["true_target"].min(), table["interval_lower"].min()))
+        hi = float(max(table["true_target"].max(), table["interval_upper"].max()))
         axis.plot([lo, hi], [lo, hi], "--", color="black", lw=1)
         axis.set_xlim(max(0.0, lo - 0.2), hi + 0.2)
         axis.set_ylim(max(0.0, lo - 0.2), hi + 0.2)
         axis.set_xlabel(f"measured {label}")
         axis.set_ylabel(f"predicted {label}")
-        rho = spearmanr(
-            table["true_target"], table["predicted_target"]
-        )
-        r = pearsonr(
-            table["true_target"], table["predicted_target"]
-        )
+        rho = spearmanr(table["true_target"], table["predicted_target"])
+        r = pearsonr(table["true_target"], table["predicted_target"])
         axis.set_title(
-            f"{label}: Pearson r={r.statistic:.2f}, "
-            f"Spearman ρ={rho.statistic:.2f}"
+            f"{label}: Pearson r={r.statistic:.2f}, Spearman ρ={rho.statistic:.2f}"
         )
         for _, row in table.iterrows():
-            if (
-                row["absolute_error"]
-                >= table["absolute_error"].quantile(0.85)
-            ):
+            if row["absolute_error"] >= table["absolute_error"].quantile(0.85):
                 axis.annotate(
                     str(row["growth_run_id"]),
                     (row["true_target"], row["predicted_target"]),
@@ -379,14 +346,11 @@ def plot_dynamic_range(
     method: str,
 ) -> None:
     selected = rq.sort_values("true_target").copy()
-    baseline = (
-        cross_standard.loc[cross_standard["method"] == M10]
-        .set_index("growth_run_id")["generated_rq_nm"]
-    )
+    baseline = cross_standard.loc[cross_standard["method"] == M10].set_index(
+        "growth_run_id"
+    )["generated_rq_nm"]
     positions = np.arange(len(selected))
-    figure, axis = plt.subplots(
-        figsize=(8.2, 3.8), constrained_layout=True
-    )
+    figure, axis = plt.subplots(figsize=(8.2, 3.8), constrained_layout=True)
     axis.plot(
         positions,
         selected["true_target"],
@@ -412,9 +376,7 @@ def plot_dynamic_range(
         label=f"{method.split('_')[0]} predicted Sq",
     )
     axis.set_xticks(positions)
-    axis.set_xticklabels(
-        selected["growth_run_id"], rotation=45, ha="right"
-    )
+    axis.set_xticklabels(selected["growth_run_id"], rotation=45, ha="right")
     axis.set_ylabel("Sq (nm)")
     axis.set_xlabel("held-out growth group (ordered by measured Sq)")
     axis.set_title(
@@ -434,9 +396,7 @@ def plot_confidence(
         confidence["joint_confidence_index"],
         confidence["realized_joint_error_index"],
     )
-    figure, axes = plt.subplots(
-        1, 2, figsize=(8.2, 3.55), constrained_layout=True
-    )
+    figure, axes = plt.subplots(1, 2, figsize=(8.2, 3.55), constrained_layout=True)
     axes[0].scatter(
         confidence["joint_confidence_index"],
         confidence["realized_joint_error_index"],
@@ -447,10 +407,9 @@ def plot_confidence(
         linewidth=0.4,
     )
     for _, row in confidence.iterrows():
-        if (
-            row["realized_joint_error_index"]
-            >= confidence["realized_joint_error_index"].quantile(0.8)
-        ):
+        if row["realized_joint_error_index"] >= confidence[
+            "realized_joint_error_index"
+        ].quantile(0.8):
             axes[0].annotate(
                 str(row["growth_run_id"]),
                 (
@@ -463,9 +422,7 @@ def plot_confidence(
             )
     axes[0].set_xlabel("joint confidence index (0–100)")
     axes[0].set_ylabel("realized joint error rank")
-    axes[0].set_title(
-        f"Confidence is error-related: Spearman ρ={rho.statistic:.2f}"
-    )
+    axes[0].set_title(f"Confidence is error-related: Spearman ρ={rho.statistic:.2f}")
 
     ordered = confidence.sort_values("joint_confidence_index")
     positions = np.arange(len(ordered))
@@ -484,9 +441,7 @@ def plot_confidence(
         label="realized FSMI error",
     )
     axes[1].set_xticks(positions)
-    axes[1].set_xticklabels(
-        ordered["growth_run_id"], rotation=70, fontsize=7
-    )
+    axes[1].set_xticklabels(ordered["growth_run_id"], rotation=70, fontsize=7)
     axes[1].set_ylabel("FSMI absolute error (nm)")
     axes[1].set_title("Expected and realized FSMI errors")
     axes[1].legend(frameon=False, fontsize=8)
@@ -537,9 +492,7 @@ def plot_ablation(
         "median_afm_prior_mahalanobis",
         "median_fsmi_absolute_error_nm",
     ]
-    normalized = table[error_columns].div(
-        table.loc[M10, error_columns], axis=1
-    )
+    normalized = table[error_columns].div(table.loc[M10, error_columns], axis=1)
     labels = {
         "median_rq_absolute_error_nm": "Sq error",
         "median_normalized_psd_log_distance": "PSD error",
@@ -547,17 +500,12 @@ def plot_ablation(
         "median_afm_prior_mahalanobis": "AFM-prior distance",
         "median_fsmi_absolute_error_nm": "FSMI error",
     }
-    figure, axes = plt.subplots(
-        1, 2, figsize=(9.0, 3.7), constrained_layout=True
-    )
+    figure, axes = plt.subplots(1, 2, figsize=(9.0, 3.7), constrained_layout=True)
     x = np.arange(len(error_columns))
     width = 0.19
     colors = [
         BASELINE_COLOR,
-        *[
-            mpl.colors.to_hex(color)
-            for color in mpl.colormaps["tab10"].colors
-        ],
+        *[mpl.colors.to_hex(color) for color in mpl.colormaps["tab10"].colors],
     ]
     for index, (method, row) in enumerate(normalized.iterrows()):
         axes[0].bar(
@@ -601,9 +549,9 @@ def plot_component_correlations(
     surface_per_group: pd.DataFrame,
     method: str,
 ) -> None:
-    generated = surface_per_group.loc[
-        surface_per_group["method"] == method
-    ].set_index("growth_run_id")
+    generated = surface_per_group.loc[surface_per_group["method"] == method].set_index(
+        "growth_run_id"
+    )
     truth = (
         group_metrics.loc[group_metrics["split"] == "train"]
         .set_index("growth_run_id")
@@ -620,10 +568,8 @@ def plot_component_correlations(
             "FSMI (nm)",
         ),
     ]
-    figure, axes = plt.subplots(
-        2, 3, figsize=(8.6, 5.4), constrained_layout=True
-    )
-    for axis, (column, label) in zip(axes.ravel(), pairs):
+    figure, axes = plt.subplots(2, 3, figsize=(8.6, 5.4), constrained_layout=True)
+    for axis, (column, label) in zip(axes.ravel(), pairs, strict=False):
         true = truth[column].to_numpy(float)
         predicted = generated[f"generated_{column}"].to_numpy(float)
         axis.scatter(
@@ -641,9 +587,7 @@ def plot_component_correlations(
         axis.set_ylabel(f"generated {label}")
         rho = spearmanr(true, predicted).statistic
         axis.set_title(f"{label}\nSpearman ρ={rho:.2f}")
-    _save(
-        figure, figure_dir / "Fig7_surface_component_correlations"
-    )
+    _save(figure, figure_dir / "Fig7_surface_component_correlations")
 
 
 def plot_failures(
@@ -670,9 +614,7 @@ def plot_failures(
         fsmi_predictions=fsmi,
         confidence=confidence,
         method=method,
-        title=(
-            "Lowest-confidence held-one predictions (reported, not hidden)"
-        ),
+        title=("Lowest-confidence held-one predictions (reported, not hidden)"),
     )
     _save(figure, figure_dir / "Fig8_low_confidence_failures")
 
@@ -743,15 +685,9 @@ def run(config: dict[str, Any]) -> None:
         cross_standard=cross_standard,
         method=selected,
     )
-    plot_confidence(
-        figure_dir=figure_dir, confidence=confidence
-    )
-    standard_summary = pd.read_csv(
-        report / "crossfit" / "standard_summary.csv"
-    )
-    island_summary = pd.read_csv(
-        report / "crossfit" / "island_summary.csv"
-    )
+    plot_confidence(figure_dir=figure_dir, confidence=confidence)
+    standard_summary = pd.read_csv(report / "crossfit" / "standard_summary.csv")
+    island_summary = pd.read_csv(report / "crossfit" / "island_summary.csv")
     surface_summary = pd.read_csv(
         report / "crossfit" / "functional_surface_summary.csv"
     )

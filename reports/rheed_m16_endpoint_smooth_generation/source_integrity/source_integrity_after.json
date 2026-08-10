@@ -1,9 +1,0 @@
-{
-  "all_hashes_match": true,
-  "all_sources_exist": true,
-  "audit_path": "outputs/afm_metrology_line3_v1/afm_scan_audit.csv",
-  "checked_source_count": 360,
-  "decoded_zsensor_source_count": 180,
-  "raw_afm_source_count": 180,
-  "raw_data_modified": false
-}

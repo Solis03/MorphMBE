@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import argparse
-from hashlib import sha256
 import json
-from pathlib import Path
 import time
+from hashlib import sha256
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -23,9 +23,9 @@ from analysis.rheed_video_afm_story.pretrained_embeddings import (
     preprocess_frames,
     temporal_aggregate,
 )
-from rheed2morph.rheed.automatic_roi_keyframe import Rect, _source_factory
 from rheed2morph.realtime.clips import build_model_clip, live_physics_row
 from rheed2morph.realtime.selector import ReplaySelection, analyze_replay
+from rheed2morph.rheed.automatic_roi_keyframe import Rect, _source_factory
 
 
 def load_config(path: str | Path) -> dict[str, Any]:
@@ -172,9 +172,7 @@ def _selection_record(
         "machine_keyframe_index": int(event.frame_index),
         "signed_keyframe_delta": int(delta),
         "cycle_phase_residual_frames": float(phase_residual),
-        "estimated_period_frames": (
-            float(period) if period is not None else np.nan
-        ),
+        "estimated_period_frames": (float(period) if period is not None else np.nan),
         "machine_keyframe_quality": float(event.keyframe_quality),
         "machine_visibility_rank": float(event.visibility_rank),
         "machine_model_input_visibility": float(event.model_input_visibility),
@@ -238,13 +236,11 @@ def extract_embeddings(
                 allow_pickle=False,
             )
             frames = np.asarray(payload["frames_uint8"], dtype=np.uint8)
-            tensor = preprocess_frames(
-                frames, "raw_luminance", video=video
-            ).to(model_device)
-            values = model(tensor).detach().cpu().numpy().astype(np.float32)
-            embedding = (
-                values[0] if video else temporal_aggregate(values)
+            tensor = preprocess_frames(frames, "raw_luminance", video=video).to(
+                model_device
             )
+            values = model(tensor).detach().cpu().numpy().astype(np.float32)
+            embedding = values[0] if video else temporal_aggregate(values)
             embeddings.append(np.asarray(embedding, dtype=np.float32))
         matrix = np.vstack(embeddings).astype(np.float32)
         embedding_id = f"{encoder}__{variant}__raw_luminance"
@@ -311,12 +307,13 @@ def build_dataset(config: dict[str, Any], *, device_name: str) -> None:
         group = str(row["growth_run_id"])
         source = repo_path(str(row["source_video"]))
         cache_path = output_root / "selections" / f"{group}.json"
-        print(f"[{position:02d}/23] automatic selection {group}: {source.name}", flush=True)
+        print(
+            f"[{position:02d}/23] automatic selection {group}: {source.name}",
+            flush=True,
+        )
         selection = analyze_replay(
             source,
-            deep_visibility_ranker_path=repo_path(
-                config["deep_visibility_ranker"]
-            ),
+            deep_visibility_ranker_path=repo_path(config["deep_visibility_ranker"]),
             model_input_calibration_path=repo_path(
                 config["model_input_roi_calibration"]
             ),

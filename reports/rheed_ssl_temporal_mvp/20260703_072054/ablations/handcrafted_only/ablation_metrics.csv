@@ -1,2 +1,0 @@
-variant,split,row_count,descriptor_mse,descriptor_mae,descriptor_rmse,descriptor_r2,descriptor_spearman,prototype_accuracy,prototype_macro_f1,beats_mean_condition_mse
-handcrafted_only,val,5,1.0690644979476929,0.7722878456115723,1.033955752412884,-0.2933281660079956,0.061538461538461556,0.2,0.08333333333333333,True

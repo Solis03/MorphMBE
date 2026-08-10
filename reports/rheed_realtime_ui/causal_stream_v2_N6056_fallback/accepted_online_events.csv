@@ -1,3 +1,0 @@
-frame_index,keyframe_quality,visibility_rank,selector_score,tracker,model_input_visibility,refined_from_frame_index,event_time_seconds,estimated_period_frames_at_detection
-157,0.42601246105919,0.35202492211838005,0.34312468181275124,causal_full_lattice_fallback_front,0.35202492211838005,,5.233333333333333,13.0
-314,0.39953271028037385,0.29906542056074764,0.3154662717468211,causal_full_lattice_fallback_front,0.29906542056074764,,10.466666666666667,14.0

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 import numpy as np
 import torch
@@ -52,10 +52,7 @@ class GuidedBlock(nn.Module):
         hidden = self.conv1(F.silu(self.norm1(x)))
         scale, shift = self.embedding(embedding).chunk(2, dim=1)
         hidden = self.norm2(hidden)
-        hidden = (
-            hidden * (1.0 + scale[:, :, None, None])
-            + shift[:, :, None, None]
-        )
+        hidden = hidden * (1.0 + scale[:, :, None, None]) + shift[:, :, None, None]
         hidden = self.conv2(F.silu(hidden))
         return hidden + self.skip(x)
 
@@ -76,13 +73,9 @@ class StructureGuidedResidualUNet(nn.Module):
         )
         self.input = nn.Conv2d(2, base, kernel_size=3, padding=1)
         self.enc1 = GuidedBlock(base, base, emb)
-        self.down1 = nn.Conv2d(
-            base, 2 * base, kernel_size=3, stride=2, padding=1
-        )
+        self.down1 = nn.Conv2d(base, 2 * base, kernel_size=3, stride=2, padding=1)
         self.enc2 = GuidedBlock(2 * base, 2 * base, emb)
-        self.down2 = nn.Conv2d(
-            2 * base, 4 * base, kernel_size=3, stride=2, padding=1
-        )
+        self.down2 = nn.Conv2d(2 * base, 4 * base, kernel_size=3, stride=2, padding=1)
         self.middle = GuidedBlock(4 * base, 4 * base, emb)
         self.up2 = nn.ConvTranspose2d(
             4 * base, 2 * base, kernel_size=4, stride=2, padding=1
@@ -106,9 +99,7 @@ class StructureGuidedResidualUNet(nn.Module):
         timesteps: torch.Tensor,
         guide: torch.Tensor,
     ) -> torch.Tensor:
-        embedding = self.time_mlp(
-            timestep_embedding(timesteps, self.embedding_dim)
-        )
+        embedding = self.time_mlp(timestep_embedding(timesteps, self.embedding_dim))
         x0 = self.input(torch.cat([noisy_residual, guide], dim=1))
         e1 = self.enc1(x0, embedding)
         e2 = self.enc2(self.down1(e1), embedding)
@@ -193,9 +184,7 @@ class StructureGuidedDiffusion:
             generator=generator,
             device="cpu",
         ).to(guide.device)
-        sample = sample * torch.sqrt(1.0 - self.alpha_bars[start]).to(
-            guide.device
-        )
+        sample = sample * torch.sqrt(1.0 - self.alpha_bars[start]).to(guide.device)
         indices = np.linspace(
             start, 0, min(int(steps), start + 1), dtype=np.int64
         ).tolist()
@@ -213,9 +202,9 @@ class StructureGuidedDiffusion:
                 if index == len(indices) - 1
                 else self.alpha_bars[int(indices[index + 1])].to(guide.device)
             )
-            predicted_clean = (
-                sample - torch.sqrt(1.0 - alpha) * epsilon
-            ) / torch.sqrt(alpha)
+            predicted_clean = (sample - torch.sqrt(1.0 - alpha) * epsilon) / torch.sqrt(
+                alpha
+            )
             predicted_clean = torch.clamp(predicted_clean, -5.0, 5.0)
             sample = (
                 torch.sqrt(previous) * predicted_clean

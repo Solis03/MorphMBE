@@ -1,6 +1,0 @@
-sample_id,source_video_relpath,filename,size_bytes,codec,width,height,fps,duration_sec,frame_count,decode_test_pass,candidate_count_for_sample,notes
-N6342,data/compressedfile/N6342/Ramp down to 200C.mpg,Ramp down to 200C.mpg,59848230,mjpeg,1376,1100,10.0,220.1,2201,True,1,decoded frame 0 with ffmpeg
-N6358,data/compressedfile/N6358/After rampdown to 200C.mpg,After rampdown to 200C.mpg,29775164,mjpeg,1376,1100,10.0,110.1,1101,True,1,decoded frame 0 with ffmpeg
-N6382,data/compressedfile/N6382/Rampdown to 200C.mpg,Rampdown to 200C.mpg,31023580,mjpeg,1376,1100,10.0,110.1,1101,True,1,decoded frame 0 with ffmpeg
-N6389,data/compressedfile/N6389/Rampdown to 300C.mpg,Rampdown to 300C.mpg,45732938,mjpeg,1100,1376,10.0,173.1,1731,True,1,decoded frame 0 with ffmpeg
-N6390,data/compressedfile/N6390/rampdon to 200c.mpg,rampdon to 200c.mpg,29972688,mjpeg,1100,1376,10.0,110.1,1101,True,1,decoded frame 0 with ffmpeg

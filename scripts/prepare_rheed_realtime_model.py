@@ -23,12 +23,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--config",
-        default="configs/rheed_realtime_ui.json",
+        default="configs/morphmbe_m22_realtime.json",
     )
     parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Replace only the derived deployment cache, never a publication freeze.",
+        "--output",
+        type=Path,
+        default=Path("artifacts/models/morphmbe_m22.joblib"),
+        help="Derived bundle path; frozen assets/models is never overwritten.",
     )
     return parser.parse_args()
 
@@ -39,20 +40,15 @@ def main() -> None:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     repository = repository_root_from_config(config_path, config)
     config["repository_root"] = str(repository)
-    destination = repository / config["deployment_bundle"]
-    manifest = repository / config["deployment_manifest"]
-    if destination.exists() and not args.force:
-        print(
-            json.dumps(
-                {
-                    "status": "cache_exists",
-                    "bundle": str(destination),
-                    "hint": "pass --force to rebuild this derived cache",
-                },
-                indent=2,
-            )
+    destination = args.output.resolve()
+    frozen_assets = (repository / "assets/models").resolve()
+    if frozen_assets in destination.parents:
+        raise SystemExit("refusing to overwrite a frozen release asset")
+    manifest = destination.with_name(f"{destination.stem}_manifest.json")
+    if destination.exists():
+        raise SystemExit(
+            f"output already exists: {destination}; choose a fresh --output"
         )
-        return
 
     started = time.perf_counter()
 
@@ -103,8 +99,8 @@ def main() -> None:
             "platform": platform.platform(),
             "torch": torch.__version__,
             "mps_available": torch.backends.mps.is_available(),
-            "build_seconds": time.perf_counter() - started
-        }
+            "build_seconds": time.perf_counter() - started,
+        },
     }
     manifest.parent.mkdir(parents=True, exist_ok=True)
     manifest.write_text(

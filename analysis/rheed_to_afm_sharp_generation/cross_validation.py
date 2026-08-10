@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
@@ -12,18 +11,17 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
-from analysis.rheed_video_afm_story.common import write_csv, write_json
 from analysis.rheed_to_afm_generation.data import (
     ConditionScaler,
     predict_groups,
 )
 from analysis.rheed_to_afm_generation.training import resolve_device
+from analysis.rheed_video_afm_story.common import write_csv, write_json
 
 from .adversarial import calibrate_random_fields
 from .evaluation import condition_permutation_control, evaluate_method_sets
 from .rheed import _fit_hybrid_candidate, _fit_pls_candidate
 from .spectral import fit_conditional_spectral_model
-
 
 METHOD_MEAN = "M0_mean_condition_calibrated_spectral"
 METHOD_SPECTRAL = "M2_spectral_rheed_condition"
@@ -73,9 +71,7 @@ def _summary_table(frame: pd.DataFrame) -> pd.DataFrame:
     for method, method_rows in frame.groupby("method"):
         row: dict[str, Any] = {
             "method": method,
-            "held_out_growth_group_count": int(
-                method_rows["growth_run_id"].nunique()
-            ),
+            "held_out_growth_group_count": int(method_rows["growth_run_id"].nunique()),
             "texture_gate_pass_fraction": float(
                 method_rows["afm_texture_gate_pass"].mean()
             ),
@@ -90,9 +86,7 @@ def _summary_table(frame: pd.DataFrame) -> pd.DataFrame:
             "nearest_training_l1",
             "max_training_ssim",
         ):
-            row[f"median_{column}"] = float(
-                method_rows[column].astype(float).median()
-            )
+            row[f"median_{column}"] = float(method_rows[column].astype(float).median())
             row[f"iqr_{column}"] = float(
                 method_rows[column].astype(float).quantile(0.75)
                 - method_rows[column].astype(float).quantile(0.25)
@@ -104,9 +98,7 @@ def _summary_table(frame: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def _correlation_table(
-    predictions: pd.DataFrame, columns: list[str]
-) -> pd.DataFrame:
+def _correlation_table(predictions: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
     rows: list[dict[str, Any]] = []
     for column in columns:
         truth = predictions[f"true__{column}"].to_numpy(float)
@@ -139,9 +131,7 @@ def _save_figures(
     figure_dir.mkdir(parents=True, exist_ok=True)
     figure, axes = plt.subplots(2, 2, figsize=(11.5, 8.5))
     true_rq = np.exp(predictions["true__log_rq_nm"].to_numpy(float))
-    predicted_rq = np.exp(
-        predictions["predicted__log_rq_nm"].to_numpy(float)
-    )
+    predicted_rq = np.exp(predictions["predicted__log_rq_nm"].to_numpy(float))
     limits = (
         float(min(true_rq.min(), predicted_rq.min())),
         float(max(true_rq.max(), predicted_rq.max())),
@@ -202,9 +192,7 @@ def _save_figures(
 
     method_order = [METHOD_MEAN, METHOD_SPECTRAL, METHOD_CALIBRATED]
     values = [
-        metrics.loc[metrics["method"] == method, "sharpness_ratio"].to_numpy(
-            float
-        )
+        metrics.loc[metrics["method"] == method, "sharpness_ratio"].to_numpy(float)
         for method in method_order
     ]
     axes[1, 1].boxplot(
@@ -269,9 +257,7 @@ def run_training_group_cross_validation(
         "PLSRegression",
         "HybridSVRRq_PLSMorphology",
     }:
-        raise ValueError(
-            f"unsupported cross-validation predictor: {selected_family}"
-        )
+        raise ValueError(f"unsupported cross-validation predictor: {selected_family}")
     device = resolve_device(device_name)
     draws = int(config.get("cross_validation_draws", 4))
     iterations = int(config["spectral_iaaft_iterations"])
@@ -302,32 +288,26 @@ def run_training_group_cross_validation(
                 roughness_embedding_id=str(
                     selected_predictor.roughness_predictor.embedding_id
                 ),
-                morphology_pls_components=int(
-                    selected_predictor.pls_components
-                ),
+                morphology_pls_components=int(selected_predictor.pls_components),
                 embedding_registry=tables["registry"],
                 physics_table=tables["physics"],
                 group_targets=group_targets,
                 condition_scaler=scaler,
                 train_groups=sorted(fit_groups),
                 pca_dim=int(config["pca_dim"]),
-                excluded_sample_ids=set(
-                    tables["removelist"].sample_ids
-                ),
+                excluded_sample_ids=set(tables["removelist"].sample_ids),
             )
         else:
             predictor, _ = _fit_pls_candidate(
                 embedding_id=str(selected_predictor.embedding_id),
-                components=int(getattr(selected_predictor, "pls_components")),
+                components=int(selected_predictor.pls_components),
                 embedding_registry=tables["registry"],
                 physics_table=tables["physics"],
                 group_targets=group_targets,
                 condition_scaler=scaler,
                 train_groups=sorted(fit_groups),
                 pca_dim=int(config["pca_dim"]),
-                excluded_sample_ids=set(
-                    tables["removelist"].sample_ids
-                ),
+                excluded_sample_ids=set(tables["removelist"].sample_ids),
             )
         predicted_raw, predicted_z, _ = predict_groups(
             predictor,
@@ -341,15 +321,11 @@ def run_training_group_cross_validation(
         true_z = scaler.transform(true_raw[None], clip=False)[0]
         prediction_record: dict[str, Any] = {
             "growth_run_id": held_group,
-            "rheed_condition_mae_z": float(
-                np.mean(np.abs(predicted_z - true_z))
-            ),
+            "rheed_condition_mae_z": float(np.mean(np.abs(predicted_z - true_z))),
         }
         for position, column in enumerate(scaler.columns):
             prediction_record[f"true__{column}"] = float(true_raw[position])
-            prediction_record[f"predicted__{column}"] = float(
-                predicted_raw[position]
-            )
+            prediction_record[f"predicted__{column}"] = float(predicted_raw[position])
         prediction_rows.append(prediction_record)
 
         spectral_model, _, _ = fit_conditional_spectral_model(
@@ -389,14 +365,8 @@ def run_training_group_cross_validation(
             config=config,
             device=device,
         )
-        predicted_rq = float(
-            np.exp(predicted_raw[scaler.columns.index("log_rq_nm")])
-        )
-        mean_rq = float(
-            np.exp(
-                scaler.mean[scaler.columns.index("log_rq_nm")]
-            )
-        )
+        predicted_rq = float(np.exp(predicted_raw[scaler.columns.index("log_rq_nm")]))
+        mean_rq = float(np.exp(scaler.mean[scaler.columns.index("log_rq_nm")]))
         generated = {
             METHOD_MEAN: {held_group: mean_calibrated},
             METHOD_SPECTRAL: {held_group: correct},
@@ -470,9 +440,7 @@ def run_training_group_cross_validation(
     control = pd.concat(controls, ignore_index=True)
     predictions = pd.DataFrame(prediction_rows)
     summary = _summary_table(metrics)
-    correlations = _correlation_table(
-        predictions, list(config["condition_columns"])
-    )
+    correlations = _correlation_table(predictions, list(config["condition_columns"]))
     write_csv(metrics, report / "per_group_metrics.csv")
     write_csv(summary, report / "method_summary.csv")
     write_csv(control, report / "condition_permutation_control.csv")
@@ -502,9 +470,7 @@ def run_training_group_cross_validation(
         ],
         "selected_embedding_id": selected_predictor.embedding_id,
         "selected_model_family": selected_family,
-        "selected_pls_components": int(
-            getattr(selected_predictor, "pls_components")
-        ),
+        "selected_pls_components": int(selected_predictor.pls_components),
         "draws_per_group": draws,
         "method_summary": summary.to_dict(orient="records"),
         "rheed_calibrated_beats_mean_condition_descriptor": bool(

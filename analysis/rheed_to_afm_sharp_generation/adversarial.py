@@ -4,13 +4,12 @@ import math
 
 import numpy as np
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 from torch.nn.utils import spectral_norm
 
-from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_torch
-
 from analysis.rheed_to_afm_generation.data import ConditionScaler
+from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_torch
 
 
 class CircularConv2d(nn.Module):
@@ -51,17 +50,13 @@ class ConditionalResidualBlock(nn.Module):
         groups = min(8, channels)
         self.normalization1 = nn.GroupNorm(groups, channels)
         self.normalization2 = nn.GroupNorm(groups, channels)
-        self.convolution1 = CircularConv2d(
-            channels, channels, 3, dilation=dilation
-        )
+        self.convolution1 = CircularConv2d(channels, channels, 3, dilation=dilation)
         self.convolution2 = CircularConv2d(channels, channels, 3)
         self.modulation = nn.Linear(condition_dim, channels * 4)
         nn.init.zeros_(self.modulation.weight)
         nn.init.zeros_(self.modulation.bias)
 
-    def forward(
-        self, tensor: torch.Tensor, condition: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, tensor: torch.Tensor, condition: torch.Tensor) -> torch.Tensor:
         scale1, shift1, scale2, shift2 = self.modulation(condition).chunk(4, dim=1)
         hidden = self.normalization1(tensor)
         hidden = hidden * (1.0 + 0.25 * torch.tanh(scale1[:, :, None, None]))
@@ -114,9 +109,7 @@ class PhysicsSeededAFMRefiner(nn.Module):
         for block in self.blocks:
             hidden = block(hidden, condition)
         residual = self.output(F.silu(hidden))
-        return project_unit_rq_torch(
-            spectral_seed + self.residual_scale * residual
-        )
+        return project_unit_rq_torch(spectral_seed + self.residual_scale * residual)
 
 
 class ProjectionDiscriminator(nn.Module):
@@ -191,12 +184,8 @@ def diff_augment(
     rotations = int(torch.randint(0, 4, (), device=images.device).item())
     output = torch.rot90(output, rotations, dims=(-2, -1))
     maximum = max(int(round(images.shape[-1] * translation_fraction)), 1)
-    shift_y = int(
-        torch.randint(-maximum, maximum + 1, (), device=images.device).item()
-    )
-    shift_x = int(
-        torch.randint(-maximum, maximum + 1, (), device=images.device).item()
-    )
+    shift_y = int(torch.randint(-maximum, maximum + 1, (), device=images.device).item())
+    shift_x = int(torch.randint(-maximum, maximum + 1, (), device=images.device).item())
     output = torch.roll(output, shifts=(shift_y, shift_x), dims=(-2, -1))
     if cutout_fraction > 0 and bool(torch.rand((), device=images.device) < 0.5):
         height, width = output.shape[-2:]
@@ -230,7 +219,7 @@ class MorphologyConditionLoss(nn.Module):
         edges = np.linspace(1.0, float(radius.max()), 25)
         masks = [
             ((radius >= low) & (radius < high)).astype(np.float32)
-            for low, high in zip(edges[:-1], edges[1:])
+            for low, high in zip(edges[:-1], edges[1:], strict=False)
         ]
         self.register_buffer("radial_masks", torch.from_numpy(np.stack(masks)))
         self.register_buffer(
@@ -258,13 +247,13 @@ class MorphologyConditionLoss(nn.Module):
         skew = unit.pow(3).mean(dim=(1, 2, 3))
         kurtosis = unit.pow(4).mean(dim=(1, 2, 3))
 
-        power = torch.fft.fftshift(
-            torch.fft.fft2(unit[:, 0]), dim=(-2, -1)
-        ).abs().square()
+        power = (
+            torch.fft.fftshift(torch.fft.fft2(unit[:, 0]), dim=(-2, -1)).abs().square()
+        )
         mask = self.radial_masks
-        radial = (
-            power[:, None] * mask[None]
-        ).sum(dim=(-2, -1)) / mask.sum(dim=(-2, -1)).clamp_min(1.0)[None]
+        radial = (power[:, None] * mask[None]).sum(dim=(-2, -1)) / mask.sum(
+            dim=(-2, -1)
+        ).clamp_min(1.0)[None]
         fractions = radial / radial.sum(dim=1, keepdim=True).clamp_min(1e-8)
         mid = fractions[:, 8:16].sum(dim=1)
         high = fractions[:, 16:].sum(dim=1)
@@ -356,9 +345,9 @@ def calibrate_random_fields(
         dtype=torch.float32,
         device=device,
     )
-    objective = MorphologyConditionLoss(
-        condition_scaler, int(initial.shape[-1])
-    ).to(device)
+    objective = MorphologyConditionLoss(condition_scaler, int(initial.shape[-1])).to(
+        device
+    )
     optimizer = torch.optim.Adam([parameter], lr=float(learning_rate))
     history: list[dict[str, float]] = []
     for step in range(1, max(int(steps), 1) + 1):

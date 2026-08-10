@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 
 from analysis.rheed_video_afm_story.afm_autoencoder import ResidualBlock
 from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_torch
@@ -112,7 +112,9 @@ class ConditionalAFMVAE(nn.Module):
         self, image: torch.Tensor, condition: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
         features = self.image_encoder(image).flatten(1)
-        return self._split_gaussian(self.posterior(torch.cat([features, condition], dim=1)))
+        return self._split_gaussian(
+            self.posterior(torch.cat([features, condition], dim=1))
+        )
 
     def conditional_prior(
         self, condition: torch.Tensor
@@ -129,6 +131,7 @@ class ConditionalAFMVAE(nn.Module):
             self.decoder_blocks[1:],
             self.up_convs,
             self.condition_modulations[1:],
+            strict=False,
         ):
             hidden = F.interpolate(hidden, scale_factor=2, mode="nearest")
             hidden = convolution(hidden)
@@ -199,13 +202,7 @@ def gaussian_kl(
 
     variance_ratio = torch.exp(posterior_logvar - prior_logvar)
     squared_mean = (posterior_mean - prior_mean).square() * torch.exp(-prior_logvar)
-    kl = 0.5 * (
-        prior_logvar
-        - posterior_logvar
-        + variance_ratio
-        + squared_mean
-        - 1.0
-    )
+    kl = 0.5 * (prior_logvar - posterior_logvar + variance_ratio + squared_mean - 1.0)
     return kl.sum(dim=1).mean()
 
 

@@ -1,8 +1,0 @@
-{
-  "ablation_metrics": "reports/rheed_shape_bag_model_mvp/20260703_171908/ablations/ablation_metrics_shape_bag.csv",
-  "best_beats_mean": true,
-  "best_descriptor_mse": 1.0005608797073364,
-  "best_variant": "stable_features_mlp",
-  "mean_baseline_mse": 1.0856924057006836,
-  "negative_controls_attempted": true
-}

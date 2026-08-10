@@ -1,18 +1,17 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from typing import Any
 
 import numpy as np
-import pandas as pd
 from scipy import ndimage, stats
 
-from .common import repo_path, write_csv
+from .common import repo_path
 from .rq_disentanglement import ra_np, rq_np
 
 
-def gradients(arr: np.ndarray, scan_size_um: float = 1.0) -> tuple[np.ndarray, np.ndarray]:
+def gradients(
+    arr: np.ndarray, scan_size_um: float = 1.0
+) -> tuple[np.ndarray, np.ndarray]:
     pixel_um = scan_size_um / max(arr.shape[0] - 1, 1)
     gy, gx = np.gradient(arr.astype(float), pixel_um, pixel_um)
     return gx, gy
@@ -28,7 +27,7 @@ def radial_psd(arr: np.ndarray, bins: int = 24) -> tuple[np.ndarray, np.ndarray]
     edges = np.linspace(1, rr.max(), bins + 1)
     vals = []
     centers = []
-    for lo, hi in zip(edges[:-1], edges[1:]):
+    for lo, hi in zip(edges[:-1], edges[1:], strict=False):
         mask = (rr >= lo) & (rr < hi)
         vals.append(float(np.mean(power[mask])) if mask.any() else 0.0)
         centers.append(float((lo + hi) / 2))
@@ -43,7 +42,11 @@ def psd_band_descriptors(arr: np.ndarray) -> dict[str, float]:
     mid = float(np.sum(p[n // 3 : 2 * n // 3]) / total)
     high = float(np.sum(p[2 * n // 3 :]) / total)
     finite = (p > 0) & (freq > 0)
-    slope = float(np.polyfit(np.log(freq[finite]), np.log(p[finite] + 1e-12), 1)[0]) if finite.sum() >= 3 else np.nan
+    slope = (
+        float(np.polyfit(np.log(freq[finite]), np.log(p[finite] + 1e-12), 1)[0])
+        if finite.sum() >= 3
+        else np.nan
+    )
     return {
         "psd_low_fraction": low,
         "psd_mid_fraction": mid,
@@ -52,7 +55,9 @@ def psd_band_descriptors(arr: np.ndarray) -> dict[str, float]:
     }
 
 
-def autocorr_lengths(arr: np.ndarray, scan_size_um: float = 1.0) -> tuple[float, float, float, float]:
+def autocorr_lengths(
+    arr: np.ndarray, scan_size_um: float = 1.0
+) -> tuple[float, float, float, float]:
     a = arr.astype(float) - float(np.mean(arr))
     f = np.fft.fft2(a)
     ac = np.fft.ifft2(f * np.conj(f)).real
@@ -88,7 +93,9 @@ def orientation_entropy(gx: np.ndarray, gy: np.ndarray, bins: int = 18) -> float
     return float(ent)
 
 
-def describe_map(arr: np.ndarray, prefix: str, scan_size_um: float = 1.0) -> dict[str, float]:
+def describe_map(
+    arr: np.ndarray, prefix: str, scan_size_um: float = 1.0
+) -> dict[str, float]:
     a = np.asarray(arr, dtype=float)
     a = a - float(np.mean(a))
     q01, q05, q25, q50, q75, q95, q99 = np.percentile(a, [1, 5, 25, 50, 75, 95, 99])
@@ -125,7 +132,9 @@ def describe_map(arr: np.ndarray, prefix: str, scan_size_um: float = 1.0) -> dic
     return desc
 
 
-def descriptor_distance(true_shape: np.ndarray, pred_shape: np.ndarray) -> dict[str, float]:
+def descriptor_distance(
+    true_shape: np.ndarray, pred_shape: np.ndarray
+) -> dict[str, float]:
     t = describe_map(true_shape, "true_unit")
     p = describe_map(pred_shape, "pred_unit")
     freq_t, psd_t = radial_psd(true_shape)
@@ -135,13 +144,26 @@ def descriptor_distance(true_shape: np.ndarray, pred_shape: np.ndarray) -> dict[
     qp = np.percentile(pred_shape, [1, 5, 25, 50, 75, 95, 99])
     return {
         "normalized_psd_log_distance": log_psd,
-        "psd_low_band_error": abs(t["true_unit_psd_low_fraction"] - p["pred_unit_psd_low_fraction"]),
-        "psd_mid_band_error": abs(t["true_unit_psd_mid_fraction"] - p["pred_unit_psd_mid_fraction"]),
-        "psd_high_band_error": abs(t["true_unit_psd_high_fraction"] - p["pred_unit_psd_high_fraction"]),
+        "psd_low_band_error": abs(
+            t["true_unit_psd_low_fraction"] - p["pred_unit_psd_low_fraction"]
+        ),
+        "psd_mid_band_error": abs(
+            t["true_unit_psd_mid_fraction"] - p["pred_unit_psd_mid_fraction"]
+        ),
+        "psd_high_band_error": abs(
+            t["true_unit_psd_high_fraction"] - p["pred_unit_psd_high_fraction"]
+        ),
         "psd_slope_error": abs(t["true_unit_psd_slope"] - p["pred_unit_psd_slope"]),
-        "correlation_length_abs_error_nm": abs(t["true_unit_autocorr_length_nm"] - p["pred_unit_autocorr_length_nm"]),
-        "correlation_length_relative_error": abs(t["true_unit_autocorr_length_nm"] - p["pred_unit_autocorr_length_nm"]) / max(t["true_unit_autocorr_length_nm"], 1e-6),
-        "anisotropy_error": abs(t["true_unit_anisotropy_ratio"] - p["pred_unit_anisotropy_ratio"]),
+        "correlation_length_abs_error_nm": abs(
+            t["true_unit_autocorr_length_nm"] - p["pred_unit_autocorr_length_nm"]
+        ),
+        "correlation_length_relative_error": abs(
+            t["true_unit_autocorr_length_nm"] - p["pred_unit_autocorr_length_nm"]
+        )
+        / max(t["true_unit_autocorr_length_nm"], 1e-6),
+        "anisotropy_error": abs(
+            t["true_unit_anisotropy_ratio"] - p["pred_unit_anisotropy_ratio"]
+        ),
         "skewness_error": abs(t["true_unit_skewness"] - p["pred_unit_skewness"]),
         "kurtosis_error": abs(t["true_unit_kurtosis"] - p["pred_unit_kurtosis"]),
         "height_quantile_error": float(np.mean(np.abs(qt - qp))),

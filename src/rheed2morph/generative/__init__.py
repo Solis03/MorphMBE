@@ -1,7 +1,1 @@
-"""AFM descriptor-conditioned latent diffusion MVP."""
-
-from __future__ import annotations
-
-__all__ = ["__version__"]
-
-__version__ = "0.1.0"
+"""Neural components used by the frozen M22 morphology pipeline."""

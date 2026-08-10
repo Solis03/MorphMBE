@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -11,7 +10,6 @@ from sklearn.linear_model import Ridge
 from sklearn.preprocessing import StandardScaler
 
 from analysis.rheed_video_afm_story.common import repo_path, write_csv, write_json
-
 
 METHOD = "M10_dense_island_spectral_pareto"
 FEATURES = ["afm_prior_mahalanobis", "max_training_ssim"]
@@ -26,21 +24,17 @@ def _fit_predict(
     alpha: float,
 ) -> np.ndarray:
     scaler = StandardScaler().fit(train_x)
-    model = Ridge(alpha=float(alpha)).fit(
-        scaler.transform(train_x), train_y
-    )
+    model = Ridge(alpha=float(alpha)).fit(scaler.transform(train_x), train_y)
     return model.predict(scaler.transform(test_x))
 
 
-def _loo_predictions(
-    x: np.ndarray, y: np.ndarray, *, alpha: float
-) -> np.ndarray:
+def _loo_predictions(x: np.ndarray, y: np.ndarray, *, alpha: float) -> np.ndarray:
     result = np.zeros(len(y), dtype=float)
     for held in range(len(y)):
         keep = np.arange(len(y)) != held
-        result[held] = _fit_predict(
-            x[keep], y[keep], x[held : held + 1], alpha=alpha
-        )[0]
+        result[held] = _fit_predict(x[keep], y[keep], x[held : held + 1], alpha=alpha)[
+            0
+        ]
     return result
 
 
@@ -52,9 +46,7 @@ def _select_alpha(x: np.ndarray, y: np.ndarray) -> tuple[float, pd.DataFrame]:
             {
                 "alpha": alpha,
                 "loo_mae_z": float(np.mean(np.abs(prediction - y))),
-                "loo_rmse_z": float(
-                    np.sqrt(np.mean(np.square(prediction - y)))
-                ),
+                "loo_rmse_z": float(np.sqrt(np.mean(np.square(prediction - y)))),
             }
         )
     table = pd.DataFrame(records).sort_values(["loo_mae_z", "alpha"])
@@ -67,9 +59,7 @@ def _relative_confidence(
     # Smoothed survival percentile: smaller expected error -> larger index.
     return np.asarray(
         [
-            100.0
-            * (1.0 + float(np.sum(reference >= value)))
-            / (len(reference) + 1.0)
+            100.0 * (1.0 + float(np.sum(reference >= value))) / (len(reference) + 1.0)
             for value in predicted_error
         ],
         dtype=np.float32,
@@ -103,9 +93,7 @@ def run(args: argparse.Namespace) -> None:
         alpha, _ = _select_alpha(x[keep], y[keep])
         inner_prediction = _loo_predictions(x[keep], y[keep], alpha=alpha)
         residual = np.abs(inner_prediction - y[keep])
-        conformal_radius = float(
-            np.quantile(residual, 0.90, method="higher")
-        )
+        conformal_radius = float(np.quantile(residual, 0.90, method="higher"))
         predictions[held] = _fit_predict(
             x[keep], y[keep], x[held : held + 1], alpha=alpha
         )[0]
@@ -129,9 +117,7 @@ def run(args: argparse.Namespace) -> None:
 
     full_alpha, full_cv = _select_alpha(x, y)
     full_loo = _loo_predictions(x, y, alpha=full_alpha)
-    full_radius = float(
-        np.quantile(np.abs(full_loo - y), 0.90, method="higher")
-    )
+    full_radius = float(np.quantile(np.abs(full_loo - y), 0.90, method="higher"))
     write_csv(full_cv, output / "morphology_confidence_ridge_cv.csv")
     validation_standard = pd.read_csv(
         report / "validation" / "standard" / "per_group_metrics.csv",
@@ -141,9 +127,7 @@ def run(args: argparse.Namespace) -> None:
         report / "validation" / "island_per_group.csv",
         dtype={"growth_run_id": str},
     )
-    validation = validation_standard.loc[
-        validation_standard["method"] == METHOD
-    ].merge(
+    validation = validation_standard.loc[validation_standard["method"] == METHOD].merge(
         validation_island.loc[validation_island["method"] == METHOD],
         on=["growth_run_id", "method"],
         suffixes=("", "_island"),
@@ -168,23 +152,15 @@ def run(args: argparse.Namespace) -> None:
             "max_training_ssim": validation["max_training_ssim"],
         }
     )
-    write_csv(
-        validation_output, output / "morphology_confidence_validation.csv"
-    )
+    write_csv(validation_output, output / "morphology_confidence_validation.csv")
     correlation = spearmanr(predictions, y)
     manifest = {
         "method": METHOD,
         "features_available_at_inference": FEATURES,
         "nested_alpha_candidates": ALPHAS,
-        "crossfit_predicted_vs_realized_error_spearman": float(
-            correlation.statistic
-        ),
-        "crossfit_predicted_vs_realized_error_pvalue": float(
-            correlation.pvalue
-        ),
-        "crossfit_predicted_error_mae_z": float(
-            np.mean(np.abs(predictions - y))
-        ),
+        "crossfit_predicted_vs_realized_error_spearman": float(correlation.statistic),
+        "crossfit_predicted_vs_realized_error_pvalue": float(correlation.pvalue),
+        "crossfit_predicted_error_mae_z": float(np.mean(np.abs(predictions - y))),
         "crossfit_90_upper_coverage": float(np.mean(y <= upper)),
         "full_training_alpha": full_alpha,
         "full_training_conformal_radius_z": full_radius,

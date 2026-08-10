@@ -4,12 +4,11 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
 import json
+from dataclasses import asdict
 from pathlib import Path
 
 import imageio.v2 as imageio
-import numpy as np
 import pandas as pd
 
 from rheed2morph.realtime.selector import (
@@ -27,10 +26,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("source")
     parser.add_argument("--sample-id", required=True)
-    parser.add_argument("--config", default="configs/rheed_realtime_ui.json")
+    parser.add_argument("--config", default="configs/morphmbe_m22_realtime.json")
     parser.add_argument(
         "--output-dir",
-        default="reports/rheed_realtime_ui/causal_stream_audit",
+        default="artifacts/causal_stream_audit",
     )
     return parser.parse_args()
 
@@ -164,9 +163,7 @@ def main() -> None:
         "selection_mode": "causal_stream",
         "full_video_preanalysis": False,
         "warmup_frame_count": warmup_count,
-        "vertex_lookahead_frames": int(
-            config["online_vertex_lookahead_frames"]
-        ),
+        "vertex_lookahead_frames": int(config["online_vertex_lookahead_frames"]),
         "prediction_context_delay_frames": int(
             config["prediction_trigger_delay_frames"]
         ),
@@ -176,15 +173,10 @@ def main() -> None:
         "accepted_event_trackers": [str(row["tracker"]) for row in rows],
         "strict_event_count": int(detector.strict_event_count),
         "fallback_event_count": int(
-            sum(
-                "full_lattice_fallback" in str(row["tracker"])
-                for row in rows
-            )
+            sum("full_lattice_fallback" in str(row["tracker"]) for row in rows)
         ),
         "primary_geometric_vertex_count": len(detector.geometric_vertices),
-        "fallback_geometric_vertex_count": len(
-            detector.fallback_geometric_vertices
-        ),
+        "fallback_geometric_vertex_count": len(detector.fallback_geometric_vertices),
         "model_input_roi": asdict(selection.model_input_roi.rect),
         "tracking_roi_not_model_input": asdict(selection.tracking_roi.rect),
         "frame_rotation_clockwise_degrees": rotation,

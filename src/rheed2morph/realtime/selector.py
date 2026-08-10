@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Sequence
 
 import numpy as np
 from scipy import ndimage
@@ -28,7 +28,6 @@ from rheed2morph.rheed.spot_visibility import (
     score_deep_visibility_candidates,
     visibility_proxy,
 )
-
 
 ONLINE_CLEAR_MOMENT_GEOMETRY_FEATURES = (
     "spot_x",
@@ -148,34 +147,24 @@ def causal_candidate_rows(
         pre_dx = float(x[position] - x[left])
         post_dx = float(x[position] - x[right])
         upward_dy = float(y[left] - y[right])
-        direction_consistent = (
-            pre_dx > 0.0 and post_dx > 0.0 and upward_dy > 0.0
-        )
+        direction_consistent = pre_dx > 0.0 and post_dx > 0.0 and upward_dy > 0.0
         if not direction_consistent:
             continue
 
         other_peaks = coordinates[other_name][1]
         if len(other_peaks):
-            nearest = int(
-                other_peaks[
-                    int(np.argmin(np.abs(other_peaks - position)))
-                ]
-            )
+            nearest = int(other_peaks[int(np.argmin(np.abs(other_peaks - position)))])
             cross_distance = abs(nearest - position)
         else:
             cross_distance = 60
-        prominence = float(
-            peak_prominences(x, np.asarray([position], dtype=int))[0][0]
-        )
+        prominence = float(peak_prominences(x, np.asarray([position], dtype=int))[0][0])
         result.append(
             {
                 **center,
                 "tracker": tracker,
                 "spot_x": float(x[position]),
                 "spot_y": float(y[position]),
-                "clarity": float(
-                    np.median([float(row["clarity"]) for row in local])
-                ),
+                "clarity": float(np.median([float(row["clarity"]) for row in local])),
                 "sharpness": float(
                     np.median([float(row["sharpness"]) for row in local])
                 ),
@@ -183,14 +172,10 @@ def causal_candidate_rows(
                     np.median([float(row["spot_energy"]) for row in local])
                 ),
                 "mean_intensity": float(
-                    np.median(
-                        [float(row["mean_intensity"]) for row in local]
-                    )
+                    np.median([float(row["mean_intensity"]) for row in local])
                 ),
                 "absolute_contrast": float(
-                    np.median(
-                        [float(row["absolute_contrast"]) for row in local]
-                    )
+                    np.median([float(row["absolute_contrast"]) for row in local])
                 ),
                 "prominence": prominence,
                 "pre_dx": pre_dx,
@@ -199,12 +184,8 @@ def causal_candidate_rows(
                 "direction_consistent": True,
                 "tracker_front": float(tracker == "front"),
                 "cross_tracker_distance": float(min(cross_distance, 60)),
-                "cross_tracker_agreement": float(
-                    np.exp(-cross_distance / 3.0)
-                ),
-                "cross_tracker_direction_support": float(
-                    cross_distance <= lookahead
-                ),
+                "cross_tracker_agreement": float(np.exp(-cross_distance / 3.0)),
+                "cross_tracker_direction_support": float(cross_distance <= lookahead),
             }
         )
     return result
@@ -224,12 +205,9 @@ def full_lattice_fallback_eligible(
 
     return bool(
         float(score) >= float(minimum_score)
-        and float(candidate["visibility_proxy"])
-        >= float(minimum_visibility_proxy)
-        and float(candidate["raw_shadow_fraction"])
-        <= float(maximum_shadow_fraction)
-        and float(candidate["spot_peak_count"])
-        >= float(minimum_spot_peak_count)
+        and float(candidate["visibility_proxy"]) >= float(minimum_visibility_proxy)
+        and float(candidate["raw_shadow_fraction"]) <= float(maximum_shadow_fraction)
+        and float(candidate["spot_peak_count"]) >= float(minimum_spot_peak_count)
         and float(candidate["clarity"]) >= float(minimum_clarity)
     )
 
@@ -267,38 +245,24 @@ class CausalClearMomentDetector:
         self.model = bundle["model"]
         self.feature_names = tuple(bundle["feature_names"])
         self.minimum_score = float(
-            bundle["minimum_score"]
-            if minimum_score is None
-            else minimum_score
+            bundle["minimum_score"] if minimum_score is None else minimum_score
         )
-        self.minimum_visibility_proxy = float(
-            bundle["minimum_visibility_proxy"]
-        )
-        self.maximum_shadow_fraction = float(
-            bundle["maximum_shadow_fraction"]
-        )
-        self.minimum_spot_peak_count = float(
-            bundle["minimum_spot_peak_count"]
-        )
+        self.minimum_visibility_proxy = float(bundle["minimum_visibility_proxy"])
+        self.maximum_shadow_fraction = float(bundle["maximum_shadow_fraction"])
+        self.minimum_spot_peak_count = float(bundle["minimum_spot_peak_count"])
         self.score_reference = np.sort(
             np.asarray(bundle["score_reference"], dtype=float)
         )
         self.minimum_event_frame = int(minimum_event_frame)
         self.lookahead_frames = int(lookahead_frames)
-        self.minimum_vertex_separation_frames = int(
-            minimum_vertex_separation_frames
-        )
+        self.minimum_vertex_separation_frames = int(minimum_vertex_separation_frames)
         self.fallback_roi = fallback_roi
         self.fallback_minimum_score = float(fallback_minimum_score)
         self.fallback_minimum_visibility_proxy = float(
             fallback_minimum_visibility_proxy
         )
-        self.fallback_maximum_shadow_fraction = float(
-            fallback_maximum_shadow_fraction
-        )
-        self.fallback_minimum_spot_peak_count = float(
-            fallback_minimum_spot_peak_count
-        )
+        self.fallback_maximum_shadow_fraction = float(fallback_maximum_shadow_fraction)
+        self.fallback_minimum_spot_peak_count = float(fallback_minimum_spot_peak_count)
         self.fallback_minimum_clarity = float(fallback_minimum_clarity)
         self.fallback_confirmation_delay_frames = max(
             self.lookahead_frames,
@@ -327,18 +291,12 @@ class CausalClearMomentDetector:
     def estimated_period_frames(self) -> float | None:
         if len(self.geometric_vertices) < 3:
             return None
-        differences = np.diff(
-            np.asarray(self.geometric_vertices[-24:], dtype=float)
-        )
-        differences = differences[
-            (differences >= 10.0) & (differences <= 120.0)
-        ]
+        differences = np.diff(np.asarray(self.geometric_vertices[-24:], dtype=float))
+        differences = differences[(differences >= 10.0) & (differences <= 120.0)]
         if len(differences) < 2:
             return None
         center = float(np.median(differences))
-        retained = differences[
-            np.abs(differences - center) <= max(5.0, 0.35 * center)
-        ]
+        retained = differences[np.abs(differences - center) <= max(5.0, 0.35 * center)]
         return float(np.median(retained if len(retained) else differences))
 
     def _score_percentile(self, score: float) -> float:
@@ -394,8 +352,7 @@ class CausalClearMomentDetector:
         due = [
             frame
             for frame in self.pending_fallbacks
-            if frame + self.fallback_confirmation_delay_frames
-            <= current_frame
+            if frame + self.fallback_confirmation_delay_frames <= current_frame
         ]
         if not due:
             return None
@@ -576,9 +533,7 @@ def initialize_causal_stream(
         events=(),
         estimated_period_frames=None,
         aperture=aperture,
-        frame_rotation_clockwise_degrees=(
-            int(frame_rotation_clockwise_degrees) % 360
-        ),
+        frame_rotation_clockwise_degrees=(int(frame_rotation_clockwise_degrees) % 360),
         selection_mode="causal_stream",
         warmup_frame_count=len(warmup_frames),
     )
@@ -590,9 +545,7 @@ def _event_rows(
     visibility_gate: float,
     estimated_period: float | None,
 ) -> list[ReplayEvent]:
-    eligible = [
-        row for row in candidate_scores if bool(row.get("eligible", False))
-    ]
+    eligible = [row for row in candidate_scores if bool(row.get("eligible", False))]
     if not eligible and candidate_scores:
         eligible = [max(candidate_scores, key=lambda row: float(row["score"]))]
     if not eligible:
@@ -605,8 +558,7 @@ def _event_rows(
     for row in ordered:
         if (
             not clusters
-            or int(row["frame_index"])
-            - int(clusters[-1][-1]["frame_index"])
+            or int(row["frame_index"]) - int(clusters[-1][-1]["frame_index"])
             > merge_distance
         ):
             clusters.append([row])
@@ -629,8 +581,7 @@ def _event_rows(
         score_rank = 1.0 if high <= low else (score - low) / (high - low)
         visibility = float(selected["spot_visibility_rank"])
         visibility_support = np.clip(
-            (visibility - visibility_gate)
-            / max(1.0 - visibility_gate, 1e-6),
+            (visibility - visibility_gate) / max(1.0 - visibility_gate, 1e-6),
             0.0,
             1.0,
         )
@@ -766,8 +717,7 @@ def analyze_replay(
     if len(frames) != len(required):
         missing = sorted(required - set(frames))
         raise IndexError(
-            f"Incomplete candidate-frame decoding; "
-            f"{len(missing)} frame(s) missing"
+            f"Incomplete candidate-frame decoding; {len(missing)} frame(s) missing"
         )
     log(
         "Using the frozen DINOv2-S visibility model to reject shadowed "
@@ -786,9 +736,7 @@ def analyze_replay(
         for value in periods.values()
         if value is not None and np.isfinite(value)
     ]
-    estimated_period = (
-        float(np.median(finite_periods)) if finite_periods else None
-    )
+    estimated_period = float(np.median(finite_periods)) if finite_periods else None
     gate = float(scored.get("visibility_gate", 0.0))
     events = _event_rows(
         list(scored["candidate_scores"]),
@@ -823,10 +771,7 @@ def analyze_replay(
         if estimated_period is not None and np.isfinite(estimated_period):
             radius = int(
                 np.clip(
-                    round(
-                        float(refinement_period_fraction)
-                        * estimated_period
-                    ),
+                    round(float(refinement_period_fraction) * estimated_period),
                     4,
                     24,
                 )
@@ -855,6 +800,7 @@ def analyze_replay(
                 for frame_index, score in zip(
                     local_indices,
                     lattice_scores,
+                    strict=False,
                 )
             }
             refined_index = max(
@@ -869,10 +815,7 @@ def analyze_replay(
                 np.clip(scored.get("confidence", 0.0), 0.0, 1.0)
             )
             quality = float(
-                np.sqrt(
-                    max(selection_confidence, 0.0)
-                    * np.clip(visibility, 0.0, 1.0)
-                )
+                np.sqrt(max(selection_confidence, 0.0) * np.clip(visibility, 0.0, 1.0))
             )
             events = [
                 ReplayEvent(
@@ -905,7 +848,5 @@ def analyze_replay(
         events=tuple(events),
         estimated_period_frames=estimated_period,
         aperture=aperture,
-        frame_rotation_clockwise_degrees=(
-            int(frame_rotation_clockwise_degrees) % 360
-        ),
+        frame_rotation_clockwise_degrees=(int(frame_rotation_clockwise_degrees) % 360),
     )

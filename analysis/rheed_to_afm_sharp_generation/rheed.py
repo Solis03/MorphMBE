@@ -13,8 +13,6 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 
-from analysis.rheed_video_afm_story.common import sha256_file, write_csv, write_json
-
 from analysis.rheed_to_afm_generation.data import (
     PHYSICS_COLUMNS,
     ConditionScaler,
@@ -23,6 +21,7 @@ from analysis.rheed_to_afm_generation.data import (
     load_rheed_feature_table,
     predict_groups,
 )
+from analysis.rheed_video_afm_story.common import sha256_file, write_csv, write_json
 
 
 @dataclass
@@ -35,9 +34,7 @@ class RheedRoughnessSVR:
     train_groups: list[str]
     excluded_sample_ids: list[str]
 
-    def predict_z(
-        self, embeddings: np.ndarray, physics: np.ndarray
-    ) -> np.ndarray:
+    def predict_z(self, embeddings: np.ndarray, physics: np.ndarray) -> np.ndarray:
         scaled = self.embedding_scaler.transform(embeddings)
         features = np.concatenate(
             [
@@ -66,7 +63,7 @@ class HybridRheedDescriptorPredictor:
 
     @property
     def pls_components(self) -> int:
-        return int(getattr(self.morphology_predictor, "pls_components"))
+        return int(self.morphology_predictor.pls_components)
 
     def predict_from_tables(
         self,
@@ -86,10 +83,7 @@ class HybridRheedDescriptorPredictor:
             physics_table,
             excluded_sample_ids=set(self.excluded_sample_ids),
         )
-        index = {
-            sample_id: position
-            for position, sample_id in enumerate(sample_ids)
-        }
+        index = {sample_id: position for position, sample_id in enumerate(sample_ids)}
         positions = [index[group] for group in groups]
         rq_z = self.roughness_predictor.predict_z(
             embeddings[positions], physics[positions]
@@ -124,9 +118,7 @@ def _validation_metrics(
     train_rq_scale = float(
         np.median(
             np.exp(
-                group_targets.loc[
-                    predictor.train_groups, "log_rq_nm"
-                ].to_numpy(float)
+                group_targets.loc[predictor.train_groups, "log_rq_nm"].to_numpy(float)
             )
         )
     )
@@ -137,13 +129,7 @@ def _validation_metrics(
     ]
     wins = [
         float(np.mean(np.abs(standardized[i] - truth_z[i])))
-        < float(
-            np.mean(
-                np.abs(
-                    standardized[(i + 1) % len(standardized)] - truth_z[i]
-                )
-            )
-        )
+        < float(np.mean(np.abs(standardized[(i + 1) % len(standardized)] - truth_z[i])))
         for i in range(len(standardized))
     ]
     sensitivity = float(np.median(pairwise)) if pairwise else 0.0
@@ -197,15 +183,11 @@ def _fit_roughness_svr(
         axis=1,
     )
     targets = condition_scaler.transform(
-        group_targets.loc[
-            train_groups, condition_scaler.columns
-        ].to_numpy(float),
+        group_targets.loc[train_groups, condition_scaler.columns].to_numpy(float),
         clip=False,
     )
     rq_position = condition_scaler.columns.index("log_rq_nm")
-    estimator = SVR(C=float(c), epsilon=0.15).fit(
-        features, targets[:, rq_position]
-    )
+    estimator = SVR(C=float(c), epsilon=0.15).fit(features, targets[:, rq_position])
     return RheedRoughnessSVR(
         embedding_id=embedding_id,
         pca=pca,
@@ -299,17 +281,13 @@ def _fit_pls_candidate(
     predictions = np.zeros_like(targets)
     for held in range(len(train_groups)):
         keep = np.arange(len(train_groups)) != held
-        model = PLSRegression(
-            n_components=int(components), scale=False, max_iter=1000
-        )
+        model = PLSRegression(n_components=int(components), scale=False, max_iter=1000)
         model.fit(features[keep], targets[keep])
         predictions[held] = model.predict(features[held : held + 1])[0]
     cv = pd.DataFrame(
         {
             "component": np.arange(targets.shape[1]),
-            "loo_standardized_mae": np.mean(
-                np.abs(predictions - targets), axis=0
-            ),
+            "loo_standardized_mae": np.mean(np.abs(predictions - targets), axis=0),
         }
     )
     estimator = PLSRegression(
@@ -326,8 +304,8 @@ def _fit_pls_candidate(
         train_groups=train_groups,
         excluded_sample_ids=sorted(excluded_sample_ids),
     )
-    setattr(predictor, "model_family", "PLSRegression")
-    setattr(predictor, "pls_components", int(components))
+    predictor.model_family = "PLSRegression"
+    predictor.pls_components = int(components)
     return predictor, cv
 
 
@@ -345,9 +323,7 @@ def _crossfit_fixed_candidates(
     """Strict LOO comparison used to choose PLS versus the hybrid head."""
 
     groups = sorted(descriptors["growth_run_id"].astype(str).unique())
-    group_targets = descriptors.groupby("growth_run_id")[
-        condition_columns
-    ].median()
+    group_targets = descriptors.groupby("growth_run_id")[condition_columns].median()
     predictions: dict[str, list[np.ndarray]] = {
         "r3d_pls1": [],
         "hybrid_svr_rq_pls_shape": [],
@@ -361,9 +337,7 @@ def _crossfit_fixed_candidates(
     records: list[dict[str, Any]] = []
     for held_group in groups:
         fit_groups = [group for group in groups if group != held_group]
-        scaler = ConditionScaler.fit(
-            descriptors, condition_columns, set(fit_groups)
-        )
+        scaler = ConditionScaler.fit(descriptors, condition_columns, set(fit_groups))
         pls, _ = _fit_pls_candidate(
             embedding_id=morphology_embedding_id,
             components=1,
@@ -387,9 +361,7 @@ def _crossfit_fixed_candidates(
             pca_dim=pca_dim,
             excluded_sample_ids=excluded_sample_ids,
         )
-        true_raw = group_targets.loc[
-            held_group, condition_columns
-        ].to_numpy(float)
+        true_raw = group_targets.loc[held_group, condition_columns].to_numpy(float)
         truth = scaler.transform(true_raw[None], clip=False)[0]
         truths.append(truth)
         raw_truths.append(true_raw)
@@ -409,9 +381,7 @@ def _crossfit_fixed_candidates(
                 {
                     "growth_run_id": held_group,
                     "candidate_id": candidate_id,
-                    "condition_mae_z": float(
-                        np.mean(np.abs(predicted[0] - truth))
-                    ),
+                    "condition_mae_z": float(np.mean(np.abs(predicted[0] - truth))),
                     **{
                         f"true__{column}": float(truth[position])
                         for position, column in enumerate(condition_columns)
@@ -425,9 +395,7 @@ def _crossfit_fixed_candidates(
                         for position, column in enumerate(condition_columns)
                     },
                     **{
-                        f"predicted_raw__{column}": float(
-                            predicted_raw[0, position]
-                        )
+                        f"predicted_raw__{column}": float(predicted_raw[0, position])
                         for position, column in enumerate(condition_columns)
                     },
                 }
@@ -452,20 +420,14 @@ def _crossfit_fixed_candidates(
             {
                 "crossfit_candidate": candidate_id,
                 "crossfit_group_count": len(groups),
-                "crossfit_median_condition_mae_z": float(
-                    np.median(per_group_mae)
-                ),
-                "crossfit_mean_condition_mae_z": float(
-                    np.mean(per_group_mae)
-                ),
+                "crossfit_median_condition_mae_z": float(np.median(per_group_mae)),
+                "crossfit_mean_condition_mae_z": float(np.mean(per_group_mae)),
                 "crossfit_fold_standardized_rq_spearman": correlations[
                     condition_columns.index("log_rq_nm")
                 ],
                 "crossfit_raw_rq_spearman": float(
                     spearmanr(
-                        raw_truth_array[
-                            :, condition_columns.index("log_rq_nm")
-                        ],
+                        raw_truth_array[:, condition_columns.index("log_rq_nm")],
                         raw_array[:, condition_columns.index("log_rq_nm")],
                     ).statistic
                 ),
@@ -496,12 +458,8 @@ def _crossfit_fixed_candidates(
                         ]
                     )
                 ),
-                "crossfit_all_spearman_median": float(
-                    np.median(correlations)
-                ),
-                "crossfit_condition_sensitivity": float(
-                    np.median(pairwise)
-                ),
+                "crossfit_all_spearman_median": float(np.median(correlations)),
+                "crossfit_condition_sensitivity": float(np.median(pairwise)),
             }
         )
     return pd.DataFrame(summary_rows), pd.DataFrame(records)
@@ -522,15 +480,11 @@ def select_sharp_rheed_predictor(
         condition_scaler.columns
     ].median()
     train_groups = sorted(
-        descriptors.loc[
-            descriptors["split"] == "train", "growth_run_id"
-        ].astype(str)
+        descriptors.loc[descriptors["split"] == "train", "growth_run_id"].astype(str)
     )
     train_groups = sorted(set(train_groups))
     validation_groups = sorted(
-        descriptors.loc[
-            descriptors["split"] == "val", "growth_run_id"
-        ].astype(str)
+        descriptors.loc[descriptors["split"] == "val", "growth_run_id"].astype(str)
     )
     validation_groups = sorted(set(validation_groups))
     excluded = set(tables["removelist"].sample_ids)
@@ -548,7 +502,7 @@ def select_sharp_rheed_predictor(
             alphas=[float(value) for value in config["descriptor_ridge_alphas"]],
             excluded_sample_ids=excluded,
         )
-        setattr(ridge, "model_family", "Ridge")
+        ridge.model_family = "Ridge"
         ridge_id = f"{embedding_id}__ridge_alpha_{ridge.alpha:g}"
         predictors[ridge_id] = ridge
         metrics = _validation_metrics(
@@ -607,9 +561,7 @@ def select_sharp_rheed_predictor(
             )
             write_csv(
                 cv,
-                report_root
-                / candidate_id
-                / "inner_leave_one_group_out.csv",
+                report_root / candidate_id / "inner_leave_one_group_out.csv",
             )
     morphology_embedding = str(
         config.get(
@@ -643,9 +595,7 @@ def select_sharp_rheed_predictor(
     rows.append(
         {
             "candidate_id": hybrid_id,
-            "embedding_id": (
-                f"Rq:{roughness_embedding};shape:{morphology_embedding}"
-            ),
+            "embedding_id": (f"Rq:{roughness_embedding};shape:{morphology_embedding}"),
             "model_family": hybrid.model_family,
             "model_hyperparameter": "Rq SVR C=0.1; shape PLS=1",
             "inner_loo_mae_z": np.nan,
@@ -670,14 +620,12 @@ def select_sharp_rheed_predictor(
         excluded_sample_ids=excluded,
     )
     crossfit_lookup = {
-        "r3d_pls1": (
-            f"{morphology_embedding}__pls_1"
-        ),
+        "r3d_pls1": (f"{morphology_embedding}__pls_1"),
         "hybrid_svr_rq_pls_shape": hybrid_id,
     }
-    crossfit_summary["candidate_id"] = crossfit_summary[
-        "crossfit_candidate"
-    ].map(crossfit_lookup)
+    crossfit_summary["candidate_id"] = crossfit_summary["crossfit_candidate"].map(
+        crossfit_lookup
+    )
     table = table.merge(
         crossfit_summary.drop(columns=["crossfit_candidate"]),
         on="candidate_id",
@@ -692,8 +640,7 @@ def select_sharp_rheed_predictor(
         report_root / "fixed_candidate_crossfit_predictions.csv",
     )
     eligible = table.loc[
-        table["condition_gate_passed"]
-        & table["crossfit_all_spearman_median"].notna()
+        table["condition_gate_passed"] & table["crossfit_all_spearman_median"].notna()
     ].copy()
     if eligible.empty:
         raise RuntimeError("no RHEED condition candidate passed sensitivity control")
@@ -729,9 +676,9 @@ def select_sharp_rheed_predictor(
         ),
         "validation_metrics": eligible.iloc[0].to_dict(),
         "strict_training_group_crossfit": (
-            crossfit_summary.loc[
-                crossfit_summary["candidate_id"] == selected_id
-            ].iloc[0].to_dict()
+            crossfit_summary.loc[crossfit_summary["candidate_id"] == selected_id]
+            .iloc[0]
+            .to_dict()
         ),
         "predictor_path": str(path),
         "predictor_sha256": sha256_file(path),

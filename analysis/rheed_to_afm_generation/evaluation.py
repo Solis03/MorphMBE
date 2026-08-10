@@ -6,9 +6,9 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+import torch
 from scipy.stats import spearmanr, wasserstein_distance
 from skimage.metrics import structural_similarity
-import torch
 
 from analysis.rheed_video_afm_story.afm_descriptors import describe_map
 from analysis.rheed_video_afm_story.afm_evaluation import reconstruction_metrics
@@ -60,7 +60,7 @@ def _map_medoid(
     descriptors = np.vstack(
         [
             _condition_from_map(array, rq, scaler.columns)
-            for array, rq in zip(maps, rq_values)
+            for array, rq in zip(maps, rq_values, strict=False)
         ]
     )
     standardized = scaler.transform(descriptors, clip=False)
@@ -122,9 +122,7 @@ def _method_metrics(
     training_maps: list[np.ndarray],
     source_group: str | None = None,
 ) -> dict[str, Any]:
-    shape_metrics = reconstruction_metrics(
-        target_unit, generated_unit, target_rq_nm
-    )
+    shape_metrics = reconstruction_metrics(target_unit, generated_unit, target_rq_nm)
     target_physical = target_rq_nm * project_unit_rq_np(target_unit)
     generated_physical = generated_rq_nm * project_unit_rq_np(generated_unit)
     generated_conditions = np.vstack(
@@ -152,9 +150,7 @@ def _method_metrics(
         "real_pairwise_l1": _pairwise_l1(real_set),
         "diversity_ratio": _pairwise_l1(generated_set)
         / max(_pairwise_l1(real_set), 1e-8),
-        "condition_descriptor_mae_z": float(
-            np.nanmean(np.abs(generated_z - target_z))
-        ),
+        "condition_descriptor_mae_z": float(np.nanmean(np.abs(generated_z - target_z))),
     }
     row.update(shape_metrics)
     row.update(_nearest_training_audit(generated_unit, training_maps))
@@ -253,11 +249,11 @@ def evaluate_split(
     generated_dir = output / "generated_samples"
     generated_dir.mkdir(parents=True, exist_ok=True)
 
-    train_maps = [
-        _load_unit_map(row, resolution) for _, row in train_rows.iterrows()
-    ]
+    train_maps = [_load_unit_map(row, resolution) for _, row in train_rows.iterrows()]
     unconditional_shape = project_unit_rq_np(np.mean(np.stack(train_maps), axis=0))
-    unconditional_rq = float(train_rows.groupby("growth_run_id")["rq_nm"].median().median())
+    unconditional_rq = float(
+        train_rows.groupby("growth_run_id")["rq_nm"].median().median()
+    )
 
     train_group_representatives: dict[str, tuple[np.ndarray, float]] = {}
     for group_id, group_rows in train_rows.groupby("growth_run_id"):
@@ -271,8 +267,7 @@ def evaluate_split(
 
     groups = sorted(split_rows["growth_run_id"].astype(str).unique())
     permutation = {
-        group: groups[(index + 1) % len(groups)]
-        for index, group in enumerate(groups)
+        group: groups[(index + 1) % len(groups)] for index, group in enumerate(groups)
     }
     metric_rows: list[dict[str, Any]] = []
     condition_control_rows: list[dict[str, Any]] = []
@@ -280,9 +275,7 @@ def evaluate_split(
     representative_payload: dict[str, dict[str, Any]] = {}
 
     for group_index, group in enumerate(groups):
-        group_rows = split_rows.loc[
-            split_rows["growth_run_id"].astype(str) == group
-        ]
+        group_rows = split_rows.loc[split_rows["growth_run_id"].astype(str) == group]
         real_maps = [
             _load_unit_map(row, resolution) for _, row in group_rows.iterrows()
         ]
@@ -294,11 +287,7 @@ def evaluate_split(
             group_rows[condition_scaler.columns].median().to_numpy(float)
         )
         predicted_rq = float(
-            np.exp(
-                predicted_raw[group][
-                    condition_scaler.columns.index("log_rq_nm")
-                ]
-            )
+            np.exp(predicted_raw[group][condition_scaler.columns.index("log_rq_nm")])
         )
         generated_maps = _generate_with_noise(
             model,
@@ -323,9 +312,7 @@ def evaluate_split(
         )
         wrong_rq = float(
             np.exp(
-                predicted_raw[wrong_group][
-                    condition_scaler.columns.index("log_rq_nm")
-                ]
+                predicted_raw[wrong_group][condition_scaler.columns.index("log_rq_nm")]
             )
         )
         correct_condition_error = float(
@@ -345,9 +332,9 @@ def evaluate_split(
                         )[None],
                         clip=False,
                     )[0]
-                    - condition_scaler.transform(
-                        true_condition_raw[None], clip=False
-                    )[0]
+                    - condition_scaler.transform(true_condition_raw[None], clip=False)[
+                        0
+                    ]
                 )
             )
         )
@@ -368,9 +355,9 @@ def evaluate_split(
                         )[None],
                         clip=False,
                     )[0]
-                    - condition_scaler.transform(
-                        true_condition_raw[None], clip=False
-                    )[0]
+                    - condition_scaler.transform(true_condition_raw[None], clip=False)[
+                        0
+                    ]
                 )
             )
         )
@@ -514,9 +501,7 @@ def evaluate_split(
                 }
             )
     descriptor_predictions_frame = pd.DataFrame(descriptor_predictions)
-    write_csv(
-        descriptor_predictions_frame, output / "descriptor_predictions.csv"
-    )
+    write_csv(descriptor_predictions_frame, output / "descriptor_predictions.csv")
     rq_rows = descriptor_predictions_frame.loc[
         descriptor_predictions_frame["descriptor"] == "log_rq_nm"
     ]

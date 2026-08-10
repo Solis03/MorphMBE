@@ -15,7 +15,6 @@ from analysis.rheed_video_afm_story.common import repo_path
 
 from .run import PRIOR_METHOD, SELECTED_METHOD
 
-
 COLORS = {
     "prior": "#7A5195",
     "raw": "#2F4B7C",
@@ -52,14 +51,14 @@ def _rheed_crop(row: pd.Series) -> np.ndarray:
     )
 
 
-def _panel_physical(payload: dict[str, Any], method: str) -> tuple[np.ndarray, np.ndarray]:
-    generated = (
-        np.asarray(payload["methods"][method]["medoid"], dtype=float)
-        * float(payload["methods"][method]["rq"])
+def _panel_physical(
+    payload: dict[str, Any], method: str
+) -> tuple[np.ndarray, np.ndarray]:
+    generated = np.asarray(payload["methods"][method]["medoid"], dtype=float) * float(
+        payload["methods"][method]["rq"]
     )
-    measured = (
-        np.asarray(payload["real_medoid"], dtype=float)
-        * float(payload["true_rq"])
+    measured = np.asarray(payload["real_medoid"], dtype=float) * float(
+        payload["true_rq"]
     )
     return generated, measured
 
@@ -81,15 +80,15 @@ def _expanded_atlas(
         selected = groups[start : start + 6]
         physical_arrays = []
         for group in selected:
-            generated, measured = _panel_physical(
-                panels[group], SELECTED_METHOD
-            )
+            generated, measured = _panel_physical(panels[group], SELECTED_METHOD)
             physical_arrays.extend([generated, measured])
         limit = max(
             1e-6,
             float(
                 np.percentile(
-                    np.abs(np.concatenate([array.ravel() for array in physical_arrays])),
+                    np.abs(
+                        np.concatenate([array.ravel() for array in physical_arrays])
+                    ),
                     99.2,
                 )
             ),
@@ -102,9 +101,7 @@ def _expanded_atlas(
         )
         for row_index, group in enumerate(selected):
             payload = panels[group]
-            generated, measured = _panel_physical(
-                payload, SELECTED_METHOD
-            )
+            generated, measured = _panel_physical(payload, SELECTED_METHOD)
             row = confidence_lookup.loc[group]
             axes[row_index, 0].imshow(
                 _rheed_crop(lookup.loc[group]),
@@ -113,7 +110,7 @@ def _expanded_atlas(
                 aspect="auto",
             )
             for axis, array in zip(
-                axes[row_index, 1:], [generated, measured]
+                axes[row_index, 1:], [generated, measured], strict=False
             ):
                 axis.imshow(
                     array,
@@ -229,6 +226,7 @@ def _validation_differentiation(
                     "M5 hybrid generator",
                     "Measured AFM",
                 ],
+                strict=False,
             ):
                 axis.set_title(title)
         row = confidence_lookup.loc[group]
@@ -284,9 +282,7 @@ def _metric_comparison(
         prior["method"] == "M2b_calibrated_spectral_rheed_condition"
     ].copy()
     prior["method"] = "Prior M2b spectral"
-    selected = new_crossfit.loc[
-        new_crossfit["method"] == SELECTED_METHOD
-    ].copy()
+    selected = new_crossfit.loc[new_crossfit["method"] == SELECTED_METHOD].copy()
     selected["method"] = "M5 hybrid + confidence"
     combined = pd.concat([prior, selected], ignore_index=True, sort=False)
     metrics = [
@@ -297,7 +293,7 @@ def _metric_comparison(
     ]
     figure, axes = plt.subplots(1, len(metrics), figsize=(14.5, 4.0))
     labels = ["Prior M2b spectral", "M5 hybrid + confidence"]
-    for axis, (column, title) in zip(axes, metrics):
+    for axis, (column, title) in zip(axes, metrics, strict=False):
         values = [
             combined.loc[combined["method"] == label, column].median()
             for label in labels
@@ -338,11 +334,9 @@ def _confidence_figure(
         linewidth=0.4,
     )
     for _, row in audit.iterrows():
-        if (
-            row["point_error_z"] >= audit["point_error_z"].quantile(0.8)
-            or row["relative_confidence_index"]
-            <= audit["relative_confidence_index"].quantile(0.2)
-        ):
+        if row["point_error_z"] >= audit["point_error_z"].quantile(0.8) or row[
+            "relative_confidence_index"
+        ] <= audit["relative_confidence_index"].quantile(0.2):
             axes[0].annotate(
                 str(row["growth_run_id"]),
                 (row["relative_confidence_index"], row["point_error_z"]),
@@ -371,10 +365,8 @@ def _confidence_figure(
         validation["predicted_rq_nm"],
         yerr=np.vstack(
             [
-                validation["predicted_rq_nm"]
-                - validation["rq_interval_lower_nm"],
-                validation["rq_interval_upper_nm"]
-                - validation["predicted_rq_nm"],
+                validation["predicted_rq_nm"] - validation["rq_interval_lower_nm"],
+                validation["rq_interval_upper_nm"] - validation["predicted_rq_nm"],
             ]
         ),
         fmt="o",
@@ -398,9 +390,9 @@ def _confidence_figure(
     axes[2].legend(fontsize=8)
     for axis in axes:
         axis.grid(alpha=0.2)
-    rho = audit[["interval_width_z", "point_error_z"]].corr(
-        method="spearman"
-    ).iloc[0, 1]
+    rho = (
+        audit[["interval_width_z", "point_error_z"]].corr(method="spearman").iloc[0, 1]
+    )
     figure.suptitle(
         f"Group-calibrated uncertainty: width–error Spearman ρ = {rho:.2f}",
         fontsize=14,
@@ -465,9 +457,7 @@ def _ablation_and_learning(
     _save(figure, figure_dir / "Fig5_ablation_and_learning_curve")
 
 
-def _descriptor_correlations(
-    predictions: pd.DataFrame, figure_dir: Path
-) -> None:
+def _descriptor_correlations(predictions: pd.DataFrame, figure_dir: Path) -> None:
     specs = [
         ("log_rq_nm", "log Rq"),
         ("log_unit_autocorr_length_nm", "log correlation length"),
@@ -475,11 +465,9 @@ def _descriptor_correlations(
         ("unit_skewness", "Height skewness"),
     ]
     figure, axes = plt.subplots(1, len(specs), figsize=(14.0, 3.6))
-    for axis, (column, label) in zip(axes, specs):
+    for axis, (column, label) in zip(axes, specs, strict=False):
         true = predictions[f"true_raw__{column}"].to_numpy(float)
-        predicted = predictions[
-            f"selected_predicted_raw__{column}"
-        ].to_numpy(float)
+        predicted = predictions[f"selected_predicted_raw__{column}"].to_numpy(float)
         axis.scatter(
             true,
             predicted,
@@ -512,14 +500,21 @@ def _failure_cases(
     figure_dir: Path,
 ) -> None:
     ranked = audit.copy()
-    ranked["risk_rank"] = (
-        ranked["point_error_z"].rank(pct=True)
-        + (100.0 - ranked["relative_confidence_index"]).rank(pct=True)
-    )
+    ranked["risk_rank"] = ranked["point_error_z"].rank(pct=True) + (
+        100.0 - ranked["relative_confidence_index"]
+    ).rank(pct=True)
     choices = [
         str(ranked.sort_values("risk_rank", ascending=False).iloc[0]["growth_run_id"]),
-        str(ranked.sort_values("point_error_z", ascending=False).iloc[0]["growth_run_id"]),
-        str(ranked.sort_values("relative_confidence_index", ascending=False).iloc[0]["growth_run_id"]),
+        str(
+            ranked.sort_values("point_error_z", ascending=False).iloc[0][
+                "growth_run_id"
+            ]
+        ),
+        str(
+            ranked.sort_values("relative_confidence_index", ascending=False).iloc[0][
+                "growth_run_id"
+            ]
+        ),
         str(ranked.sort_values("point_error_z").iloc[0]["growth_run_id"]),
     ]
     groups = list(dict.fromkeys(choices))
@@ -536,9 +531,7 @@ def _failure_cases(
         len(groups), 3, figsize=(10.5, 2.8 * len(groups)), squeeze=False
     )
     for row_index, group in enumerate(groups):
-        generated, measured = _panel_physical(
-            panels[group], SELECTED_METHOD
-        )
+        generated, measured = _panel_physical(panels[group], SELECTED_METHOD)
         limit = max(
             float(
                 np.percentile(
@@ -639,9 +632,7 @@ def make_figures(
         figure_dir=target,
     )
     _confidence_figure(audit, validation_uncertainty, target)
-    _ablation_and_learning(
-        crossfit["cap_ablation"], learning_curve, target
-    )
+    _ablation_and_learning(crossfit["cap_ablation"], learning_curve, target)
     _descriptor_correlations(crossfit["condition_predictions"], target)
     _failure_cases(
         panels=crossfit["panels"],

@@ -1,2 +1,0 @@
-prospective_run_dir/<sample_id>/prediction.json
-prospective_run_dir/<sample_id>/representative_afm.npy

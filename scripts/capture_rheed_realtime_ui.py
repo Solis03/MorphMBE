@@ -6,10 +6,10 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from pathlib import Path
 import shutil
 import sys
 import time
+from pathlib import Path
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
@@ -23,7 +23,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample-id", required=True)
     parser.add_argument("--video-contains", default="")
-    parser.add_argument("--config", default="configs/rheed_realtime_ui.json")
+    parser.add_argument("--config", default="configs/morphmbe_m22_realtime.json")
     parser.add_argument("--output", required=True)
     parser.add_argument("--timeout-seconds", type=float, default=90.0)
     parser.add_argument("--minimum-predictions", type=int, default=1)
@@ -47,9 +47,10 @@ def main() -> None:
     window.sample_combo.setCurrentText(str(args.sample_id))
     if args.video_contains:
         for index in range(window.video_combo.count()):
-            if args.video_contains.lower() in window.video_combo.itemText(
-                index
-            ).lower():
+            if (
+                args.video_contains.lower()
+                in window.video_combo.itemText(index).lower()
+            ):
                 window.video_combo.setCurrentIndex(index)
                 break
     window.speed.setValue(float(args.playback_duration_ratio))
@@ -60,19 +61,12 @@ def main() -> None:
         if not state["started"] and window._model_ready:
             state["started"] = True
             window.start_session()
-        enough_predictions = (
-            len(window.trend.times) >= int(args.minimum_predictions)
-        )
-        completion_ready = (
-            not args.require_complete or window._completion_announced
-        )
+        enough_predictions = len(window.trend.times) >= int(args.minimum_predictions)
+        completion_ready = not args.require_complete or window._completion_announced
         if enough_predictions and completion_ready:
             window.grab().save(str(destination))
             if args.timeline_output:
-                if (
-                    window.recorder is None
-                    or not window.recorder.csv_path.exists()
-                ):
+                if window.recorder is None or not window.recorder.csv_path.exists():
                     raise RuntimeError(
                         "Prediction timeline was not available at capture"
                     )

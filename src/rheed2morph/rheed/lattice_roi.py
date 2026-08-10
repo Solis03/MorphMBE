@@ -12,18 +12,18 @@ training videos.  They never contain raw frames or held-video annotations.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any
 
 import joblib
 import numpy as np
 
 from rheed2morph.rheed.automatic_roi_keyframe import (
     ApertureAnalysis,
-    ROIPrediction,
     Rect,
+    ROIPrediction,
 )
-
 
 BOUNDARY_NAMES = ("left", "right", "top", "bottom")
 
@@ -65,11 +65,7 @@ def normalized_roi_bounds(
 
 
 def orientation_group(analysis: ApertureAnalysis) -> str:
-    return (
-        "portrait"
-        if analysis.source_height > analysis.source_width
-        else "landscape"
-    )
+    return "portrait" if analysis.source_height > analysis.source_width else "landscape"
 
 
 def _load_bundle(
@@ -131,33 +127,23 @@ def predict_full_lattice_roi(
         if name not in calibration:
             raise KeyError(f"Missing calibrated ROI boundary {name!r}")
 
-    aperture_x0, aperture_y0, aperture_x1, aperture_y1 = aperture_bounds(
-        analysis
-    )
+    aperture_x0, aperture_y0, aperture_x1, aperture_y1 = aperture_bounds(analysis)
     aperture_width = aperture_x1 - aperture_x0
     aperture_height = aperture_y1 - aperture_y0
     left = aperture_x0 + float(calibration["left"]) * aperture_width
     right = aperture_x0 + float(calibration["right"]) * aperture_width
     top = aperture_y0 + float(calibration["top"]) * aperture_height
     bottom = aperture_y0 + float(calibration["bottom"]) * aperture_height
-    left -= float(
-        bundle.get("left_padding_aperture_fraction", 0.0)
-    ) * aperture_width
-    right += float(
-        bundle.get("right_padding_aperture_fraction", 0.0)
-    ) * aperture_width
-    top -= float(
-        bundle.get("top_padding_aperture_fraction", 0.0)
-    ) * aperture_height
-    bottom += float(
-        bundle.get("bottom_padding_aperture_fraction", 0.0)
-    ) * aperture_height
+    left -= float(bundle.get("left_padding_aperture_fraction", 0.0)) * aperture_width
+    right += float(bundle.get("right_padding_aperture_fraction", 0.0)) * aperture_width
+    top -= float(bundle.get("top_padding_aperture_fraction", 0.0)) * aperture_height
+    bottom += (
+        float(bundle.get("bottom_padding_aperture_fraction", 0.0)) * aperture_height
+    )
 
     mask_height, mask_width = analysis.aperture_mask.shape
     top_index = int(np.clip(np.floor(top), 0, mask_height - 1))
-    bottom_index = int(
-        np.clip(np.ceil(bottom), top_index + 1, mask_height)
-    )
+    bottom_index = int(np.clip(np.ceil(bottom), top_index + 1, mask_height))
 
     # The circular eyepiece edge is the first illuminated pixel in each row.
     # Keeping the ROI left of the spots but to the right of the maximum arc
@@ -210,9 +196,7 @@ def predict_full_lattice_roi(
         y1=y1,
     )
     activity_total = max(float(analysis.activity.sum()), 1e-8)
-    activity_coverage = float(
-        analysis.activity[y0:y1, x0:x1].sum() / activity_total
-    )
+    activity_coverage = float(analysis.activity[y0:y1, x0:x1].sum() / activity_total)
     arc_intrusion = circular_arc_intrusion_fraction(analysis, rect)
     aperture_fraction = float(analysis.aperture_mask.mean())
     confidence = float(

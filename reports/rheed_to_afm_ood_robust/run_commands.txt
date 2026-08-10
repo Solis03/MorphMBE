@@ -1,8 +1,0 @@
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_to_afm_ood_robust.run --config configs/rheed_to_afm_ood_robust.json
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_to_afm_ood_robust.run --config configs/rheed_to_afm_ood_robust_v2.json
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_to_afm_ood_robust.run --config configs/rheed_to_afm_ood_robust_v3_final.json
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_to_afm_full_cohort_loo.run --config configs/rheed_to_afm_ood_robust_generation.json --mode smoke
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_to_afm_full_cohort_loo.run --config configs/rheed_to_afm_ood_robust_generation.json --mode full
-PYTHONPATH=. .venv/bin/python -m analysis.rheed_to_afm_full_cohort_loo.visualization --config configs/rheed_to_afm_ood_robust_generation.json
-PYTHONPATH=. .venv/bin/python -m pytest -q tests/test_rheed_to_afm_ood_robust.py tests/test_rheed_to_afm_full_cohort_loo.py
-PYTHONPATH=. .venv/bin/python -m pytest -q tests/test_rheed_to_afm*.py --import-mode=importlib

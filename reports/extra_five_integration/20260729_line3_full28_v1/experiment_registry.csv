@@ -1,6 +1,0 @@
-experiment_id,stage,protocol,growth_count,fit_growths_per_fold,status,primary_result,artifact_root
-extra5_afm_line3_harmonization,data,2um_to_four_nonoverlap_1um_then_line3,5,,passed,26 raw scans; 104 subfields,outputs/extra_five_integration/20260729_line3_full28_v1
-m15b_full28_strict_loo,scalar_prediction,28 outer folds; 27 fit / 1 held,28,27.0,completed_with_limitations,Sq MAE=1.284 nm; r=0.661,/Users/ziyi/Desktop/LAB/code/reports/rheed_auto_input_robustness/20260729_m15b_line3_full28_extra5_v1
-m10_full28_strict_loo_generation,afm_generation,28 outer folds; 4 draws per held growth,28,27.0,best_expanded_image_metrics,texture pass=0.964; sharpness=0.821,/Users/ziyi/Desktop/LAB/code/reports/rheed_m15b_end_to_end_generation/20260729_m15b_m12a_line3_auto_full28_extra5_v1/full28_loo
-m12a_full28_strict_loo_generation,afm_generation,28 outer folds; 4 draws per held growth,28,27.0,preserved_live_renderer,texture pass=0.786; sharpness=0.724,/Users/ziyi/Desktop/LAB/code/reports/rheed_m15b_end_to_end_generation/20260729_m15b_m12a_line3_auto_full28_extra5_v1/full28_loo
-realtime_ui_full28_v5_6056,deployment_smoke,raw video to ROI/keyframe/scalars/generated AFM,28,,passed,Sq=1.66 nm; FSMI=1.39 nm; C=72%; 6.52 s,outputs/rheed_realtime_ui/headless_smoke_full28_line3_v5_6056

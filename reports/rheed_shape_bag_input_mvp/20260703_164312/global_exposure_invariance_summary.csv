@@ -1,4 +1,0 @@
-sample_id,status,raw_brightness_cv,shape_feature_cv_median,shape_feature_cv_mean,sample_feature_cosine_mean,mask_dice_mean,unstable_feature_count
-N6011 - Copy,ok,0.26465272,0.28144681,0.43122515,0.93428224,0.65020907,9
-N6018 - Copy,ok,0.24620371,0.30560124,0.42761102,0.74473071,0.54851812,8
-N6019 - Copy,ok,0.2235716,0.31217152,0.51076972,0.93188113,0.63364098,8

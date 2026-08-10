@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import platform
 import sys
+from pathlib import Path
 from typing import Any
 
-import joblib
 import numpy as np
 import pandas as pd
 import torch
@@ -65,9 +64,7 @@ def _load_tables(config: dict[str, Any]) -> dict[str, pd.DataFrame]:
         ~descriptors["sample_id"].isin(excluded)
         & ~descriptors["growth_run_id"].isin(excluded)
     ].copy()
-    folds = pd.read_csv(
-        repo_path(config["group_folds"]), dtype={"growth_run_id": str}
-    )
+    folds = pd.read_csv(repo_path(config["group_folds"]), dtype={"growth_run_id": str})
     folds = folds.loc[~folds["growth_run_id"].isin(excluded)].copy()
     split_descriptors, groups = build_fixed_split(
         descriptors,
@@ -81,8 +78,7 @@ def _load_tables(config: dict[str, Any]) -> dict[str, pd.DataFrame]:
         dtype={"sample_id": str, "growth_run_id": str},
     )
     physics = physics.loc[
-        ~physics["sample_id"].isin(excluded)
-        & ~physics["growth_run_id"].isin(excluded)
+        ~physics["sample_id"].isin(excluded) & ~physics["growth_run_id"].isin(excluded)
     ].copy()
     phase1 = pd.read_csv(
         repo_path(config["phase1_manifest"]),
@@ -90,8 +86,7 @@ def _load_tables(config: dict[str, Any]) -> dict[str, pd.DataFrame]:
     )
     phase1_all = phase1.copy()
     phase1 = phase1.loc[
-        ~phase1["sample_id"].isin(excluded)
-        & ~phase1["growth_run_id"].isin(excluded)
+        ~phase1["sample_id"].isin(excluded) & ~phase1["growth_run_id"].isin(excluded)
     ].copy()
     for name, frame in {
         "AFM descriptors": split_descriptors,
@@ -162,17 +157,14 @@ def _split_manifest(
         "test_fold": int(config["test_fold"]),
         "split_counts_scans": descriptors["split"].value_counts().to_dict(),
         "split_counts_groups": group_table["split"].value_counts().to_dict(),
-        "groups": {
-            split: sorted(values) for split, values in group_sets.items()
-        },
+        "groups": {split: sorted(values) for split, values in group_sets.items()},
         "leakage": leakage,
         "leakage_check_passed": not any(leakage.values()),
         "removelist_path": str(removelist.path.relative_to(repo_path("."))),
         "removelist_sha256": removelist.sha256,
         "removelist_sample_ids": list(removelist.sample_ids),
         "removelist_overlap_after_filtering": sorted(
-            set(manifest["sample_id"].astype(str))
-            & set(removelist.sample_ids)
+            set(manifest["sample_id"].astype(str)) & set(removelist.sample_ids)
         ),
         "selection_policy": (
             "RHEED embedding family, ridge alpha, and CVAE epoch are selected "
@@ -214,9 +206,7 @@ def _evaluate_predictor_candidate(
     rq_scale = float(
         np.median(
             np.exp(
-                group_targets.loc[
-                    predictor.train_groups, "log_rq_nm"
-                ].to_numpy(float)
+                group_targets.loc[predictor.train_groups, "log_rq_nm"].to_numpy(float)
             )
         )
     )
@@ -243,9 +233,7 @@ def select_rheed_predictor(
         condition_scaler.columns
     ].median()
     train_groups = set(
-        descriptors.loc[descriptors["split"] == "train", "growth_run_id"].astype(
-            str
-        )
+        descriptors.loc[descriptors["split"] == "train", "growth_run_id"].astype(str)
     )
     validation_groups = sorted(
         descriptors.loc[descriptors["split"] == "val", "growth_run_id"]
@@ -311,16 +299,12 @@ def _prediction_maps(
     groups: list[str],
     registry: pd.DataFrame,
     physics: pd.DataFrame,
-) -> tuple[
-    dict[str, np.ndarray], dict[str, np.ndarray], dict[str, np.ndarray]
-]:
-    raw, standardized, features = predict_groups(
-        predictor, groups, registry, physics
-    )
+) -> tuple[dict[str, np.ndarray], dict[str, np.ndarray], dict[str, np.ndarray]]:
+    raw, standardized, features = predict_groups(predictor, groups, registry, physics)
     return (
-        dict(zip(groups, raw)),
-        dict(zip(groups, standardized)),
-        dict(zip(groups, features)),
+        dict(zip(groups, raw, strict=False)),
+        dict(zip(groups, standardized, strict=False)),
+        dict(zip(groups, features, strict=False)),
     )
 
 
@@ -408,9 +392,7 @@ def run_development(
         train_transformed_features=train_features,
         output_dir=output_root / "validation_evaluation",
         resolution=int(config["resolution"]),
-        samples_per_condition=(
-            2 if smoke else int(config["samples_per_condition"])
-        ),
+        samples_per_condition=(2 if smoke else int(config["samples_per_condition"])),
         seed=int(config["seed"]),
     )
     make_all_figures(
@@ -428,9 +410,7 @@ def run_development(
         "split_audit": split_audit,
         "predictor_selection": predictor_selection,
         "training": {
-            "checkpoint_path": str(
-                result.checkpoint_path.relative_to(repo_path("."))
-            ),
+            "checkpoint_path": str(result.checkpoint_path.relative_to(repo_path("."))),
             "checkpoint_sha256": sha256_file(result.checkpoint_path),
             "best_epoch": result.best_epoch,
             "best_validation_selection_score": result.best_selection_score,
@@ -450,9 +430,7 @@ def run_development(
             "checkpoint_sha256": run_manifest["training"]["checkpoint_sha256"],
             "predictor_path": predictor_selection["predictor_path"],
             "predictor_sha256": predictor_selection["predictor_sha256"],
-            "selected_embedding_id": predictor_selection[
-                "selected_embedding_id"
-            ],
+            "selected_embedding_id": predictor_selection["selected_embedding_id"],
             "selection_basis": (
                 "RHEED embedding family and ridge regularization selected on "
                 "validation descriptors; CVAE checkpoint selected on validation "
@@ -468,9 +446,7 @@ def run_development(
             "split_manifest_path": str(
                 (report_root / "split_manifest.csv").relative_to(repo_path("."))
             ),
-            "split_manifest_sha256": sha256_file(
-                report_root / "split_manifest.csv"
-            ),
+            "split_manifest_sha256": sha256_file(report_root / "split_manifest.csv"),
         }
         write_json(best_manifest, report_root / "best_model_manifest.json")
     print(json.dumps(run_manifest, indent=2, default=str))
@@ -531,9 +507,7 @@ def run_test(config: dict[str, Any], *, device: str) -> None:
     make_all_figures(
         evaluation=evaluation,
         ablation=ablation,
-        training_history_path=output_root
-        / "conditional_vae"
-        / "training_history.csv",
+        training_history_path=output_root / "conditional_vae" / "training_history.csv",
         phase1_manifest=tables["phase1"],
         figure_dir=report_root / "test_figures",
     )

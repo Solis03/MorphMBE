@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable
 
 import numpy as np
 import pandas as pd
@@ -89,9 +89,7 @@ def query_support(
     self_knn = _self_knn_distances(fit_x, neighbors=neighbors)
     density_z = _robust_z(knn_distance, self_knn)
     covariance = LedoitWolf().fit(fit_x)
-    mahalanobis = float(
-        np.sqrt(max(float(covariance.mahalanobis(query_x)[0]), 0.0))
-    )
+    mahalanobis = float(np.sqrt(max(float(covariance.mahalanobis(query_x)[0]), 0.0)))
     return SupportDiagnostics(
         nearest_distance=float(np.min(distances)),
         knn_distance=knn_distance,
@@ -143,20 +141,14 @@ def leave_one_out_support_audit(
     records: list[dict[str, float | str]] = []
     for held in group_list:
         fit = [group for group in group_list if group != held]
-        diagnostic = query_support(
-            physics, fit, held, neighbors=neighbors
-        )
+        diagnostic = query_support(physics, fit, held, neighbors=neighbors)
         records.append(
             {
                 "growth_run_id": held,
                 "nearest_rheed_distance": diagnostic.nearest_distance,
                 "knn_rheed_distance": diagnostic.knn_distance,
-                "maximum_absolute_robust_z": (
-                    diagnostic.maximum_absolute_robust_z
-                ),
-                "ledoit_wolf_mahalanobis": (
-                    diagnostic.mahalanobis_distance
-                ),
+                "maximum_absolute_robust_z": (diagnostic.maximum_absolute_robust_z),
+                "ledoit_wolf_mahalanobis": (diagnostic.mahalanobis_distance),
                 "density_ood_z": diagnostic.density_ood_z,
                 "support_confidence": diagnostic.support_confidence,
             }
