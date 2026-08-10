@@ -1,0 +1,59 @@
+{
+  "base_config": "configs/rheed_m23_smooth_discrete_islands_full26_v1.json",
+  "experiment_id": "20260809_m23_smooth_discrete_islands_full26_v6",
+  "selected_method": "M23c_dense_discrete_smooth_islands",
+  "visualization_model_panel_label": "M23 layered discrete smooth islands",
+  "selected_renderer": {
+    "mode": "regime_adaptive_discrete_smooth_islands",
+    "island_generator_mode": "dense_microellipse_dense",
+    "rough_island_generator_mode": "separated_ellipse_growth_layered_gapfill_strong",
+    "smooth_island_full_below_nm": 3.3,
+    "m22_full_above_nm": 3.8,
+    "smooth_marginal_skew_shape": -1.0,
+    "structure_weight": 0.96,
+    "texture_weight": 0.04,
+    "rough_start_nm": 2.2,
+    "rough_full_nm": 3.6,
+    "rough_structure_weight": 0.85,
+    "rough_texture_weight": 0.15,
+    "rough_texture_sigma_px": 2.0,
+    "rough_tip_sigma_px": 0.5,
+    "rough_isolation_strength": 1.0
+  },
+  "candidate_renderers": {
+    "M22c_frozen_dense_mid": {
+      "mode": "regime_adaptive_separated_islands",
+      "island_generator_mode": "separated_ellipse_growth_layered_gapfill_strong",
+      "rough_start_nm": 2.2,
+      "rough_full_nm": 3.6,
+      "rough_structure_weight": 0.85,
+      "rough_texture_weight": 0.15,
+      "rough_texture_sigma_px": 2.0,
+      "rough_tip_sigma_px": 0.5,
+      "rough_isolation_strength": 1.0
+    },
+    "M23c_dense_discrete_smooth_islands": {
+      "mode": "regime_adaptive_discrete_smooth_islands",
+      "island_generator_mode": "dense_microellipse_dense",
+      "rough_island_generator_mode": "separated_ellipse_growth_layered_gapfill_strong",
+      "smooth_island_full_below_nm": 3.3,
+      "m22_full_above_nm": 3.8,
+      "smooth_marginal_skew_shape": -1.0,
+      "structure_weight": 0.96,
+      "texture_weight": 0.04,
+      "rough_start_nm": 2.2,
+      "rough_full_nm": 3.6,
+      "rough_structure_weight": 0.85,
+      "rough_texture_weight": 0.15,
+      "rough_texture_sigma_px": 2.0,
+      "rough_tip_sigma_px": 0.5,
+      "rough_isolation_strength": 1.0
+    }
+  },
+  "publication_ablation_methods": [
+    "M22c_frozen_dense_mid",
+    "M23c_dense_discrete_smooth_islands"
+  ],
+  "output_root": "outputs/rheed_m23_smooth_discrete_islands/20260809_m23_full26_v6",
+  "report_root": "reports/rheed_m23_smooth_discrete_islands/20260809_m23_full26_v6"
+}

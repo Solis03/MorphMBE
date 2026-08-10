@@ -1,0 +1,14 @@
+{
+  "cohort_row_count": 0,
+  "excluded_growth_run_id": "6022",
+  "external_prediction_hits": {
+    "FSMI_nm": false,
+    "Rq_nm": false
+  },
+  "fold_training_or_morphology_hits": [],
+  "generated_map_hits": [],
+  "listed_in_removelist": true,
+  "outer_fold_manifest_count": 26,
+  "passed": true,
+  "prediction_row_count": 0
+}

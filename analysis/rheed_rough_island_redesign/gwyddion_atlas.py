@@ -237,7 +237,8 @@ def _sq_comparison_plot(
     axes[0].legend(loc="upper left", frameon=False, ncol=3)
     axes[0].set_title(
         f"{model_short_label} strict outer-LOO Sq: measured versus predicted\n"
-        f"27 growths | MAE {mae:.3f} nm | RMSE {rmse:.3f} nm | "
+        f"{len(ordered)} growths | MAE {mae:.3f} nm | "
+        f"RMSE {rmse:.3f} nm | "
         f"Pearson r {correlation:.3f}",
         fontsize=12,
         fontweight="bold",

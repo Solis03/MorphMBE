@@ -604,14 +604,22 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             "laguerre": baseline_structure
         }
         requested_modes = sorted(
-            {
-                str(
-                    renderer_parameters.get(
-                        "island_generator_mode", "laguerre"
+            (
+                {
+                    str(
+                        renderer_parameters.get(
+                            "island_generator_mode", "laguerre"
+                        )
                     )
-                )
-                for renderer_parameters in renderer_definitions.values()
-            }
+                    for renderer_parameters in renderer_definitions.values()
+                }
+                | {
+                    str(renderer_parameters["rough_island_generator_mode"])
+                    for renderer_parameters in renderer_definitions.values()
+                    if renderer_parameters.get("rough_island_generator_mode")
+                    is not None
+                }
+            )
             - {"laguerre"}
         )
         for mode_index, generator_mode in enumerate(
@@ -664,10 +672,18 @@ def run(config: dict[str, Any], *, smoke: bool, device_name: str) -> None:
             generator_mode = str(
                 parameters.pop("island_generator_mode", "laguerre")
             )
+            rough_generator_mode = parameters.pop(
+                "rough_island_generator_mode", None
+            )
             methods[str(renderer_name)] = render_ensemble(
                 structure_cache[generator_mode],
                 m5,
                 baseline_structure=baseline_structure,
+                rough_structure=(
+                    structure_cache[str(rough_generator_mode)]
+                    if rough_generator_mode is not None
+                    else None
+                ),
                 conditioning_sq_nm=predicted_rq,
                 island_target=island_target,
                 rough_isolation_score=predicted_isolation,

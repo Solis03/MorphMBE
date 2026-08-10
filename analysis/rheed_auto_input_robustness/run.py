@@ -13,15 +13,15 @@ import numpy as np
 import pandas as pd
 from scipy.stats import pearsonr, spearmanr
 
-from analysis.rheed_to_afm_functional_morphology.run import _physics_table
-from analysis.rheed_to_afm_functional_morphology.metrics import (
-    group_metric_table,
-    scan_metric_table,
-)
 from analysis.rheed_to_afm_full_cohort_loo.run import (
     _target_series,
     prepare_full_cohort,
 )
+from analysis.rheed_to_afm_functional_morphology.metrics import (
+    group_metric_table,
+    scan_metric_table,
+)
+from analysis.rheed_to_afm_functional_morphology.run import _physics_table
 from analysis.rheed_to_afm_generation.run import _load_tables
 from analysis.rheed_to_afm_ood_robust.prediction import (
     R3D_TEMPORAL,
@@ -33,7 +33,6 @@ from analysis.rheed_video_afm_story.publication_style import (
 )
 
 from .confidence import crossfit_r3d_stability_confidence
-
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -48,7 +47,13 @@ def _load_config(path: str | Path) -> dict[str, Any]:
     candidate = Path(path)
     if not candidate.is_absolute():
         candidate = ROOT / candidate
-    return json.loads(candidate.read_text(encoding="utf-8"))
+    payload = json.loads(candidate.read_text(encoding="utf-8"))
+    base_path = payload.pop("base_config", None)
+    if base_path is None:
+        return payload
+    base = _load_config(str(base_path))
+    base.update(payload)
+    return base
 
 
 def _aurc(errors: np.ndarray, confidence: np.ndarray) -> float:
@@ -622,10 +627,6 @@ def main() -> None:
     predictions = []
     inner = []
     for target in ("Rq_nm", "FSMI_nm"):
-        target_rows = prior.loc[
-            (prior["target"] == target)
-            & (prior["method"] == R3D_TEMPORAL)
-        ].set_index("growth_run_id").loc[groups]
         log_target = target_series[target].loc[groups]
         outer_rows, inner_rows = crossfit_r3d_stability_confidence(
             perturbation_embeddings=payload["embeddings"],

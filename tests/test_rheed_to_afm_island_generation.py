@@ -58,6 +58,9 @@ class IslandGenerationTest(unittest.TestCase):
             "separated_ellipse_growth_layered_gapfill_weak",
             "separated_ellipse_growth_layered_gapfill",
             "separated_ellipse_growth_layered_gapfill_strong",
+            "dense_microellipse_fine",
+            "dense_microellipse_balanced",
+            "dense_microellipse_dense",
         ):
             first = generator.generate(target, seed=17, mode=mode)
             second = generator.generate(target, seed=18, mode=mode)

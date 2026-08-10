@@ -295,6 +295,233 @@ class IslandPrimitiveGenerator:
     laguerre_count_factor: float = 3.0
     fine_count_factor: float = 3.0
 
+    def _dense_microellipse_field(
+        self,
+        target: dict[str, float],
+        rng: np.random.Generator,
+        *,
+        layout: str,
+    ) -> np.ndarray:
+        """Generate a dense mosaic of finite round/oval smooth-stage islands.
+
+        The legacy smooth renderer mixes stationary spectral fields with
+        capture-zone relief.  At Sq around 1 nm that mixture can join local
+        maxima into fibres even when the measured AFM contains individually
+        legible grains.  Here each grain is an explicit elliptical radial
+        mound.  Repulsive centres make the distribution spatially uniform and
+        Gaussian shoulders meet in narrow channels, so uncovered regions do
+        not become broad flat dark pools.
+        """
+
+        presets = {
+            "fine": {
+                "count_scale": 1.92,
+                "area_scale": 0.66,
+                "separation": 0.51,
+                "aspect_scale": 0.82,
+                "size_sigma": 0.16,
+                "height_sigma": 0.28,
+                "tip_sigma": 0.46,
+            },
+            "balanced": {
+                "count_scale": 1.72,
+                "area_scale": 0.76,
+                "separation": 0.53,
+                "aspect_scale": 0.86,
+                "size_sigma": 0.18,
+                "height_sigma": 0.30,
+                "tip_sigma": 0.50,
+            },
+            "dense": {
+                "count_scale": 2.12,
+                "area_scale": 0.60,
+                "separation": 0.47,
+                "aspect_scale": 0.80,
+                "size_sigma": 0.20,
+                "height_sigma": 0.30,
+                "tip_sigma": 0.48,
+            },
+        }
+        if layout not in presets:
+            raise ValueError(f"Unknown dense-microellipse layout: {layout}")
+        settings = presets[layout]
+        n = self.resolution
+        yy, xx = np.mgrid[:n, :n]
+        conditioning_sq_nm = float(target.get("conditioning_sq_nm", 1.0))
+        stage = float(
+            np.clip((conditioning_sq_nm - 0.70) / (3.60 - 0.70), 0.0, 1.0)
+        )
+        stage = stage * stage * (3.0 - 2.0 * stage)
+        count = int(
+            np.clip(
+                np.round(
+                    float(settings["count_scale"])
+                    * (1.0 - 0.24 * stage)
+                    * _count(target, 70)
+                ),
+                46,
+                108,
+            )
+        )
+        core_area = max(_area(target, 70), 1.25 * _area(target, 82))
+        learned_footprint = float(
+            np.clip(
+                1.82
+                * core_area
+                * float(settings["area_scale"])
+                * (0.86 + 0.48 * stage),
+                48.0,
+                190.0,
+            )
+        )
+        capture_area = float(n * n) / float(count)
+        median_footprint = float(
+            0.25 * learned_footprint + 0.75 * 0.84 * capture_area
+        )
+        areas = median_footprint * rng.lognormal(
+            0.0, float(settings["size_sigma"]), size=count
+        )
+        radii = np.sqrt(areas / np.pi)
+        order = np.argsort(radii)[::-1]
+        areas = areas[order]
+        radii = radii[order]
+
+        centers: list[tuple[float, float]] = []
+        placed_radii: list[float] = []
+        separation = float(settings["separation"])
+        for radius in radii:
+            candidates: list[tuple[float, float, float]] = []
+            for _ in range(96):
+                cy, cx = rng.uniform(0.0, n, size=2)
+                if not centers:
+                    candidates.append((np.inf, float(cy), float(cx)))
+                    break
+                clearances = []
+                for (py, px), previous_radius in zip(
+                    centers, placed_radii
+                ):
+                    dy = min(abs(cy - py), n - abs(cy - py))
+                    dx = min(abs(cx - px), n - abs(cx - px))
+                    clearances.append(
+                        float(np.hypot(dx, dy))
+                        - separation * (radius + previous_radius)
+                    )
+                minimum = float(np.min(clearances))
+                candidates.append((minimum, float(cy), float(cx)))
+                # Keep sampling after the first admissible position.  A
+                # high-clearance candidate prevents broad uncovered pools,
+                # while sampling among the best few avoids a crystalline
+                # farthest-point layout.
+            candidates.sort(reverse=True)
+            candidate_rank = int(
+                np.clip(rng.geometric(0.48) - 1, 0, min(7, len(candidates) - 1))
+            )
+            _, selected_y, selected_x = candidates[candidate_rank]
+            centers.append((selected_y, selected_x))
+            placed_radii.append(float(radius))
+
+        # Intermediate growth is represented as another partial deposition
+        # layer.  These smaller islands fill and subdivide primary channels;
+        # their prevalence fades to almost zero at the smoothest endpoint.
+        secondary_count = int(np.round(0.36 * stage * count))
+        secondary_centers = [
+            tuple(map(float, rng.uniform(0.0, n, size=2)))
+            for _ in range(secondary_count)
+        ]
+        secondary_areas = median_footprint * rng.lognormal(
+            np.log(0.34), 0.24, size=secondary_count
+        )
+
+        eccentricity = float(
+            np.clip(
+                target["median_eccentricity_q70"]
+                * float(settings["aspect_scale"]),
+                0.35,
+                0.82,
+            )
+        )
+        aspect = float(
+            np.clip(1.0 / np.sqrt(1.0 - eccentricity**2), 1.08, 1.90)
+        )
+        field = np.full((n, n), 1e-6, dtype=np.float64)
+        primitives = [
+            (center, float(area), 1.0)
+            for center, area in zip(centers, areas)
+        ]
+        primitives.extend(
+            (center, float(area), 0.72)
+            for center, area in zip(secondary_centers, secondary_areas)
+        )
+        for (cy, cx), area, height_scale in primitives:
+            local_aspect = float(
+                np.clip(aspect * rng.lognormal(0.0, 0.10), 1.03, 2.05)
+            )
+            a = float(np.sqrt(area * local_aspect / np.pi))
+            b = float(np.sqrt(area / (np.pi * local_aspect)))
+            angle = float(rng.uniform(0.0, np.pi))
+            dx = _periodic_signed_delta(xx, cx, n)
+            dy = _periodic_signed_delta(yy, cy, n)
+            xr = np.cos(angle) * dx + np.sin(angle) * dy
+            yr = -np.sin(angle) * dx + np.cos(angle) * dy
+            base_distance_sq = np.square(xr / a) + np.square(yr / b)
+            polar_angle = np.arctan2(yr / b, xr / a)
+            boundary_amplitude = float(rng.uniform(0.025, 0.075))
+            boundary_scale = (
+                1.0
+                + boundary_amplitude
+                * np.cos(3.0 * polar_angle + rng.uniform(0.0, 2.0 * np.pi))
+                + 0.55
+                * boundary_amplitude
+                * np.cos(5.0 * polar_angle + rng.uniform(0.0, 2.0 * np.pi))
+            )
+            distance_sq = base_distance_sq / np.square(boundary_scale)
+            height = float(
+                height_scale
+                * rng.lognormal(0.0, float(settings["height_sigma"]))
+            )
+            distance = np.sqrt(distance_sq)
+            edge = 1.0 / (
+                1.0
+                + np.exp(
+                    np.clip((distance - 1.0) / 0.12, -30.0, 30.0)
+                )
+            )
+            dome = np.clip(1.0 - distance_sq, 0.0, 1.0) ** 0.62
+            # A broad finite top and rounded AFM-tip shoulder produce a
+            # cobble-like island rather than a saturated Gaussian point.
+            profile = height * (
+                edge * (0.52 + 0.48 * dome)
+                + 0.10 * np.exp(-0.38 * distance_sq)
+            )
+            field = np.maximum(field, profile)
+
+        substrate = ndimage.gaussian_filter(
+            rng.normal(size=(n, n)), sigma=1.0, mode="wrap"
+        )
+        substrate -= float(np.mean(substrate))
+        substrate /= max(float(np.std(substrate)), 1e-8)
+        field += 0.020 * substrate
+        # Later smooth-stage deposition raises valleys faster than summits.
+        # This monotone response preserves every island and channel ordering
+        # while changing a sparse bright-on-black field into the high-coverage
+        # orange pebble layer observed in the measured low-Sq AFM.
+        low, high = np.quantile(field, (0.002, 0.998))
+        span = max(float(high - low), 1e-8)
+        normalized = (field - low) / span
+        within = np.clip(normalized, 0.0, 1.0)
+        response_power = 1.65 - 0.18 * stage
+        coalesced = 1.0 - (1.0 - within) ** response_power
+        coalesced = np.where(normalized < 0.0, normalized, coalesced)
+        coalesced = np.where(
+            normalized > 1.0,
+            1.0 + (normalized - 1.0) / response_power,
+            coalesced,
+        )
+        field = low + span * coalesced
+        return ndimage.gaussian_filter(
+            field, sigma=float(settings["tip_sigma"]), mode="wrap"
+        )
+
     def _separated_island_field(
         self,
         target: dict[str, float],
@@ -982,6 +1209,18 @@ class IslandPrimitiveGenerator:
         elif mode == "separated_ellipse_growth_layered_gapfill_strong":
             field = self._separated_island_field(
                 target, rng, layout="growth_layered_gapfill_strong"
+            )
+        elif mode == "dense_microellipse_fine":
+            field = self._dense_microellipse_field(
+                target, rng, layout="fine"
+            )
+        elif mode == "dense_microellipse_balanced":
+            field = self._dense_microellipse_field(
+                target, rng, layout="balanced"
+            )
+        elif mode == "dense_microellipse_dense":
+            field = self._dense_microellipse_field(
+                target, rng, layout="dense"
             )
         elif mode == "hybrid":
             islands = self._superellipse_field(target, rng)

@@ -12,7 +12,34 @@ from analysis.rheed_auto_input_robustness.perturbation import (
     PerturbationView,
     perturb_rect,
 )
+from analysis.rheed_auto_input_robustness.run import _load_config
 from rheed2morph.rheed.automatic_roi_keyframe import Rect
+
+
+def test_config_inheritance_is_recursive(tmp_path) -> None:
+    root = tmp_path / "root.json"
+    middle = tmp_path / "middle.json"
+    leaf = tmp_path / "leaf.json"
+    root.write_text('{"root": 1, "shared": "root"}', encoding="utf-8")
+    middle.write_text(
+        '{"base_config": "'
+        + str(root)
+        + '", "middle": 2, "shared": "middle"}',
+        encoding="utf-8",
+    )
+    leaf.write_text(
+        '{"base_config": "'
+        + str(middle)
+        + '", "leaf": 3, "shared": "leaf"}',
+        encoding="utf-8",
+    )
+
+    assert _load_config(leaf) == {
+        "root": 1,
+        "middle": 2,
+        "leaf": 3,
+        "shared": "leaf",
+    }
 
 
 def test_roi_perturbation_is_small_and_clipped() -> None:

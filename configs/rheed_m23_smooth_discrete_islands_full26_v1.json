@@ -1,0 +1,130 @@
+{
+  "base_config": "configs/rheed_m22_dense_mid_full27_inclusive_v1.json",
+  "experiment_id": "20260809_m23_smooth_discrete_islands_full26_v1",
+  "seed": 173205,
+  "expected_growth_count": 26,
+  "explicitly_excluded_growths": [
+    "6022",
+    "6043",
+    "6055",
+    "6081",
+    "N6324"
+  ],
+  "smoke_growths": [
+    "N6342",
+    "N6358",
+    "N6382",
+    "6048",
+    "6056",
+    "6070",
+    "6078",
+    "6094",
+    "6028",
+    "6099"
+  ],
+  "selected_method": "M23a_fine_discrete_smooth_islands",
+  "target_prediction_method": "M20_spot_connectivity_calibrated_sq_full26_exclude6022_6081",
+  "external_target_predictions": {
+    "Rq_nm": "outputs/rheed_m23_smooth_discrete_islands/20260809_m23_m20_connectivity_full26_v1/m20_strict_loo_predictions.csv",
+    "FSMI_nm": "reports/rheed_auto_input_robustness/20260809_m23_m15b_line3_full26_exclude6022_6081_v1/m15b_strict_loo_predictions.csv"
+  },
+  "full_run_suffix": "full26_loo",
+  "split_label": "retrospective_full26_loo_orientation90_keyframe_locked_exclude6022_6081",
+  "claim_boundary": "Retrospective 26-growth method-development outer LOO from frozen M22 after domain-expert exclusion of atypical AFM growth 6022. Sq, FSMI, morphology statistics and rendering fits exclude 6022 before every outer and inner fit. Low-Sq renderer selection is retrospective; the M22 rough branch is regression-protected and prospective confirmation remains required.",
+  "visualization_model_short_label": "M23",
+  "visualization_model_panel_label": "M23 discrete smooth islands",
+  "visualization_focus_groups": [
+    "N6342",
+    "N6358",
+    "N6382",
+    "6048",
+    "6056",
+    "6070",
+    "6078"
+  ],
+  "selected_renderer": {
+    "mode": "regime_adaptive_discrete_smooth_islands",
+    "island_generator_mode": "dense_microellipse_fine",
+    "rough_island_generator_mode": "separated_ellipse_growth_layered_gapfill_strong",
+    "smooth_island_full_below_nm": 3.3,
+    "m22_full_above_nm": 3.8,
+    "structure_weight": 0.94,
+    "texture_weight": 0.06,
+    "rough_start_nm": 2.2,
+    "rough_full_nm": 3.6,
+    "rough_structure_weight": 0.85,
+    "rough_texture_weight": 0.15,
+    "rough_texture_sigma_px": 2.0,
+    "rough_tip_sigma_px": 0.5,
+    "rough_isolation_strength": 1.0
+  },
+  "candidate_renderers": {
+    "M22c_frozen_dense_mid": {
+      "mode": "regime_adaptive_separated_islands",
+      "island_generator_mode": "separated_ellipse_growth_layered_gapfill_strong",
+      "rough_start_nm": 2.2,
+      "rough_full_nm": 3.6,
+      "rough_structure_weight": 0.85,
+      "rough_texture_weight": 0.15,
+      "rough_texture_sigma_px": 2.0,
+      "rough_tip_sigma_px": 0.5,
+      "rough_isolation_strength": 1.0
+    },
+    "M23a_fine_discrete_smooth_islands": {
+      "mode": "regime_adaptive_discrete_smooth_islands",
+      "island_generator_mode": "dense_microellipse_fine",
+      "rough_island_generator_mode": "separated_ellipse_growth_layered_gapfill_strong",
+      "smooth_island_full_below_nm": 3.3,
+      "m22_full_above_nm": 3.8,
+      "structure_weight": 0.94,
+      "texture_weight": 0.06,
+      "rough_start_nm": 2.2,
+      "rough_full_nm": 3.6,
+      "rough_structure_weight": 0.85,
+      "rough_texture_weight": 0.15,
+      "rough_texture_sigma_px": 2.0,
+      "rough_tip_sigma_px": 0.5,
+      "rough_isolation_strength": 1.0
+    },
+    "M23b_balanced_discrete_smooth_islands": {
+      "mode": "regime_adaptive_discrete_smooth_islands",
+      "island_generator_mode": "dense_microellipse_balanced",
+      "rough_island_generator_mode": "separated_ellipse_growth_layered_gapfill_strong",
+      "smooth_island_full_below_nm": 3.3,
+      "m22_full_above_nm": 3.8,
+      "structure_weight": 0.95,
+      "texture_weight": 0.05,
+      "rough_start_nm": 2.2,
+      "rough_full_nm": 3.6,
+      "rough_structure_weight": 0.85,
+      "rough_texture_weight": 0.15,
+      "rough_texture_sigma_px": 2.0,
+      "rough_tip_sigma_px": 0.5,
+      "rough_isolation_strength": 1.0
+    },
+    "M23c_dense_discrete_smooth_islands": {
+      "mode": "regime_adaptive_discrete_smooth_islands",
+      "island_generator_mode": "dense_microellipse_dense",
+      "rough_island_generator_mode": "separated_ellipse_growth_layered_gapfill_strong",
+      "smooth_island_full_below_nm": 3.3,
+      "m22_full_above_nm": 3.8,
+      "structure_weight": 0.96,
+      "texture_weight": 0.04,
+      "rough_start_nm": 2.2,
+      "rough_full_nm": 3.6,
+      "rough_structure_weight": 0.85,
+      "rough_texture_weight": 0.15,
+      "rough_texture_sigma_px": 2.0,
+      "rough_tip_sigma_px": 0.5,
+      "rough_isolation_strength": 1.0
+    }
+  },
+  "publication_ablation_methods": [
+    "M22c_frozen_dense_mid",
+    "M23a_fine_discrete_smooth_islands",
+    "M23b_balanced_discrete_smooth_islands",
+    "M23c_dense_discrete_smooth_islands"
+  ],
+  "output_root": "outputs/rheed_m23_smooth_discrete_islands/20260809_m23_full26_v1",
+  "report_root": "reports/rheed_m23_smooth_discrete_islands/20260809_m23_full26_v1"
+}

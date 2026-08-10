@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import unittest
 import json
+import unittest
 from pathlib import Path
 
 import pandas as pd
@@ -72,8 +72,9 @@ class ConditionalAFMVAETest(unittest.TestCase):
         removed = set(tables["removelist"].sample_ids)
         self.assertEqual(
             tables["removelist"].sha256,
-            "87bbce33d0b4e9b9297a8fb447c3581c59a8f3c5402b399042046c094d567c9f",
+            "cae057110bf23c4985e6d68c5a876fed5d0d8776b26f5c129d8ab4f718bbe469",
         )
+        self.assertIn("6022", removed)
         self.assertIn("6081", removed)
         for name in ("descriptors", "folds", "physics", "phase1"):
             frame = tables[name]
@@ -85,7 +86,7 @@ class ConditionalAFMVAETest(unittest.TestCase):
                     )
         self.assertEqual(
             set(tables["removelist_excluded_rows"]["sample_id"]),
-            {"6023", "6081", "6087"},
+            {"6022", "6023", "6081", "6087"},
         )
 
     def test_removelist_samples_are_removed_from_embedding_payload(self) -> None:

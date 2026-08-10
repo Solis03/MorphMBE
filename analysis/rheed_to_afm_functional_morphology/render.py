@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import numpy as np
-from scipy import ndimage
+from scipy import ndimage, stats
 from scipy.special import expit
 
 from analysis.rheed_video_afm_story.rq_disentanglement import project_unit_rq_np
@@ -783,12 +783,93 @@ def regime_adaptive_separated_island_blend(
     ).astype(np.float32)
 
 
+def regime_adaptive_discrete_smooth_island_blend(
+    smooth_structure: np.ndarray,
+    rough_structure: np.ndarray,
+    prior: np.ndarray,
+    baseline_structure: np.ndarray,
+    *,
+    conditioning_sq_nm: float,
+    island_target: dict[str, float] | None,
+    smooth_island_full_below_nm: float = 3.30,
+    m22_full_above_nm: float = 3.80,
+    smooth_structure_weight: float = 0.94,
+    smooth_texture_weight: float = 0.06,
+    smooth_texture_sigma_px: float = 1.6,
+    smooth_tip_sigma_px: float = 0.25,
+    smooth_marginal_skew_shape: float = -1.0,
+    **m22_parameters: float,
+) -> np.ndarray:
+    """Use explicit micro-islands at low Sq and frozen M22 at high Sq.
+
+    Smooth AFM scans have a compact, mildly left-skewed height marginal: only
+    a small fraction of pixels occupy the deepest channels.  A rank-preserving
+    skew-normal marginal regularizer reproduces that property without moving
+    island boundaries or borrowing a measured AFM patch.  The mapping is
+    disabled for the frozen M22 rough branch.
+    """
+
+    if m22_full_above_nm <= smooth_island_full_below_nm:
+        raise ValueError("M22 full threshold must exceed smooth-island full threshold")
+    if not 0.0 <= smooth_structure_weight <= 1.0:
+        raise ValueError("smooth structure weight must be in [0, 1]")
+    if smooth_texture_weight < 0.0:
+        raise ValueError("smooth texture weight must be nonnegative")
+    smooth = ndimage.gaussian_filter(
+        project_unit_rq_np(smooth_structure),
+        sigma=max(float(smooth_tip_sigma_px), 0.0),
+        mode="wrap",
+    )
+    highpass = np.asarray(prior, dtype=np.float64) - ndimage.gaussian_filter(
+        np.asarray(prior, dtype=np.float64),
+        sigma=max(float(smooth_texture_sigma_px), 0.5),
+        mode="wrap",
+    )
+    highpass = project_unit_rq_np(highpass)
+    smooth = project_unit_rq_np(
+        float(smooth_structure_weight) * smooth
+        + float(smooth_texture_weight) * highpass
+    )
+    flat = np.asarray(smooth, dtype=np.float64).ravel()
+    order = np.argsort(flat, kind="stable")
+    probabilities = (np.arange(flat.size, dtype=float) + 0.5) / flat.size
+    remapped = stats.skewnorm.ppf(
+        probabilities, float(smooth_marginal_skew_shape)
+    )
+    smooth_flat = np.empty_like(remapped)
+    smooth_flat[order] = remapped
+    smooth = project_unit_rq_np(smooth_flat.reshape(smooth.shape))
+    m22 = regime_adaptive_separated_island_blend(
+        rough_structure,
+        prior,
+        baseline_structure,
+        conditioning_sq_nm=conditioning_sq_nm,
+        island_target=island_target,
+        **m22_parameters,
+    )
+    fraction = float(
+        np.clip(
+            (float(conditioning_sq_nm) - float(smooth_island_full_below_nm))
+            / (float(m22_full_above_nm) - float(smooth_island_full_below_nm)),
+            0.0,
+            1.0,
+        )
+    )
+    fraction = fraction * fraction * (3.0 - 2.0 * fraction)
+    if fraction >= 1.0:
+        return m22.astype(np.float32, copy=False)
+    return project_unit_rq_np(
+        (1.0 - fraction) * smooth + fraction * m22
+    ).astype(np.float32)
+
+
 def render_ensemble(
     structure: list[np.ndarray],
     spectral: list[np.ndarray],
     *,
     mode: str,
     baseline_structure: list[np.ndarray] | None = None,
+    rough_structure: list[np.ndarray] | None = None,
     structure_weight: float = 0.65,
     boundary_width_px: float = 0.55,
     relief_weight: float = 0.65,
@@ -831,6 +912,9 @@ def render_ensemble(
     rough_tip_sigma_px: float = 0.35,
     rough_isolation_score: float = 0.50,
     rough_isolation_strength: float = 1.0,
+    smooth_island_full_below_nm: float = 3.30,
+    m22_full_above_nm: float = 3.80,
+    smooth_marginal_skew_shape: float = -1.0,
 ) -> list[np.ndarray]:
     result = []
     for index in range(max(len(structure), len(spectral))):
@@ -1000,6 +1084,65 @@ def render_ensemble(
                 smooth_shoulder_minimum_quantile=(
                     smooth_shoulder_minimum_quantile
                 ),
+                smooth_winsor_quantile=smooth_winsor_quantile,
+            )
+        elif mode == "regime_adaptive_discrete_smooth_islands":
+            if conditioning_sq_nm is None:
+                raise ValueError(
+                    "regime-adaptive rendering requires conditioning Sq"
+                )
+            if baseline_structure is None or rough_structure is None:
+                raise ValueError(
+                    "discrete smooth-island rendering requires baseline and rough structures"
+                )
+            rendered = regime_adaptive_discrete_smooth_island_blend(
+                island,
+                rough_structure[index % len(rough_structure)],
+                prior,
+                baseline_structure[index % len(baseline_structure)],
+                conditioning_sq_nm=conditioning_sq_nm,
+                island_target=island_target,
+                smooth_island_full_below_nm=smooth_island_full_below_nm,
+                m22_full_above_nm=m22_full_above_nm,
+                smooth_structure_weight=structure_weight,
+                smooth_texture_weight=texture_weight,
+                smooth_texture_sigma_px=rough_texture_sigma_px,
+                smooth_tip_sigma_px=rough_tip_sigma_px,
+                smooth_marginal_skew_shape=smooth_marginal_skew_shape,
+                rough_start_nm=rough_start_nm,
+                rough_full_nm=rough_full_nm,
+                rough_structure_weight=rough_structure_weight,
+                rough_texture_weight=rough_texture_weight,
+                rough_texture_sigma_px=rough_texture_sigma_px,
+                rough_tip_sigma_px=rough_tip_sigma_px,
+                rough_isolation_score=rough_isolation_score,
+                rough_isolation_strength=rough_isolation_strength,
+                smooth_full_below_nm=smooth_full_below_nm,
+                terrace_full_above_nm=terrace_full_above_nm,
+                boundary_width_px=boundary_width_px,
+                structure_weight=0.50,
+                plateau_weight=plateau_weight,
+                relief_weight=relief_weight,
+                spectral_weight=spectral_weight,
+                texture_weight=0.05,
+                smooth_spectral_weight=smooth_spectral_weight,
+                smooth_spectral_sigma_px=smooth_spectral_sigma_px,
+                smooth_structure_sigma_px=smooth_structure_sigma_px,
+                smooth_fine_texture_weight=smooth_fine_texture_weight,
+                smooth_sparse_peak_weight=smooth_sparse_peak_weight,
+                smooth_shoulder_peak_weight=smooth_shoulder_peak_weight,
+                smooth_peak_count_scale=smooth_peak_count_scale,
+                smooth_peak_count_min=smooth_peak_count_min,
+                smooth_peak_count_max=smooth_peak_count_max,
+                smooth_peak_spacing_px=smooth_peak_spacing_px,
+                smooth_peak_sigma_px=smooth_peak_sigma_px,
+                smooth_peak_minimum_quantile=smooth_peak_minimum_quantile,
+                smooth_shoulder_count_scale=smooth_shoulder_count_scale,
+                smooth_shoulder_count_min=smooth_shoulder_count_min,
+                smooth_shoulder_count_max=smooth_shoulder_count_max,
+                smooth_shoulder_spacing_px=smooth_shoulder_spacing_px,
+                smooth_shoulder_sigma_px=smooth_shoulder_sigma_px,
+                smooth_shoulder_minimum_quantile=smooth_shoulder_minimum_quantile,
                 smooth_winsor_quantile=smooth_winsor_quantile,
             )
         else:

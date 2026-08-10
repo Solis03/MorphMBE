@@ -1,0 +1,7 @@
+growth_run_id,predicted_sq_nm,draw_count,array_equal_all_draws,maximum_absolute_pixel_difference
+6028,5.019938142800873,4,True,0.0
+6062,3.8106222846849063,4,True,0.0
+6063,4.649623227301118,4,True,0.0
+6085,4.2855071028198,4,True,0.0
+6095,8.52456568858861,4,True,0.0
+6099,8.381101760294285,4,True,0.0

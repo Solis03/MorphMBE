@@ -11,6 +11,7 @@ from analysis.rheed_to_afm_functional_morphology.metrics import (
 )
 from analysis.rheed_to_afm_functional_morphology.render import (
     edge_preserving_terrace_blend,
+    regime_adaptive_discrete_smooth_island_blend,
     regime_adaptive_separated_island_blend,
     render_ensemble,
     topology_conditioned_sparse_microisland_blend,
@@ -211,3 +212,61 @@ def test_isolated_spots_deepen_rough_substrate_tail() -> None:
     )
 
     assert np.quantile(isolated, 0.05) < np.quantile(bridged, 0.05)
+
+
+def test_discrete_smooth_islands_match_compact_afm_height_marginal() -> None:
+    rng = np.random.default_rng(83)
+    arrays = [rng.normal(size=(64, 64)) for _ in range(4)]
+    rendered = regime_adaptive_discrete_smooth_island_blend(
+        arrays[0],
+        arrays[1],
+        arrays[2],
+        arrays[3],
+        conditioning_sq_nm=1.0,
+        island_target=None,
+        smooth_marginal_skew_shape=-1.0,
+    )
+
+    low, high = np.quantile(rendered, [0.005, 0.995])
+    displayed = np.clip((rendered - low) / (high - low), 0.0, 1.0)
+    dark_fraction = float(np.mean(displayed <= 0.18))
+
+    assert np.isclose(np.std(rendered), 1.0, atol=1e-5)
+    assert 0.035 <= dark_fraction <= 0.050
+    assert 0.51 <= float(np.median(displayed)) <= 0.55
+
+
+def test_discrete_smooth_renderer_keeps_frozen_m22_rough_branch_exact() -> None:
+    rng = np.random.default_rng(89)
+    smooth, rough, prior, baseline = [
+        rng.normal(size=(64, 64)) for _ in range(4)
+    ]
+    common = {
+        "conditioning_sq_nm": 6.0,
+        "island_target": None,
+        "rough_start_nm": 2.2,
+        "rough_full_nm": 3.6,
+        "rough_structure_weight": 0.85,
+        "rough_texture_weight": 0.15,
+        "rough_texture_sigma_px": 2.0,
+        "rough_tip_sigma_px": 0.5,
+        "rough_isolation_score": 0.8,
+        "rough_isolation_strength": 1.0,
+    }
+    frozen = regime_adaptive_separated_island_blend(
+        rough,
+        prior,
+        baseline,
+        **common,
+    )
+    redesigned = regime_adaptive_discrete_smooth_island_blend(
+        smooth,
+        rough,
+        prior,
+        baseline,
+        smooth_island_full_below_nm=3.3,
+        m22_full_above_nm=3.8,
+        **common,
+    )
+
+    assert np.array_equal(frozen, redesigned)

@@ -1,0 +1,6 @@
+{
+  "base_config": "configs/rheed_m23_smooth_discrete_islands_full26_v1.json",
+  "experiment_id": "20260809_m23_smooth_discrete_islands_full26_v2",
+  "output_root": "outputs/rheed_m23_smooth_discrete_islands/20260809_m23_full26_v2",
+  "report_root": "reports/rheed_m23_smooth_discrete_islands/20260809_m23_full26_v2"
+}

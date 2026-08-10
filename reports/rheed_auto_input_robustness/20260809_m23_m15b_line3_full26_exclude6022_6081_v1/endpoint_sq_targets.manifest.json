@@ -1,0 +1,10 @@
+{
+  "artifact": "endpoint Sq target adapter",
+  "source": "reports/rheed_auto_input_robustness/20260809_m23_m15b_line3_full26_exclude6022_6081_v1/expanded_afm_targets.csv",
+  "source_sha256": "6bda2638c50bb38b883ae292ee4495131d6a6219d54d6b80bf8489ff8847bed1",
+  "output": "reports/rheed_auto_input_robustness/20260809_m23_m15b_line3_full26_exclude6022_6081_v1/endpoint_sq_targets.csv",
+  "output_sha256": "9afb6c9901b07b4b066b6614a7772a28aeca464ad79e0e1e3b4215376af6ca07",
+  "transformation": "select target == Rq_nm; rename true_target to sample_median_sq_nm; sort by growth_run_id",
+  "growth_count": 26,
+  "removed_growths_present": []
+}

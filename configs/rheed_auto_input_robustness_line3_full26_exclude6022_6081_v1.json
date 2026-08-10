@@ -1,0 +1,27 @@
+{
+  "experiment_id": "20260809_m23_m15b_line3_full26_exclude6022_6081_v1",
+  "cohort_count": 26,
+  "excluded_growths": [
+    "6022",
+    "6043",
+    "6055",
+    "6081",
+    "N6324"
+  ],
+  "perturbation_embeddings": "outputs/rheed_auto_input_robustness/20260729_m15b_line3_full28_orientation90_keyframe_locked_v3/r3d_causal8_input_perturbations.npz",
+  "selection_table": "outputs/extra_five_integration/20260729_line3_full28_orientation90_keyframe_locked_v3/machine_dataset_full28/selection_comparison.csv",
+  "machine_manifest": "outputs/extra_five_integration/20260729_line3_full28_orientation90_keyframe_locked_v3/machine_dataset_full28/modeling_manifest.csv",
+  "machine_physics": "outputs/extra_five_integration/20260729_line3_full28_orientation90_keyframe_locked_v3/machine_dataset_full28/rheed_physics_features.csv",
+  "confidence_physics": "outputs/extra_five_integration/20260729_line3_full28_orientation90_keyframe_locked_v3/machine_dataset_full28/rheed_physics_features.csv",
+  "machine_embedding_registry": "outputs/extra_five_integration/20260729_line3_full28_orientation90_keyframe_locked_v3/machine_dataset_full28/embedding_registry.csv",
+  "target_parameters": "paper_freeze/rheed_to_afm_dual_generative_models_v1_20260728/03_MODEL_M14I_FULL23/target_head_parameters.json",
+  "cohort_config": "configs/rheed_m23_smooth_discrete_islands_full26_v1.json",
+  "output_root": "outputs/rheed_auto_input_robustness/20260809_m23_m15b_line3_full26_exclude6022_6081_v1",
+  "report_root": "reports/rheed_auto_input_robustness/20260809_m23_m15b_line3_full26_exclude6022_6081_v1",
+  "r3d_device": "cpu",
+  "random_seed": 271828,
+  "confidence_alpha": 0.1,
+  "selection_evidence": "M15b family and hyperparameters remain frozen; operator-invalid 6081 and domain-expert-atypical 6022 are excluded before every outer and inner fit; strict 26-fold refit/evaluation with no point-head reselection",
+  "raw_data_policy": "read_only",
+  "standalone_policy": "read_only"
+}
