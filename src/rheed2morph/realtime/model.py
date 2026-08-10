@@ -2,18 +2,43 @@
 
 from __future__ import annotations
 
+import json
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from hashlib import sha256
-import json
 from pathlib import Path
-import time
-from typing import Any, Callable
+from typing import Any
 
 import joblib
 import numpy as np
 import pandas as pd
 import torch
+from scipy.special import expit
+from sklearn.impute import SimpleImputer
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.preprocessing import RobustScaler
 
+from analysis.rheed_auto_input_robustness.confidence import (
+    _empirical_risk,
+    _isotonic_expected_error,
+    angular_coverage_risk,
+    combine_tta_and_head_confidence,
+)
+from analysis.rheed_endpoint_generation.endpoint_ensemble import (
+    EndpointPrediction,
+    predict_endpoint,
+)
+from analysis.rheed_endpoint_generation.run_endpoint_ensemble import (
+    _support_risk,
+)
+from analysis.rheed_endpoint_generation.streak_features import (
+    PRIMARY_STREAK_FEATURE,
+    extract_streak_features,
+)
+from analysis.rheed_rough_island_redesign.connectivity import (
+    _feature_matrix,
+)
 from analysis.rheed_to_afm_distinct_confidence.matern import (
     DescriptorMaternGenerator,
 )
@@ -27,8 +52,11 @@ from analysis.rheed_to_afm_distinct_confidence.variance import (
     fit_variance_calibrator,
 )
 from analysis.rheed_to_afm_full_cohort_loo.run import (
+    GROWTH_LAYER_GENERATOR_MODES,
+    STABLE_GENERATOR_SEED_OFFSETS,
     _condition_with_amplitude,
     _target_series,
+    load_config,
     prepare_full_cohort,
 )
 from analysis.rheed_to_afm_functional_morphology.amplitude import (
@@ -42,8 +70,8 @@ from analysis.rheed_to_afm_functional_morphology.metrics import (
 from analysis.rheed_to_afm_functional_morphology.render import render_ensemble
 from analysis.rheed_to_afm_functional_morphology.run import _physics_table
 from analysis.rheed_to_afm_generation.data import (
-    ConditionScaler,
     PHYSICS_COLUMNS,
+    ConditionScaler,
 )
 from analysis.rheed_to_afm_generation.run import _load_tables
 from analysis.rheed_to_afm_island_generation.evaluate_topology_renderers import (
@@ -62,14 +90,7 @@ from analysis.rheed_to_afm_ood_robust.prediction import (
     _expected_error_and_confidence,
     _nested_calibrated_errors,
     _r3d_prediction,
-    _risk_score,
     predict_candidates,
-)
-from analysis.rheed_auto_input_robustness.confidence import (
-    _empirical_risk,
-    _isotonic_expected_error,
-    angular_coverage_risk,
-    combine_tta_and_head_confidence,
 )
 from analysis.rheed_to_afm_sharp_generation.cross_validation import (
     _calibrate,
@@ -79,23 +100,12 @@ from analysis.rheed_to_afm_sharp_generation.spectral import (
     ConditionalSpectralModel,
     fit_conditional_spectral_model,
 )
-from analysis.rheed_endpoint_generation.endpoint_ensemble import (
-    predict_endpoint,
-)
-from analysis.rheed_endpoint_generation.run_endpoint_ensemble import (
-    _support_risk,
-)
-from analysis.rheed_endpoint_generation.streak_features import (
-    PRIMARY_STREAK_FEATURE,
-    extract_streak_features,
-)
 from analysis.rheed_video_afm_story.pretrained_embeddings import (
     load_r3d18,
     preprocess_frames,
 )
 
 from .clips import live_physics_row
-
 
 LEGACY_MODEL_ID = (
     "MorphMBE-M15b-AutoR3D-AngularTTA + "
@@ -109,11 +119,20 @@ M17_MODEL_ID = (
     "MorphMBE-M16-EndpointStreak-AutoR3D + "
     "M17b-TopologySparsePeakTerrace-line3-metrology-live-v9"
 )
+M22_MODEL_ID = (
+    "MorphMBE-M20-SpotConnectivitySq + "
+    "M22c-DenseMidGapCompletion-line3-metrology-live-v10"
+)
 # Keep the historical public name stable for callers that load the default
 # M16/M16b configuration. New M17 deployments identify themselves from the
 # selected generator below.
 MODEL_ID = M16_MODEL_ID
-SUPPORTED_MODEL_IDS = {LEGACY_MODEL_ID, M16_MODEL_ID, M17_MODEL_ID}
+SUPPORTED_MODEL_IDS = {
+    LEGACY_MODEL_ID,
+    M16_MODEL_ID,
+    M17_MODEL_ID,
+    M22_MODEL_ID,
+}
 QUERY_ID = "__live_stream__"
 
 _FROZEN_GENERATOR_KEYS = (
@@ -158,6 +177,19 @@ class TargetReference:
 
 
 @dataclass
+class SpotConnectivityReference:
+    groups: list[str]
+    raw_features: np.ndarray
+    log_residuals: np.ndarray
+    neighbors: int = 3
+    correction_strength: float = 1.0
+    bridge_merge_threshold: float = -2.5
+    nonround_fraction_threshold: float = 0.30
+    isolated_spot_threshold: float = 0.75
+    isolated_interval_blend: float = 0.45
+
+
+@dataclass
 class DeploymentBundle:
     model_id: str
     created_at: str
@@ -181,6 +213,7 @@ class DeploymentBundle:
     endpoint_streak_reference: np.ndarray | None = None
     endpoint_confidence_risk_reference: np.ndarray | None = None
     endpoint_confidence_error_reference: np.ndarray | None = None
+    spot_connectivity_reference: SpotConnectivityReference | None = None
 
 
 @dataclass(frozen=True)
@@ -218,6 +251,147 @@ def _hash_file(path: Path) -> str:
         for block in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+def _build_spot_connectivity_reference(
+    *,
+    repository: Path,
+    model_config: dict[str, Any],
+    physics: pd.DataFrame,
+    groups: list[str],
+) -> SpotConnectivityReference:
+    prediction_path = repository / str(
+        model_config["external_target_predictions"]["Rq_nm"]
+    )
+    predictions = pd.read_csv(
+        prediction_path, dtype={"growth_run_id": str}
+    ).set_index("growth_run_id")
+    rows = predictions.loc[groups]
+    required = {
+        "true_target",
+        "m19_predicted_target_nm",
+        "method",
+    }
+    missing = sorted(required - set(rows.columns))
+    if missing:
+        raise RuntimeError(
+            f"M20 deployment predictions are incomplete: {missing}"
+        )
+    if set(rows["method"].astype(str)) != {
+        "M20_spot_connectivity_calibrated_sq"
+    }:
+        raise RuntimeError("M22 deployment requires the audited M20 Sq head")
+    manifest_path = prediction_path.with_name("manifest.json")
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if bool(manifest.get("query_target_used_for_calibration", True)):
+        raise RuntimeError("M20 connectivity calibration used a query target")
+    raw_features = _feature_matrix(physics.loc[groups])
+    truth = rows["true_target"].to_numpy(float)
+    m19 = rows["m19_predicted_target_nm"].to_numpy(float)
+    log_residuals = np.log1p(np.maximum(truth, 0.0)) - np.log1p(
+        np.maximum(m19, 0.0)
+    )
+    return SpotConnectivityReference(
+        groups=list(groups),
+        raw_features=raw_features,
+        log_residuals=log_residuals,
+        neighbors=int(manifest["neighbors"]),
+        correction_strength=float(manifest["correction_strength"]),
+        bridge_merge_threshold=float(manifest["bridge_merge_threshold"]),
+        nonround_fraction_threshold=float(
+            manifest["nonround_fraction_threshold"]
+        ),
+        isolated_spot_threshold=float(manifest["isolated_spot_threshold"]),
+        isolated_interval_blend=float(manifest["isolated_interval_blend"]),
+    )
+
+
+def apply_spot_connectivity_upgrade(
+    rq: ScalarPrediction,
+    endpoint: EndpointPrediction | None,
+    query_physics: pd.DataFrame,
+    reference: SpotConnectivityReference | None,
+) -> tuple[ScalarPrediction, float]:
+    """Apply the audited M19/M20 rough-tail and spot-topology rules online."""
+
+    if endpoint is None or reference is None:
+        return rq, 0.50
+    query_raw = _feature_matrix(query_physics)
+    imputer = SimpleImputer(strategy="median")
+    scaler = RobustScaler()
+    train_values = scaler.fit_transform(
+        imputer.fit_transform(reference.raw_features)
+    )
+    query_values = scaler.transform(imputer.transform(query_raw))
+    count = min(int(reference.neighbors), len(reference.groups))
+    correction_model = KNeighborsRegressor(
+        n_neighbors=count,
+        weights="distance",
+    ).fit(train_values, reference.log_residuals)
+    correction = float(correction_model.predict(query_values)[0])
+    topology_z = query_values[0]
+    isolation = float(
+        expit(
+            np.mean(
+                [
+                    topology_z[0],
+                    topology_z[1],
+                    topology_z[2],
+                    -topology_z[3],
+                ]
+            )
+        )
+    )
+
+    base = float(rq.value)
+    rough_support = bool(
+        endpoint.rough_consensus_gate
+        or (base < 1.50 and endpoint.streak_expert_nm >= 2.50)
+    )
+    m19_value = (
+        max(base, float(endpoint.streak_expert_nm))
+        if rough_support
+        else base
+    )
+    merge_rate = float(query_raw[0, 0])
+    round_fraction = float(query_raw[0, 2])
+    connectivity_gate = bool(
+        rough_support
+        and merge_rate <= float(reference.bridge_merge_threshold)
+        and (
+            base > float(endpoint.streak_expert_nm)
+            or round_fraction < float(reference.nonround_fraction_threshold)
+        )
+    )
+    corrected = m19_value
+    if connectivity_gate:
+        corrected = float(
+            np.expm1(
+                np.log1p(max(m19_value, 0.0))
+                + float(reference.correction_strength) * correction
+            )
+        )
+    radius = max(float(rq.interval_upper) - base, 0.0)
+    if rough_support and isolation >= float(reference.isolated_spot_threshold):
+        source_upper = m19_value + radius
+        corrected += float(reference.isolated_interval_blend) * max(
+            source_upper - corrected, 0.0
+        )
+    corrected = max(float(corrected), 0.0)
+    upgraded = ScalarPrediction(
+        value=corrected,
+        unconstrained_value=corrected,
+        support_clipped=False,
+        expected_absolute_error=rq.expected_absolute_error,
+        confidence=rq.confidence,
+        interval_lower=max(corrected - radius, 0.0),
+        interval_upper=corrected + radius,
+        risk_score=rq.risk_score,
+        tta_confidence=rq.tta_confidence,
+        rotation_period_risk=rq.rotation_period_risk,
+        head_agreement_confidence=rq.head_agreement_confidence,
+    )
+    return upgraded, isolation
 
 
 def _embedding_frame(registry: pd.DataFrame, embedding_id: str) -> pd.DataFrame:
@@ -324,7 +498,7 @@ def build_deployment_bundle(
         raise RuntimeError("frozen M14i target-head mapping changed")
 
     model_config_path = repository / str(config["generation_config"])
-    model_config = json.loads(model_config_path.read_text(encoding="utf-8"))
+    model_config = load_config(model_config_path)
     frozen_generator_config = json.loads(
         m14_generator_parameters.read_text(encoding="utf-8")
     )
@@ -369,13 +543,16 @@ def build_deployment_bundle(
             "M17b_topology_sparse_peak_terrace": (
                 "regime_adaptive_topology_sparse_terrace"
             ),
+            "M22c_gap_completion_strong": (
+                "regime_adaptive_separated_islands"
+            ),
         }
         if endpoint_upgrade and audited_endpoint_generators.get(
             selected_generator
         ) != selected_mode:
             raise RuntimeError(
-                "endpoint-upgraded deployment must use an audited M16b or "
-                "M17b renderer/mode pair"
+                "endpoint-upgraded deployment must use an audited M16b, "
+                "M17b, or M22c renderer/mode pair"
             )
     elif _hash_file(model_config_path) != _hash_file(
         m14_generator_parameters
@@ -592,11 +769,25 @@ def build_deployment_bundle(
         resolution=int(model_config["resolution"]),
         removelist_sample_ids=tables["removelist"].sample_ids,
     )
-    deployment_model_id = (
-        M17_MODEL_ID
-        if model_config.get("selected_method")
-        == "M17b_topology_sparse_peak_terrace"
-        else M16_MODEL_ID
+    selected_generator = str(model_config.get("selected_method", ""))
+    spot_connectivity_reference = None
+    if selected_generator == "M22c_gap_completion_strong":
+        log("Fitting the full-cohort M20 spot-connectivity deployment head")
+        spot_connectivity_reference = _build_spot_connectivity_reference(
+            repository=repository,
+            model_config=model_config,
+            physics=target_physics,
+            groups=groups,
+        )
+    deployment_model_id = {
+        "M17b_topology_sparse_peak_terrace": M17_MODEL_ID,
+        "M22c_gap_completion_strong": M22_MODEL_ID,
+    }.get(selected_generator, M16_MODEL_ID)
+    connectivity_prediction_path = (
+        repository
+        / str(model_config["external_target_predictions"]["Rq_nm"])
+        if spot_connectivity_reference is not None
+        else None
     )
     return DeploymentBundle(
         model_id=deployment_model_id,
@@ -644,6 +835,20 @@ def build_deployment_bundle(
                 if endpoint_upgrade
                 else {}
             ),
+            **(
+                {
+                    "m20_connectivity_predictions": _hash_file(
+                        connectivity_prediction_path
+                    ),
+                    "m20_connectivity_manifest": _hash_file(
+                        connectivity_prediction_path.with_name(
+                            "manifest.json"
+                        )
+                    ),
+                }
+                if connectivity_prediction_path is not None
+                else {}
+            ),
         },
         retrieval_at_inference=False,
         measured_afm_patch_at_inference=False,
@@ -655,6 +860,7 @@ def build_deployment_bundle(
         endpoint_confidence_error_reference=(
             endpoint_confidence_error_reference
         ),
+        spot_connectivity_reference=spot_connectivity_reference,
     )
 
 
@@ -711,7 +917,7 @@ class RealtimeMorphologyPredictor:
         path: str | Path,
         *,
         device: str = "auto",
-    ) -> "RealtimeMorphologyPredictor":
+    ) -> RealtimeMorphologyPredictor:
         return cls(load_deployment_bundle(path), device=device)
 
     @torch.inference_mode()
@@ -834,12 +1040,11 @@ class RealtimeMorphologyPredictor:
             range_aware_risk = float(
                 0.75 * amplitude_risk + 0.25 * angular_risk
             )
-            combined, veto = combine_tta_and_head_confidence(
+            combined, _veto = combine_tta_and_head_confidence(
                 1.0 - range_aware_risk,
                 head_confidence,
                 extreme_quantile=0.10,
             )
-            extreme_head_veto = bool(veto.item())
             confidence = float(combined.item())
             composite_risk = 1.0 - confidence
             reference_risk = reference.confidence_risk_reference
@@ -949,7 +1154,7 @@ class RealtimeMorphologyPredictor:
         query_embedding: np.ndarray,
         query_streak: float,
         legacy: ScalarPrediction,
-    ) -> ScalarPrediction:
+    ) -> tuple[ScalarPrediction, EndpointPrediction | None]:
         """Apply M16 to Sq while retaining target-blind angular diagnostics."""
 
         # ``getattr`` preserves read compatibility with pre-M16 joblib bundles.
@@ -969,7 +1174,7 @@ class RealtimeMorphologyPredictor:
             or risk_reference is None
             or error_reference is None
         ):
-            return legacy
+            return legacy, None
         truth = np.exp(
             self.bundle.rq_reference.log_target.loc[
                 self.bundle.groups
@@ -1010,18 +1215,23 @@ class RealtimeMorphologyPredictor:
         confidence = float(np.clip(1.0 - risk, 0.0, 1.0))
         if support_clipped:
             confidence *= 0.5
-        return ScalarPrediction(
-            value=value,
-            unconstrained_value=unconstrained,
-            support_clipped=bool(support_clipped),
-            expected_absolute_error=float(expected_error),
-            confidence=confidence,
-            interval_lower=float(max(value - radius, 0.0)),
-            interval_upper=float(value + radius),
-            risk_score=float(risk),
-            tta_confidence=legacy.tta_confidence,
-            rotation_period_risk=legacy.rotation_period_risk,
-            head_agreement_confidence=legacy.head_agreement_confidence,
+        return (
+            ScalarPrediction(
+                value=value,
+                unconstrained_value=unconstrained,
+                support_clipped=bool(support_clipped),
+                expected_absolute_error=float(expected_error),
+                confidence=confidence,
+                interval_lower=float(max(value - radius, 0.0)),
+                interval_upper=float(value + radius),
+                risk_score=float(risk),
+                tta_confidence=legacy.tta_confidence,
+                rotation_period_risk=legacy.rotation_period_risk,
+                head_agreement_confidence=(
+                    legacy.head_agreement_confidence
+                ),
+            ),
+            endpoint,
         )
 
     def predict(
@@ -1102,10 +1312,16 @@ class RealtimeMorphologyPredictor:
             estimated_period_frames=estimated_period_frames,
         )
         streak_features = extract_streak_features(frames[:8])
-        rq = self._endpoint_rq(
+        rq, endpoint = self._endpoint_rq(
             query_embedding=causal_embedding,
             query_streak=streak_features[PRIMARY_STREAK_FEATURE],
             legacy=legacy_rq,
+        )
+        rq, predicted_isolation = apply_spot_connectivity_upgrade(
+            rq,
+            endpoint,
+            query_physics,
+            getattr(self.bundle, "spot_connectivity_reference", None),
         )
         fsmi = self._scalar(
             self.bundle.fsmi_reference,
@@ -1156,8 +1372,10 @@ class RealtimeMorphologyPredictor:
             spectral,
             primary_weight=float(config["matern_blend_weight"]),
         )
-        island_target = self.bundle.island_model.predict(condition_z)
-        structure = generator.generate_ensemble(
+        island_target = dict(self.bundle.island_model.predict(condition_z))
+        island_target["rheed_spot_isolation_score"] = predicted_isolation
+        island_target["conditioning_sq_nm"] = rq.value
+        baseline_structure = generator.generate_ensemble(
             island_target,
             draws=1,
             seed=int(seed) + 300_000,
@@ -1167,16 +1385,43 @@ class RealtimeMorphologyPredictor:
         # frozen M12a provenance even though the final renderer uses the same
         # structure and prior directly.
         _structure_blend(
-            structure,
+            baseline_structure,
             prior,
             weight=float(config["m10_structure_weight"]),
         )
+        renderer = dict(config.get("candidate_renderer_defaults", {}))
+        renderer.update(config["selected_renderer"])
+        generator_mode = str(
+            renderer.pop("island_generator_mode", "laguerre")
+        )
+        if (
+            generator_mode in GROWTH_LAYER_GENERATOR_MODES
+            and rq.value >= 7.6
+        ):
+            generator_mode = "separated_ellipse_strict_sparse"
+        if generator_mode == "laguerre":
+            structure = baseline_structure
+        else:
+            structure = generator.generate_ensemble(
+                island_target,
+                draws=1,
+                seed=(
+                    int(seed)
+                    + 300_000
+                    + STABLE_GENERATOR_SEED_OFFSETS.get(
+                        generator_mode, 100_000
+                    )
+                ),
+                mode=generator_mode,
+            )
         unit_shape = render_ensemble(
             structure,
             prior,
+            baseline_structure=baseline_structure,
             conditioning_sq_nm=rq.value,
             island_target=island_target,
-            **config["selected_renderer"],
+            rough_isolation_score=predicted_isolation,
+            **renderer,
         )[0].astype(np.float32)
         height_nm = (unit_shape * float(rq.value)).astype(np.float32)
         generated_rq = float(

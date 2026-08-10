@@ -5,7 +5,13 @@ import json
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
 
+from analysis.rheed_endpoint_generation.endpoint_ensemble import (
+    EndpointPrediction,
+)
+from analysis.rheed_rough_island_redesign.connectivity import _feature_matrix
+from analysis.rheed_to_afm_full_cohort_loo.run import load_config
 from analysis.rheed_to_afm_functional_morphology.amplitude import (
     CURATED_RHEED_FEATURES,
     DYNAMIC_NUCLEATION_FEATURES,
@@ -15,27 +21,31 @@ from rheed2morph.realtime.catalog import (
     group_by_sample,
     read_removelist,
 )
+from rheed2morph.realtime.cli import repository_root_from_config
 from rheed2morph.realtime.clips import (
     build_causal_perturbation_clips,
     build_model_clip,
     live_physics_row,
 )
-from rheed2morph.realtime.cli import repository_root_from_config
 from rheed2morph.realtime.model import (
-    MODEL_ID,
     M17_MODEL_ID,
+    M22_MODEL_ID,
+    MODEL_ID,
     RealtimeMorphologyPredictor,
+    ScalarPrediction,
+    SpotConnectivityReference,
+    apply_spot_connectivity_upgrade,
     load_deployment_bundle,
-)
-from rheed2morph.realtime.ui import (
-    RealtimeMainWindow,
-    event_pipeline_complete,
 )
 from rheed2morph.realtime.selector import (
     _event_rows,
     _lattice_vertex_scores,
     causal_candidate_rows,
     full_lattice_fallback_eligible,
+)
+from rheed2morph.realtime.ui import (
+    RealtimeMainWindow,
+    event_pipeline_complete,
 )
 from rheed2morph.realtime.workers import PredictionWorker, ReplayWorker
 from rheed2morph.rheed.automatic_roi_keyframe import Rect
@@ -44,12 +54,15 @@ from rheed2morph.rheed.orientation import (
     rotation_for_sample,
 )
 
-
 REPOSITORY = Path(__file__).resolve().parents[1]
 CONFIG_PATH = REPOSITORY / "configs/rheed_realtime_ui.json"
 M17_CONFIG_PATH = (
     REPOSITORY
     / "configs/rheed_realtime_ui_m17_full27_line3_exclude6081_v9.json"
+)
+M22_CONFIG_PATH = (
+    REPOSITORY
+    / "configs/rheed_realtime_ui_m22_full27_dense_mid_v10.json"
 )
 
 
@@ -123,7 +136,7 @@ def test_causal_tta_views_match_k_plus_8_replay_ring() -> None:
     )
     lookup = {name: views[index] for index, name in enumerate(names)}
     # Input values 0..17 represent k-9..k+8.
-    assert lookup["frame_m2"][:, 16, 16].tolist() == list(range(0, 8))
+    assert lookup["frame_m2"][:, 16, 16].tolist() == list(range(8))
     assert lookup["frame_m1"][:, 16, 16].tolist() == list(range(1, 9))
     assert lookup["base"][:, 16, 16].tolist() == list(range(2, 10))
     assert lookup["frame_p1"][:, 16, 16].tolist() == list(range(3, 11))
@@ -424,6 +437,96 @@ def test_realtime_renderer_receives_predicted_island_target() -> None:
 
 def test_m17_model_identity_is_supported() -> None:
     assert "M17b-TopologySparsePeakTerrace" in M17_MODEL_ID
+
+
+def test_m22_realtime_config_resolves_dense_mid_generator() -> None:
+    config = json.loads(M22_CONFIG_PATH.read_text(encoding="utf-8"))
+    generation = load_config(REPOSITORY / config["generation_config"])
+
+    assert generation["expected_growth_count"] == 27
+    assert generation["selected_method"] == "M22c_gap_completion_strong"
+    assert generation["selected_renderer"] == {
+        "mode": "regime_adaptive_separated_islands",
+        "island_generator_mode": (
+            "separated_ellipse_growth_layered_gapfill_strong"
+        ),
+        "rough_start_nm": 2.2,
+        "rough_full_nm": 3.6,
+        "rough_structure_weight": 0.85,
+        "rough_texture_weight": 0.15,
+        "rough_texture_sigma_px": 2.0,
+        "rough_tip_sigma_px": 0.5,
+        "rough_isolation_strength": 1.0,
+    }
+    assert config["ui_model_badge"] == "M20 + M22c | READY"
+    assert "m20_m22c" in config["deployment_bundle"]
+    assert "M22c-DenseMidGapCompletion" in M22_MODEL_ID
+
+
+def test_online_m20_spot_connectivity_upgrade_uses_query_rheed_only() -> None:
+    physics = np.asarray(
+        [
+            [-3.0, 9.0, 0.15, 0.0005],
+            [-2.8, 8.0, 0.20, 0.0008],
+            [-2.6, 7.0, 0.25, 0.0010],
+        ],
+        dtype=float,
+    )
+    from analysis.rheed_rough_island_redesign.connectivity import (
+        CONNECTIVITY_FEATURES,
+    )
+
+    physical_frame = {
+        name: physics[:, index]
+        for index, name in enumerate(CONNECTIVITY_FEATURES)
+    }
+    query = {
+        name: [physics[0, index]]
+        for index, name in enumerate(CONNECTIVITY_FEATURES)
+    }
+    reference = SpotConnectivityReference(
+        groups=["a", "b", "c"],
+        raw_features=_feature_matrix(pd.DataFrame(physical_frame)),
+        log_residuals=np.full(3, 0.10),
+        isolated_spot_threshold=1.1,
+    )
+    rq = ScalarPrediction(
+        value=4.0,
+        unconstrained_value=4.0,
+        support_clipped=False,
+        expected_absolute_error=0.5,
+        confidence=0.7,
+        interval_lower=3.0,
+        interval_upper=5.0,
+        risk_score=0.3,
+        tta_confidence=0.8,
+        rotation_period_risk=0.2,
+        head_agreement_confidence=0.9,
+    )
+    endpoint = EndpointPrediction(
+        value_nm=4.0,
+        temporal_5_nm=4.2,
+        temporal_8_nm=4.0,
+        streak_expert_nm=3.0,
+        streak_gate=False,
+        rough_consensus_gate=True,
+        streak_threshold=2.0,
+        upper_threshold_nm=3.5,
+        expert_log_range=0.2,
+        nearest_embedding_distance=0.3,
+        streak_robust_z=0.4,
+    )
+
+    upgraded, isolation = apply_spot_connectivity_upgrade(
+        rq,
+        endpoint,
+        pd.DataFrame(query),
+        reference,
+    )
+
+    assert upgraded.value > rq.value
+    assert np.isclose(upgraded.interval_upper - upgraded.value, 1.0)
+    assert 0.0 <= isolation <= 1.0
 
 
 def test_realtime_ui_source_contains_no_cjk_text() -> None:

@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-import json
-from pathlib import Path
 import time
+from pathlib import Path
 
 import matplotlib
 
 matplotlib.use("QtAgg")
+import numpy as np
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-import numpy as np
 from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QColor, QFont, QImage, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
@@ -86,7 +85,7 @@ class VideoCanvas(QWidget):
         self._event = bool(event)
         self.update()
 
-    def paintEvent(self, event) -> None:  # noqa: N802
+    def paintEvent(self, event) -> None:
         painter = QPainter(self)
         painter.fillRect(self.rect(), QColor("#071018"))
         if self._frame is None:
@@ -598,10 +597,10 @@ class RealtimeMainWindow(QMainWindow):
         self.sample_combo.addItems(sorted(self.entries))
         if "6063" in self.entries:
             self.sample_combo.setCurrentText("6063")
-        generation_config = json.loads(
-            (
-                self.repository / self.config["generation_config"]
-            ).read_text(encoding="utf-8")
+        from analysis.rheed_to_afm_full_cohort_loo.run import load_config
+
+        generation_config = load_config(
+            self.repository / self.config["generation_config"]
         )
         training_growth_count = int(
             generation_config.get("expected_growth_count", 0)
@@ -793,7 +792,7 @@ class RealtimeMainWindow(QMainWindow):
             f"{prediction.fsmi.interval_upper:.2f}]"
             + ("  ·  SUPPORT CLIP" if prediction.fsmi.support_clipped else "")
         )
-        percent = int(round(prediction.model_confidence * 100))
+        percent = round(prediction.model_confidence * 100)
         self.confidence_card.value.setText(f"{percent}%")
         tta_percent = min(
             prediction.rq.tta_confidence,
@@ -967,7 +966,7 @@ class RealtimeMainWindow(QMainWindow):
         self.stop_button.setEnabled(False)
         QMessageBox.critical(self, "Real-time pipeline error", message)
 
-    def closeEvent(self, event) -> None:  # noqa: N802
+    def closeEvent(self, event) -> None:
         self.stop_session(silent=True)
         if self.prediction_worker is not None:
             self.prediction_worker.stop()

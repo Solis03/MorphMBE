@@ -5,18 +5,18 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import platform
 import sys
 import time
+from pathlib import Path
 
 import torch
 
+from rheed2morph.realtime.cli import repository_root_from_config
 from rheed2morph.realtime.model import (
     build_deployment_bundle,
     save_deployment_bundle,
 )
-from rheed2morph.realtime.cli import repository_root_from_config
 
 
 def parse_args() -> argparse.Namespace:
@@ -70,9 +70,13 @@ def main() -> None:
         "frozen_parameter_hashes": bundle.frozen_parameter_hashes,
         "method": {
             "Sq_nm": (
-                "M16_endpoint_streak_dual_resolution"
-                if bundle.endpoint_streak_reference is not None
-                else bundle.rq_reference.method
+                "M20_spot_connectivity_calibrated_sq"
+                if bundle.spot_connectivity_reference is not None
+                else (
+                    "M16_endpoint_streak_dual_resolution"
+                    if bundle.endpoint_streak_reference is not None
+                    else bundle.rq_reference.method
+                )
             ),
             "legacy_internal_target_name": "Rq_nm",
             "FSMI_nm": bundle.fsmi_reference.method,
@@ -89,7 +93,10 @@ def main() -> None:
             ),
             "rotation_period_reference_available": (
                 bundle.period_frames_reference is not None
-            )
+            ),
+            "spot_connectivity_reference_available": (
+                bundle.spot_connectivity_reference is not None
+            ),
         },
         "runtime": {
             "python": sys.version,

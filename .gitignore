@@ -22,6 +22,7 @@ data/plane_corrected_afm/
 outputs/
 checkpoints/
 tmp/
+standalone/
 
 # Local decode/cache files from prospective unseen keyframe selection.
 publication_freeze/prospective_unseen_single_frame_v1/cache/
